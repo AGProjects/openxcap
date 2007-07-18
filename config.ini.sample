@@ -1,0 +1,43 @@
+;
+; Configuration file for OpenXCAP
+;
+
+[Server]
+
+; IP address and port to listen for requests
+; 0.0.0.0 means any address of this host
+address = 0.0.0.0
+port = 8000
+; TLS enabling
+tls = No
+; The applications supported by this server
+applications = pres-rules, rls-services, resource-lists
+; The XCAP Root URI
+root = http://xcap.example.com
+
+[TLS]
+
+; Server certificate
+certificate = server.crt
+; Server private key
+private_key = server.key
+
+[Authentication]
+
+; The HTTP authentication type, this can be either 'basic' or 'digest'.
+; If you're using TLS, it's better to choose 'basic' because the data is encrypted anyway.
+type = basic
+default_realm = example.com
+db_uri = mysql://username:password@db-host/openser
+
+[Storage]
+
+db_uri = mysql://username:password@db-host/openser
+
+[OpenSER]
+
+; Configuration settings for OpenSER interfacing, if the OpenSER storage backend 
+; is selected.
+
+; The address and port where the XMLRPC Management Interface of OpenSER is listening
+xmlrpc_url = http://localhost:8080

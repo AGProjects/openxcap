@@ -1,0 +1,31 @@
+#!wing
+#!version=2.0
+##################################################################
+# Wing IDE project file                                          #
+##################################################################
+[project attributes]
+proj.file-list = [loc('boot/openxcap.debian'),
+                  loc('config.ini.sample'),
+                  loc('openxcap'),
+                  loc('test/test_document.py'),
+                  loc('test/xcaptest.py'),
+                  loc('test/__init__.py'),
+                  loc('xcap/applications.py'),
+                  loc('xcap/authentication.py'),
+                  loc('xcap/dbutil.py'),
+                  loc('xcap/errors.py'),
+                  loc('xcap/interfaces/openser.py'),
+                  loc('xcap/interfaces/storage/database.py'),
+                  loc('xcap/interfaces/storage/openser.py'),
+                  loc('xcap/interfaces/storage/__init__.py'),
+                  loc('xcap/interfaces/__init__.py'),
+                  loc('xcap/resource.py'),
+                  loc('xcap/server.py'),
+                  loc('xcap/tls.py'),
+                  loc('xcap/uri.py'),
+                  loc('xcap/__init__.py'),
+                  loc('xml-schemas/common-policy.xsd'),
+                  loc('xml-schemas/presence-rules.xsd'),
+                  loc('xml-schemas/resource-lists.xsd'),
+                  loc('xml-schemas/rls-services.xsd')]
+proj.file-type = 'shared'
