@@ -39,22 +39,24 @@ readSettings('Server', ServerConfig)
 
 print 'Supported Root URIs: %s' % ','.join(root_uris)
 
-class DocumentSelector(object):
-    """DocumentSelector has the following attributes: application_id, context, user_id
-       and document."""
-    
+class DocumentSelector(str):
+    """Constructs a DocumentSelector containing the application_id, context, user_id
+       and document from the given selector string."""
+
     def __init__(self, selector):
+        if not isinstance(selector, str):
+            raise TypeError("Document Selector must be a string")
         segments  = selector.split('/')
-        if not segments[0]:
+        if not segments[0]: ## ignore first '/'
             segments.pop(0)
-        if not segments[-1]:
+        if not segments[-1]: ## ignore last '/' if present
             segments.pop()
         if len(segments) < 2:
-            raise ResourceNotFound("invalid document selector")
+            raise ValueError("invalid Document Selector")
         self.application_id = segments[0]
         self.context = segments[1]     ## either "global" or "users"
         if self.context not in ("users", "global"):
-            raise ResourceNotFound("the doc selector context must be 'users' or 'global'")
+            raise ValueError("the Document Selector context must be 'users' or 'global'")
         self.user_id = None
         if self.context == "users":
             self.user_id = segments[2]
@@ -62,12 +64,12 @@ class DocumentSelector(object):
         else:
             segments = segments[2:]
         if not segments:
-            raise ResourceNotFound("missing documents path")
+            raise ValueError("invalid Document Selector: missing document's path")
         self.document = segments[-1]
+        str.__init__(self, selector)
 
+class NodeSelector(str):
 
-class NodeSelector(object):
-    
     xmlns_regexp = re.compile(r'^xmlns\((?P<p>[_a-z]+)=(?P<ns>[0-9a-z:_\.\-]+)\)$', re.IGNORECASE|re.UNICODE)
     
     def __init__(self, selector):
@@ -87,6 +89,7 @@ class NodeSelector(object):
                 m = re.match(self.xmlns_regexp, e)
                 if m:
                     self.ns_bindings[m.group('p')] = m.group('ns')
+        str.__init__(self, selector)
                 
     ## http://www.w3.org/TR/2003/REC-xptr-xmlns-20030325/
     def get_ns_bindings(self, default_ns):
@@ -111,7 +114,10 @@ class XCAPUri(object):
             self.resource_selector = self.resource_selector[first_slash:]
         _split = self.resource_selector.split(self.node_selector_separator, 1)
         doc_selector = _split[0]
-        self.doc_selector = DocumentSelector(_split[0])  ## the Document Selector
+        try:
+            self.doc_selector = DocumentSelector(_split[0])  ## the Document Selector
+        except (TypeError, ValueError), e:
+            raise ResourceNotFound(str(e))
         if len(_split) == 2:                             ## the Node Selector
             self.node_selector = NodeSelector(_split[1]) 
         else:
