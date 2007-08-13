@@ -18,7 +18,6 @@ class ManagementInterface(object):
     __metaclass__ = Singleton
 
     def __init__(self):
-        print OpenSERConfig.xmlrpc_url + '/RPC2'
         self.proxy = xmlrpc.Proxy(OpenSERConfig.xmlrpc_url + '/RPC2')
 
     def notify_watchers(self, id):
