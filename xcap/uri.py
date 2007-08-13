@@ -8,11 +8,11 @@ import urlparse
 
 from application.configuration import readSettings, ConfigSection, getSection
 from application import log
-from application.debug.timing import timer
 
 #from xcap.authentication import XCAPUser
 import xcap
 from xcap.errors import *
+
 
 class XCAPRootURIs(tuple):
     """Configuration data type. A tuple of defined XCAP Root URIs is extracted from
@@ -38,6 +38,78 @@ class ServerConfig(ConfigSection):
 readSettings('Server', ServerConfig)
 
 print 'Supported Root URIs: %s' % ','.join(root_uris)
+
+class XCAPUser(object):     ## poate ar trebui definit ca username si realm
+    """XCAP User avatar."""
+    
+    def __init__(self, user_id): 
+        if user_id.startswith("sip:"):
+            user_id = user_id[4:]
+        _split = user_id.split('@', 1)
+        self.username = _split[0]
+        if len(_split) == 2:
+            self.domain = _split[1]
+        else:
+            self.domain = None
+
+    def __eq__(self, other):
+        return isinstance(other, XCAPUser) and self.username == other.username and self.domain == other.domain
+
+
+class TerminalSelector(str): pass
+class AttributeSelector(TerminalSelector): pass
+class NamespaceSelector(TerminalSelector): pass
+class ExtensionSelector(TerminalSelector): pass
+
+
+class NodeSelector(str):
+
+    XMLNS_REGEXP = re.compile("xmlns\((?P<nsdata>.*?)\)")
+    XPATH_DEFAULT_NS = "default"
+
+    def __init__(self, selector):
+        _sections = selector.split('?', 1)
+        segs = _sections[0].strip('/').split('/')  ## the Node Selector segments
+        if len(segs) > 1:
+            terminal = segs.pop()
+            if terminal.startswith('@'):
+                self.terminal_selector = AttributeSelector(terminal)
+            elif terminal == 'namespace::*':
+                self.terminal_selector = NamespaceSelector(terminal)
+            else:
+                if terminal.find(':') == -1:
+                    terminal = '%s:%s' % (self.XPATH_DEFAULT_NS, terminal)
+                self.terminal_selector = ExtensionSelector(terminal)
+        else:
+            self.terminal_selector = None
+        segs = [s.find(':') == -1 and '%s:%s' % (self.XPATH_DEFAULT_NS, s) or s for s in segs]
+        self.element_selector = '/' + '/'.join(segs)
+        if len(_sections) == 2: ## a query component is present
+            self.ns_bindings = self._parse_query(_sections[1])
+        else:
+            self.ns_bindings = {}
+        str.__init__(self, '%s/%s' % (self.element_selector, self.terminal_selector))
+
+    ## http://www.w3.org/TR/2003/REC-xptr-xmlns-20030325/
+    def _parse_query(self, query):
+        """Return a dictionary of namespace bindings defined by the xmlns() XPointer 
+           expressions from the given query."""
+        ns_bindings = {}
+        ns_matches = self.XMLNS_REGEXP.findall(query)
+        for m in ns_matches:
+            try:
+                prefix, ns = m.split('=')
+                ns_bindings[prefix] = ns
+            except ValueError:
+                log.error("Ignoring invalid XPointer XMLNS expression: %s" % m)
+                continue
+        return ns_bindings
+
+    def get_xpath_ns_bindings(self, default_ns):
+        ns_bindings = self.ns_bindings.copy()
+        ns_bindings[self.XPATH_DEFAULT_NS] = default_ns
+        return ns_bindings
+
 
 class DocumentSelector(str):
     """Constructs a DocumentSelector containing the application_id, context, user_id
@@ -68,32 +140,6 @@ class DocumentSelector(str):
         self.document = segments[-1]
         str.__init__(self, selector)
 
-class NodeSelector(str):
-
-    xmlns_regexp = re.compile(r'^xmlns\((?P<p>[_a-z]+)=(?P<ns>[0-9a-z:_\.\-]+)\)$', re.IGNORECASE|re.UNICODE)
-
-    def __init__(self, selector):
-        _sections = selector.split('?', 1)
-        segs = _sections[0].strip('/').split('/')  ## the Node Selector segments
-        segs = [s.find(':') == -1 and 'default:' + s or s for s in segs]
-        self.element_selector = '/' + '/'.join(segs[:-1])
-        self.terminal_selector = segs[-1]
-        #print 'target selector: ', self.element_selector
-        #print 'target node: ', self.terminal_selector
-        self.ns_bindings = {'default': None}
-        if len(_sections) == 2:
-            expr = _sections[1].split()  ## the list of xpointer expressions
-            for e in expr:
-                m = re.match(self.xmlns_regexp, e)
-                if m:
-                    self.ns_bindings[m.group('p')] = m.group('ns')
-        str.__init__(self, '%s/%s' % (self.element_selector, self.terminal_selector))
-
-    ## http://www.w3.org/TR/2003/REC-xptr-xmlns-20030325/
-    def get_ns_bindings(self, default_ns):
-        self.ns_bindings['default'] = default_ns
-        return self.ns_bindings
-
 
 class XCAPUri(object):
     """An XCAP URI containing the XCAP root, document selector and node selector."""
@@ -113,8 +159,9 @@ class XCAPUri(object):
         _split = self.resource_selector.split(self.node_selector_separator, 1)
         doc_selector = _split[0]
         try:
-            self.doc_selector = DocumentSelector(_split[0])  ## the Document Selector
+            self.doc_selector = DocumentSelector(doc_selector)  ## the Document Selector
         except (TypeError, ValueError), e:
+            log.error("Invalid Document Selector %s (%s)" % (doc_selector, str(e)))
             raise ResourceNotFound(str(e))
         if len(_split) == 2:                             ## the Node Selector
             self.node_selector = NodeSelector(_split[1]) 
@@ -140,81 +187,3 @@ def parseNodeURI(node_uri, default_realm='example.com'):
         raise ResourceNotFound("XCAP root not found for uri: %s" % node_uri)
     resource_selector = node_uri[len(xcap_root):]
     return XCAPUri(xcap_root, resource_selector, default_realm)
-
-def test():
-    uri = "http://xcap.example.com/test/users/sip:joe@example.com/index/~~/foo/a:bar/b:baz?xmlns(a=urn:test:namespace1-uri)xmlns(b=urn:test:namespace1-uri)"
-    t = timer(count)    
-    for i in xrange(count):
-        XCAPUri(uri)
-    t.end(rate=True, msg="XCAP URI parses")    
-
-if __name__ == "__main__":
-    uri = "http://xcap.example.com/test/users/sip:joe@example.com/index/~~/foo/a:bar/b:baz?xmlns(a=urn:test:namespace1-uri)xmlns(b=urn:test:namespace1-uri)"
-    
-    #uri = XCAPUri(uri)
-    #print 'XCAP root: ', uri.xcap_root
-    #doc_selector = uri.doc_selector
-    #print 'Document Selector'
-    #print '\tApplication ID: ', doc_selector.application_id
-    #print '\tContext: ', doc_selector.context
-    #print '\tUser ID: ', doc_selector.user_id
-    #print '\tDocument: ', doc_selector.document
-    #node_selector = uri.node_selector
-
-    #node_selector = NodeSelector('/foo/a:bar/b:baz?xmlns(a=urn:test:namespace1-uri) xmlns(b=urn:test:namespace1-uri) ')
-    #node_selector = NodeSelector('/foo/a:bar/b:baz?xmlns(a=urn:test:namespace1-uri) xmlns(b=urn:test:namespace2-uri)')
-    #node_selector = NodeSelector('/d:foo/a:bar/b:baz?xmlns(a=urn:test:namespace1-uri) xmlns(b=urn:test:namespace2-uri) xmlns(d=urn:test:default-namespace)')
-    node_selector = NodeSelector('watcherinfo/watcher-list1/watcher[@id="8ajksjda7s"]')
-    
-    print 'Node Selector'
-    print '\tSelector: ', node_selector.selector
-    print '\tNS bindings: ', node_selector.get_ns_bindings('urn:test:default-namespace')
-
-    from lxml import etree
-    from StringIO import StringIO
-    
-    
-    #document = """<?xml version="1.0"?>
-   #<foo xmlns="urn:test:default-namespace">
-     #<ns1:bar xmlns:ns1="urn:test:namespace1-uri"
-              #xmlns="urn:test:namespace1-uri">
-       #<baz/>
-       #<ns2:baz xmlns:ns2="urn:test:namespace2-uri"/>
-     #</ns1:bar>
-     #<ns3:hi xmlns:ns3="urn:test:namespace3-uri">
-       #<there/>
-     #</ns3:hi>
-   #</foo>"""
-
-    document =     '''<?xml version="1.0"?>
-   <watcherinfo xmlns="urn:ietf:params:xml:ns:watcherinfo"
-                version="0" state="full">
-     <watcher-list resource="sip:professor@example.net"
-                   package="presence">
-       <watcher status="active"
-                id="8ajksjda7s"
-                duration-subscribed="509"
-                event="approved">sip:userA@example.net</watcher>
-       <watcher status="pending"
-                id="hh8juja87s997-ass7"
-                display-name="Mr. Subscriber"
-                event="subscribe">sip:userB@example.org</watcher>
-     </watcher-list>
-   </watcherinfo>'''   
-   
-    xml_doc = etree.parse(StringIO(document))
-    #ns_dict = node_selector.get_ns_bindings('urn:test:default-namespace')
-    ns_dict = node_selector.get_ns_bindings('urn:ietf:params:xml:ns:watcherinfo')
-    
-    ## active watchers
-    print node_selector.selector
-    print ns_dict
-    
-    result = xml_doc.xpath(node_selector.selector, ns_dict)
-    print result
-    #print dir(result[0])
-    
-    print etree.tostring(result[0])
-    print result[0]
-    # test()
-

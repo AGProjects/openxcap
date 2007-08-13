@@ -31,7 +31,7 @@ def run():
     testList = [
         'test_document',
         'test_element',
-        #'test_attribute',
+        'test_attribute',
         'test_etags',
         'test_auth'
     ]

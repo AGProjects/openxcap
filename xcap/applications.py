@@ -109,7 +109,7 @@ class XCAPApplication(object):
         xml_doc = etree.parse(StringIO(document))
         node_selector = uri.node_selector
         application = getApplicationForURI(uri)
-        ns_dict = node_selector.get_ns_bindings(application.default_ns)
+        ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
         try:
             parent = xml_doc.xpath(node_selector.element_selector, ns_dict)
         except:
@@ -143,9 +143,10 @@ class XCAPApplication(object):
         xml_doc = etree.parse(StringIO(document))
         node_selector = uri.node_selector
         application = getApplicationForURI(uri)
-        ns_dict = node_selector.get_ns_bindings(application.default_ns)
+        ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
         try:
-            elem = xml_doc.xpath(node_selector.selector, ns_dict)
+            selector = node_selector.element_selector + '/' + node_selector.terminal_selector
+            elem = xml_doc.xpath(selector, ns_dict)
         except:
             raise ResourceNotFound
         if not elem:
@@ -166,9 +167,10 @@ class XCAPApplication(object):
         xml_doc = etree.parse(StringIO(document))        
         node_selector = uri.node_selector
         application = getApplicationForURI(uri)
-        ns_dict = node_selector.get_ns_bindings(application.default_ns)
+        ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
         try:
-            elem = xml_doc.xpath(node_selector.selector, ns_dict)
+            selector = node_selector.element_selector + '/' + node_selector.terminal_selector
+            elem = xml_doc.xpath(selector, ns_dict)
         except:
             raise ResourceNotFound
         if len(elem) != 1:
@@ -180,6 +182,7 @@ class XCAPApplication(object):
 
     def delete_element(self, uri, check_etag):
         d = self.get_document(uri, check_etag)
+        print 'delete element: ', uri
         return d.addCallbacks(self._cb_delete_element, callbackArgs=(uri, check_etag))
 
     ## Attribute management
@@ -188,14 +191,14 @@ class XCAPApplication(object):
         """This is called when the document that relates to the attribute is retreived."""
         if response.code == 404:
             raise ResourceNotFound
-        print document.data
         document = response.data
         xml_doc = etree.parse(StringIO(document))
         node_selector = uri.node_selector
         application = getApplicationForURI(uri)
-        ns_dict = node_selector.get_ns_bindings(application.default_ns)
+        ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
         try:
-            attribute = xml_doc.xpath(node_selector.selector, ns_dict)
+            selector = node_selector.element_selector + '/' + node_selector.terminal_selector
+            attribute = xml_doc.xpath(selector, ns_dict)
         except:
             raise ResourceNotFound
         if len(attribute) != 1:
@@ -217,7 +220,7 @@ class XCAPApplication(object):
         xml_doc = etree.parse(StringIO(document))        
         node_selector = uri.node_selector
         application = getApplicationForURI(uri)
-        ns_dict = node_selector.get_ns_bindings(application.default_ns)
+        ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
         try:
             elem = xml_doc.xpath(node_selector.element_selector, ns_dict)
         except:
@@ -245,7 +248,7 @@ class XCAPApplication(object):
         xml_doc = etree.parse(StringIO(document))
         node_selector = uri.node_selector
         application = getApplicationForURI(uri)
-        ns_dict = node_selector.get_ns_bindings(application.default_ns)
+        ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
         try:
             elem = xml_doc.xpath(node_selector.element_selector, ns_dict)
         except:

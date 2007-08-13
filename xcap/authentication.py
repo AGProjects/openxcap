@@ -16,9 +16,9 @@ from application.configuration import readSettings, ConfigSection
 from application import log
 
 from xcap.applications import getApplicationForURI
-from xcap.uri import parseNodeURI
 from xcap.dbutil import connectionForURI
 from xcap.errors import ResourceNotFound
+from xcap.uri import parseNodeURI
 
 
 class AuthenticationConfig(ConfigSection):
@@ -97,7 +97,7 @@ class IXCAPUser(Interface):
 class XCAPUser(object):     ## poate ar trebui definit ca username si realm
     """XCAP User avatar."""
     implements(IXCAPUser)
-    
+
     def __init__(self, user_id): 
         if user_id.startswith("sip:"):
             user_id = user_id[4:]

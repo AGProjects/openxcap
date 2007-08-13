@@ -54,27 +54,27 @@ class AttributeTest(XCAPTest):
         self.assertHeader('ETag')
         self.assertHeader('Content-type', 'application/xcap-att+xml')
 
-    #def test_delete(self):
-        #self.put_resource('resource-lists', resource_list_xml)
-        #self.assertStatus([200, 201])
+    def test_delete(self):
+        self.put_resource('resource-lists', resource_list_xml)
+        self.assertStatus([200, 201])
         
-        #self.delete_resource('resource-lists', '/resource-lists/list[@name="other"]/@some-attribute')
-        #self.assertStatus(404)
+        self.delete_resource('resource-lists', '/resource-lists/list[@name="other"]/@some-attribute')
+        self.assertStatus(404)
 
-        #self.delete_resource('resource-lists', '/resource-lists/list[@name="friends"]/@name')
-        #self.assertStatus(200)
+        self.delete_resource('resource-lists', '/resource-lists/list[@name="friends"]/@name')
+        self.assertStatus(200)
 
-    #def test_put(self):
-        #self.put_resource('resource-lists', resource_list_xml)
-        #self.assertStatus([200, 201])
+    def test_put(self):
+        self.put_resource('resource-lists', resource_list_xml)
+        self.assertStatus([200, 201])
 
-        #headers = {'Content-type': "application/xcap-att+xml"}
-        #self.put_resource('resource-lists', 'coworkers', '/resource-lists/list[@name="other"]/@some-attribute', headers)
-        #self.assertStatus(409)
+        headers = {'Content-type': "application/xcap-att+xml"}
+        self.put_resource('resource-lists', 'coworkers', '/resource-lists/list[@name="other"]/@some-attribute', headers)
+        self.assertStatus(409)
 
-        #headers = {'Content-type': "application/xcap-att+xml"}
-        #self.put_resource('resource-lists', 'coworkers', '/resource-lists/list[@name="friends"]/@name', headers)
-        #self.assertStatus(200)
+        headers = {'Content-type': "application/xcap-att+xml"}
+        self.put_resource('resource-lists', 'coworkers', '/resource-lists/list[@name="friends"]/@name', headers)
+        self.assertStatus(200)
 
 
 def suite():

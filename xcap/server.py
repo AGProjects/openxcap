@@ -17,7 +17,7 @@ from twisted.cred.portal import Portal
 from twisted.cred import credentials, portal, checkers, error as credError
 from twisted.web2.auth import digest, basic, wrapper
 
-from xcap.resource import XCAPDocument, XCAPElement
+from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute
 from xcap import authentication
 from xcap.applications import getApplicationForURI
 from xcap.uri import XCAPUri
