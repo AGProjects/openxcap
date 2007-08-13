@@ -182,7 +182,6 @@ class XCAPApplication(object):
 
     def delete_element(self, uri, check_etag):
         d = self.get_document(uri, check_etag)
-        print 'delete element: ', uri
         return d.addCallbacks(self._cb_delete_element, callbackArgs=(uri, check_etag))
 
     ## Attribute management
@@ -210,7 +209,6 @@ class XCAPApplication(object):
 
     def get_attribute(self, uri, check_etag):
         d = self.get_document(uri, check_etag)
-        print '\nin attribute\n'
         return d.addCallbacks(self._cb_get_attribute, callbackArgs=(uri, ))
 
     def _cb_delete_attribute(self, response, uri, check_etag):

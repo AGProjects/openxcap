@@ -9,7 +9,6 @@ import urlparse
 from application.configuration import readSettings, ConfigSection, getSection
 from application import log
 
-#from xcap.authentication import XCAPUser
 import xcap
 from xcap.errors import *
 
@@ -174,6 +173,7 @@ class XCAPUri(object):
 
     def __str__(self):
         return self.xcap_root + self.resource_selector
+
 
 def parseNodeURI(node_uri, default_realm='example.com'):
     """Parses the given Node URI, containing the XCAP root, document selector,

@@ -20,7 +20,7 @@ from twisted.web2.auth import digest, basic, wrapper
 from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute
 from xcap import authentication
 from xcap.applications import getApplicationForURI
-from xcap.uri import XCAPUri
+from xcap.uri import XCAPUri, AttributeSelector, NamespaceSelector, ExtensionSelector
 from xcap.tls import Certificate, PrivateKey
 from xcap import __version__ as version
 
@@ -64,6 +64,19 @@ class XCAPRoot(resource.Resource):
         ## don't use object traversal
         return self, server.StopTraversal
 
+    def resourceForURI(self, xcap_uri):
+        application = getApplicationForURI(xcap_uri)
+        if not xcap_uri.node_selector: ## the request is for an XCAP document
+            return XCAPDocument(xcap_uri, application)
+        else:
+            terminal_selector = xcap_uri.node_selector.terminal_selector
+            if isinstance(terminal_selector, AttributeSelector):
+                return XCAPAttribute(xcap_uri, application)
+            #elif isinstance(terminal_selector, NamespaceSelector):
+            #    return XCAPNamespaceSelector(xcap_uri, application)
+            else: ## the request is for an element
+                return XCAPElement(xcap_uri, application)
+
     def renderHTTP(self, request):
         ## forward the request to the appropiate XCAP resource, based on the 
         ## XCAP request URI
@@ -72,14 +85,7 @@ class XCAPRoot(resource.Resource):
         log_request(request)
         if not application:
             return http.Response(responsecode.NOT_FOUND, stream="Application not supported")
-        if not xcap_uri.node_selector: ## the request is for an XCAP document
-            resource = XCAPDocument(xcap_uri, application)
-            return resource.renderHTTP(request)
-        else:
-            if xcap_uri.node_selector.terminal_selector[0] == '@': ## the request is for an attribute
-                resource = XCAPAttribute(xcap_uri, application)
-            else: ## the request is for an element
-                resource = XCAPElement(xcap_uri, application)
+        resource = self.resourceForURI(xcap_uri) ## let the appropriate resource handle the request
         return resource.renderHTTP(request)
 
 
