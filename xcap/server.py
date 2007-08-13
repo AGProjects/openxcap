@@ -67,17 +67,15 @@ class XCAPRoot(resource.Resource):
     def renderHTTP(self, request):
         ## forward the request to the appropiate XCAP resource, based on the 
         ## XCAP request URI
-        xcap_uri = XCAPUri(request.scheme + "://" + request.host + request.uri)
+        xcap_uri = request.xcap_uri
         application = getApplicationForURI(xcap_uri)
         log_request(request)
         if not application:
             return http.Response(responsecode.NOT_FOUND, stream="Application not supported")
-        request.xcap_uri = xcap_uri
         if not xcap_uri.node_selector: ## the request is for an XCAP document
             resource = XCAPDocument(xcap_uri, application)
             return resource.renderHTTP(request)
         else:
-            print 'target node: ', xcap_uri.node_selector.target_node
             if xcap_uri.node_selector.target_node[0] == '@': ## the request is for an attribute
                 resource = XCAPAttribute(xcap_uri, application)
             else: ## the request is for an element

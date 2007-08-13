@@ -3,6 +3,8 @@
 
 """XCAP URI module"""
 
+import re
+import urlparse
 
 from application.configuration import readSettings, ConfigSection, getSection
 from application import log
@@ -11,15 +13,6 @@ from application.debug.timing import timer
 #from xcap.authentication import XCAPUser
 import xcap
 from xcap.errors import *
-
-import re
-import urlparse
-
-class AuthenticationConfig(ConfigSection):
-    default_realm = 'example.com'
-
-## We use this to overwrite some of the settings above on a local basis if needed
-readSettings('Authentication', AuthenticationConfig)
 
 class XCAPRootURIs(tuple):
     """Configuration data type. A tuple of defined XCAP Root URIs is extracted from
@@ -41,7 +34,7 @@ class ServerConfig(ConfigSection):
     _dataTypes = {'root_uris': XCAPRootURIs}
     root_uris = ()
 
-### We use this to overwrite some of the settings above on a local basis if needed
+## We use this to overwrite some of the settings above on a local basis if needed
 readSettings('Server', ServerConfig)
 
 print 'Supported Root URIs: %s' % ','.join(root_uris)
@@ -103,20 +96,20 @@ class NodeSelector(object):
 
 class XCAPUri(object):
     """An XCAP URI containing the XCAP root, document selector and node selector."""
-    
+
     node_selector_separator = "~~"
-    
-    def __init__(self, uri):
-        self.xcap_root = self.__get_xcap_root(uri)
-        self.uri = uri[len(self.xcap_root):]
-        realm = AuthenticationConfig.default_realm
+
+    def __init__(self, xcap_root, resource_selector, default_realm='example.com'):
+        self.xcap_root = xcap_root
+        self.resource_selector = resource_selector
+        realm = default_realm
         # convention to get the realm if it's not contained in the user ID section
         # of the document selector (bad eyebeam)
-        if self.uri.startswith("@"):
-            first_slash = self.uri.find("/")
-            realm = self.uri[1:first_slash]
-            self.uri = self.uri[first_slash:]
-        _split = self.uri.split(self.node_selector_separator, 1)
+        if self.resource_selector.startswith("@"):
+            first_slash = self.resource_selector.find("/")
+            realm = self.resource_selector[1:first_slash]
+            self.resource_selector = self.resource_selector[first_slash:]
+        _split = self.resource_selector.split(self.node_selector_separator, 1)
         doc_selector = _split[0]
         self.doc_selector = DocumentSelector(_split[0])  ## the Document Selector
         if len(_split) == 2:                             ## the Node Selector
@@ -127,15 +120,22 @@ class XCAPUri(object):
         if not self.user.domain:
             self.user.domain = realm
         self.application_id = self.doc_selector.application_id
-
-    def __get_xcap_root(self, uri):
-        for root_uri in root_uris:
-            if uri.startswith(root_uri):
-                return root_uri
-        raise ResourceNotFound("xcap root not found for uri: %s" % uri)
     
     def __str__(self):
-        return self.xcap_root + self.uri
+        return self.xcap_root + self.resource_selector
+
+def parseNodeURI(node_uri, default_realm='example.com'):
+    """Parses the given Node URI, containing the XCAP root, document selector,
+       and node selector, and returns an XCAPUri instance if succesful."""
+    xcap_root = None
+    for uri in root_uris:
+        if node_uri.startswith(uri):
+            xcap_root = uri
+            break
+    if xcap_root is None:
+        raise ResourceNotFound("XCAP root not found for uri: %s" % node_uri)
+    resource_selector = node_uri[len(xcap_root):]
+    return XCAPUri(xcap_root, resource_selector, default_realm)
 
 def test():
     uri = "http://xcap.example.com/test/users/sip:joe@example.com/index/~~/foo/a:bar/b:baz?xmlns(a=urn:test:namespace1-uri)xmlns(b=urn:test:namespace1-uri)"

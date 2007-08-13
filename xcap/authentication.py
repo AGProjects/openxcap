@@ -16,12 +16,13 @@ from application.configuration import readSettings, ConfigSection
 from application import log
 
 from xcap.applications import getApplicationForURI
-from xcap.uri import XCAPUri
+from xcap.uri import parseNodeURI
 from xcap.dbutil import connectionForURI
 from xcap.errors import ResourceNotFound
 
 
 class AuthenticationConfig(ConfigSection):
+    default_realm = 'example.com'
     db_uri = 'mysql://user:pass@db/openser'
 
 ## We use this to overwrite some of the settings above on a local basis if needed
@@ -153,12 +154,11 @@ class XCAPAuthResource(HTTPAuthResource):
            
            Intrebarea e unde fac aceasta modificare. Daca pun in authenticate,
            e facut in fiecare request, as vrea doar in cel initial, dar am nevoie de stare."""
-        #print 'Authentication for: ', request.scheme + "://" + request.host + request.uri
         log_request(request)
-        xcap_uri = XCAPUri(request.scheme + "://" + request.host + request.uri)
-        realm = xcap_uri.user.domain
+        uri = request.scheme + "://" + request.host + request.uri
+        request.xcap_uri = parseNodeURI(uri, AuthenticationConfig.default_realm)
+        realm = request.xcap_uri.user.domain
         self._updateRealm(realm)
-        request.xcap_uri = xcap_uri
         return HTTPAuthResource.authenticate(self, request)
 
     def _loginSucceeded(self, avatar, request):
