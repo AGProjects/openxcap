@@ -71,17 +71,15 @@ class DocumentSelector(str):
 class NodeSelector(str):
 
     xmlns_regexp = re.compile(r'^xmlns\((?P<p>[_a-z]+)=(?P<ns>[0-9a-z:_\.\-]+)\)$', re.IGNORECASE|re.UNICODE)
-    
+
     def __init__(self, selector):
         _sections = selector.split('?', 1)
         segs = _sections[0].strip('/').split('/')  ## the Node Selector segments
         segs = [s.find(':') == -1 and 'default:' + s or s for s in segs]
-        self.target_selector = '/' + '/'.join(segs[:-1])
-        self.target_node = segs[-1]
-        self.selector = '%s/%s' % (self.target_selector, self.target_node)
-        #print 'target selector: ', self.target_selector
-        #print 'target node: ', self.target_node
-        #print 'node selector: ', self.selector
+        self.element_selector = '/' + '/'.join(segs[:-1])
+        self.terminal_selector = segs[-1]
+        #print 'target selector: ', self.element_selector
+        #print 'target node: ', self.terminal_selector
         self.ns_bindings = {'default': None}
         if len(_sections) == 2:
             expr = _sections[1].split()  ## the list of xpointer expressions
@@ -89,8 +87,8 @@ class NodeSelector(str):
                 m = re.match(self.xmlns_regexp, e)
                 if m:
                     self.ns_bindings[m.group('p')] = m.group('ns')
-        str.__init__(self, selector)
-                
+        str.__init__(self, '%s/%s' % (self.element_selector, self.terminal_selector))
+
     ## http://www.w3.org/TR/2003/REC-xptr-xmlns-20030325/
     def get_ns_bindings(self, default_ns):
         self.ns_bindings['default'] = default_ns
@@ -126,7 +124,7 @@ class XCAPUri(object):
         if not self.user.domain:
             self.user.domain = realm
         self.application_id = self.doc_selector.application_id
-    
+
     def __str__(self):
         return self.xcap_root + self.resource_selector
 

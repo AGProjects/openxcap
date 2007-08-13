@@ -111,14 +111,14 @@ class XCAPApplication(object):
         application = getApplicationForURI(uri)
         ns_dict = node_selector.get_ns_bindings(application.default_ns)
         try:
-            parent = xml_doc.xpath(node_selector.target_selector, ns_dict)
+            parent = xml_doc.xpath(node_selector.element_selector, ns_dict)
         except:
             raise NoParentError
             #raise Exception # TODO ce exceptie intoarcem daca selectorul nu e valid ?
         if len(parent) != 1:
             raise NoParentError
         parent = parent[0]
-        target = parent.xpath(node_selector.target_node, ns_dict)
+        target = parent.xpath(node_selector.terminal_selector, ns_dict)
         if target:
             self._modify_element(parent, target[0], xml_elem)
         else:
@@ -219,13 +219,13 @@ class XCAPApplication(object):
         application = getApplicationForURI(uri)
         ns_dict = node_selector.get_ns_bindings(application.default_ns)
         try:
-            elem = xml_doc.xpath(node_selector.target_selector, ns_dict)
+            elem = xml_doc.xpath(node_selector.element_selector, ns_dict)
         except:
             raise ResourceNotFound
         if len(elem) != 1:
             raise ResourceNotFound
         elem = elem[0]
-        attribute = node_selector.target_node[1:]
+        attribute = node_selector.terminal_selector[1:]
         if elem.get(attribute):  ## check if the attribute exists
             del elem.attrib[attribute]
         else:
@@ -247,14 +247,14 @@ class XCAPApplication(object):
         application = getApplicationForURI(uri)
         ns_dict = node_selector.get_ns_bindings(application.default_ns)
         try:
-            elem = xml_doc.xpath(node_selector.target_selector, ns_dict)
+            elem = xml_doc.xpath(node_selector.element_selector, ns_dict)
         except:
             raise NoParentError
             #raise Exception # TODO ce exceptie intoarcem daca selectorul nu e valid ?
         if len(elem) != 1:
             raise NoParentError
         elem = elem[0]
-        attr_name = node_selector.target_node[1:]
+        attr_name = node_selector.terminal_selector[1:]
         elem.set(attr_name, attribute)
         new_document = etree.tostring(xml_doc)
         return self.put_document(uri, new_document, check_etag)

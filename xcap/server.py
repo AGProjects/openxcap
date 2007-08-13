@@ -76,7 +76,7 @@ class XCAPRoot(resource.Resource):
             resource = XCAPDocument(xcap_uri, application)
             return resource.renderHTTP(request)
         else:
-            if xcap_uri.node_selector.target_node[0] == '@': ## the request is for an attribute
+            if xcap_uri.node_selector.terminal_selector[0] == '@': ## the request is for an attribute
                 resource = XCAPAttribute(xcap_uri, application)
             else: ## the request is for an element
                 resource = XCAPElement(xcap_uri, application)
