@@ -101,19 +101,59 @@ class XCAPDocument(XCAPResource):
 
 
 class XCAPElement(XCAPResource):
-    
-    def http_GET(self, request):
-        def cb_got_resource(data):
-            log_request(request, len(data))
-            return http.Response(responsecode.OK, stream=data)
-        d = self.application.get_element(self.xcap_uri)
-        d.addCallback(cb_got_resource)
-        return d.addCallbacks(self.setHeaders, self.onError)    
 
-    #def contentType(self):
-    #    return MimeType.fromString("application/xcap-el+xml")
-    
-class XCAPAttribute(XCAPResource):
+    content_type = MimeType.fromString("application/xcap-el+xml")
+
+    def http_GET(self, request):
+        d = self.application.get_element(self.xcap_uri, lambda e: self.checkEtag(request, e))
+        d.addCallback(self.sendResponse)
+        d.addErrback(self.onError)
+        return d
+
+    def http_DELETE(self, request):
+        d = self.application.delete_element(self.xcap_uri, lambda e: self.checkEtag(request, e))
+        d.addCallback(self.sendResponse)
+        d.addErrback(self.onError)
+        return d
+
+    def http_PUT(self, request):
+        content_type = request.headers.getHeader('content-type')
+        if not content_type or content_type != self.content_type:
+            raise http.HTTPError(responsecode.UNSUPPORTED_MEDIA_TYPE)
+        element = request.attachment
+        d = self.application.put_element(self.xcap_uri, element, lambda e: self.checkEtag(request, e))        
+        d.addCallback(self.sendResponse)
+        d.addErrback(self.onError)
+        return d
 
     def contentType(self):
-        return MimeType.fromString("application/xcap-att+xml")
+        return self.content_type
+
+class XCAPAttribute(XCAPResource):
+
+    content_type = MimeType.fromString("application/xcap-att+xml")
+
+    def contentType(self):
+        return self.content_type
+
+    def http_GET(self, request):
+        d = self.application.get_attribute(self.xcap_uri, lambda e: self.checkEtag(request, e))
+        d.addCallback(self.sendResponse)
+        d.addErrback(self.onError)
+        return d
+
+    def http_DELETE(self, request):
+        d = self.application.delete_attribute(self.xcap_uri, lambda e: self.checkEtag(request, e))
+        d.addCallback(self.sendResponse)
+        d.addErrback(self.onError)
+        return d
+
+    def http_PUT(self, request):
+        content_type = request.headers.getHeader('content-type')
+        if not content_type or content_type != self.content_type:
+            raise http.HTTPError(responsecode.UNSUPPORTED_MEDIA_TYPE)
+        attribute = request.attachment
+        d = self.application.put_attribute(self.xcap_uri, attribute, lambda e: self.checkEtag(request, e))
+        d.addCallback(self.sendResponse)
+        d.addErrback(self.onError)
+        return d

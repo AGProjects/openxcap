@@ -1,15 +1,18 @@
+# Copyright (C) 2007 AG Projects.
+#
+
 import unittest
 import common
 
 class TestHarness(object):
-    """A test harness for the CherryPy framework and CherryPy applications."""
+    """A test harness for OpenXCAP."""
 
-    def __init__(self, tests=None):
+    def __init__(self, tests=[]):
         """Constructor to populate the TestHarness instance.
 
         tests should be a list of module names (strings).
         """
-        self.tests = tests or []
+        self.tests = tests
     
     def run(self):
         module_names = self.tests
@@ -26,9 +29,11 @@ class TestHarness(object):
 def run():
 
     testList = [
-        'test_document',
-        'test_etags',
-        'test_auth'
+        #'test_document',
+        #'test_element',
+        'test_attribute',
+        #'test_etags',
+        #'test_auth'
     ]
     
     t = TestHarness(testList)
@@ -36,4 +41,3 @@ def run():
 
 if __name__ == '__main__':
     run()
-

@@ -12,8 +12,8 @@ from lxml import etree
 from application.configuration import readSettings, ConfigSection
 from application.process import process
 
-from xcap.storage import DatabaseStorage
 from xcap.errors import *
+from xcap.interfaces.storage import StatusResponse
 
 
 #class ServerConfig(ConfigSection):
@@ -95,13 +95,17 @@ class XCAPApplication(object):
     ## Element management
     
     def _create_element(self, parent, elem):
-        pass
-    
+        print 'create element: ', elem
+        print 'for parent: ', elem
+
     def _modify_element(self, parent, target, elem):
-        pass
-    
-    def _cb_put_element(self, document, uri, xml_elem):
+        parent.replace(target, elem)
+
+    def _cb_put_element(self, response, uri, xml_elem, check_etag):
         """This is called when the document that relates to the element is retreived."""
+        if response.code == 404:
+            raise NoParentError
+        document = response.data
         xml_doc = etree.parse(StringIO(document))
         node_selector = uri.node_selector
         application = getApplicationForURI(uri)
@@ -109,8 +113,9 @@ class XCAPApplication(object):
         try:
             parent = xml_doc.xpath(node_selector.target_selector, ns_dict)
         except:
-            raise Exception # TODO ce exceptie intoarcem daca selectorul nu e valid ?
-        if not parent or len(parent) > 1:
+            raise NoParentError
+            #raise Exception # TODO ce exceptie intoarcem daca selectorul nu e valid ?
+        if len(parent) != 1:
             raise NoParentError
         parent = parent[0]
         target = parent.xpath(node_selector.target_node, ns_dict)
@@ -118,24 +123,23 @@ class XCAPApplication(object):
             self._modify_element(parent, target[0], xml_elem)
         else:
             self._create_element(parent, xml_elem)
-    
-    def _eb_put_element(self, f):
-        """This is called if the document that relates to the element does not exist."""
-        f.trap(ResourceNotFound)
-        raise NoParentError # TODO
-    
-    def put_element(self, uri, element):
+        new_document = etree.tostring(xml_doc)
+        return self.put_document(uri, new_document, check_etag)
+
+    def put_element(self, uri, element, check_etag):
         try:
-            xml_elem = etree.parse(StringIO(element))
-            # verifica daca are un singur element, daca nu arunca aceeasi exceptie TODO
+            xml_elem = etree.parse(StringIO(element)).getroot()
+            # verifica daca are un singur element, daca nu arunca aceeasi exceptie ? TODO
         except:
             raise NotXMLFragmentError
-        d = self.get_document(self, uri)
-        return d.addCallbacks(self._cb_put_element, self._eb_put_element,
-                              callbackArgs=(uri, xml_elem))
-    
-    def _cb_get_element(self, document, uri):
+        d = self.get_document(uri, check_etag)
+        return d.addCallbacks(self._cb_put_element, callbackArgs=(uri, xml_elem, check_etag))
+
+    def _cb_get_element(self, response, uri):
         """This is called when the document that relates to the element is retreived."""
+        if response.code == 404:
+            raise ResourceNotFound
+        document = response.data
         xml_doc = etree.parse(StringIO(document))
         node_selector = uri.node_selector
         application = getApplicationForURI(uri)
@@ -149,20 +153,17 @@ class XCAPApplication(object):
         # TODO
         # The server MUST NOT add namespace bindings representing namespaces 
         # used by the element or its children, but declared in ancestor elements
-        return etree.tostring(elem[0])
-    
-    def _eb_get_element(self, f):
-        """This is called if the document that relates to the element does not exist."""
-        f.trap(ResourceNotFound)
-        raise ResourceNotFound
-    
-    def get_element(self, uri):
-        d = self.get_document(uri)
-        return d.addCallbacks(self._cb_get_element, self._eb_get_element,
-                              callbackArgs=(uri, ))
+        return StatusResponse(200, response.etag, etree.tostring(elem[0]))
 
-    def _cb_delete_element(self, document, uri):
-        xml_doc = etree.parse(StringIO(document))
+    def get_element(self, uri, check_etag):
+        d = self.get_document(uri, check_etag)
+        return d.addCallbacks(self._cb_get_element, callbackArgs=(uri, ))
+
+    def _cb_delete_element(self, response, uri, check_etag):
+        if response.code == 404:
+            raise ResourceNotFound
+        document = response.data
+        xml_doc = etree.parse(StringIO(document))        
         node_selector = uri.node_selector
         application = getApplicationForURI(uri)
         ns_dict = node_selector.get_ns_bindings(application.default_ns)
@@ -170,26 +171,98 @@ class XCAPApplication(object):
             elem = xml_doc.xpath(node_selector.selector, ns_dict)
         except:
             raise ResourceNotFound
-        if not elem or len(elem) > 1:
+        if len(elem) != 1:
             raise ResourceNotFound
-        
+        elem = elem[0]
+        elem.getparent().remove(elem)
+        new_document = etree.tostring(xml_doc)
+        return self.put_document(uri, new_document, check_etag)
+
+    def delete_element(self, uri, check_etag):
+        d = self.get_document(uri, check_etag)
+        return d.addCallbacks(self._cb_delete_element, callbackArgs=(uri, check_etag))
+
+    ## Attribute management
+    
+    def _cb_get_attribute(self, response, uri):
+        """This is called when the document that relates to the attribute is retreived."""
+        if response.code == 404:
+            raise ResourceNotFound
+        print document.data
+        document = response.data
+        xml_doc = etree.parse(StringIO(document))
+        node_selector = uri.node_selector
+        application = getApplicationForURI(uri)
+        ns_dict = node_selector.get_ns_bindings(application.default_ns)
+        try:
+            attribute = xml_doc.xpath(node_selector.selector, ns_dict)
+        except:
+            raise ResourceNotFound
+        if len(attribute) != 1:
+            raise ResourceNotFound
         # TODO
         # The server MUST NOT add namespace bindings representing namespaces 
         # used by the element or its children, but declared in ancestor elements
-        return self.put_document(uri, document)
+        return StatusResponse(200, response.etag, attribute[0])
 
-    def _eb_delete_element(self, f):
-        """This is called if the document that relates to the element does not exist."""
-        f.trap(ResourceNotFound)
-        raise ResourceNotFound
-    
-    def delete_element(self, uri):
-        d = self.get_document(uri)
-        return d.addCallbacks(self._cb_delete_element, self._eb_delete_element,
-                              callbackArgs=(uri, ))
+    def get_attribute(self, uri, check_etag):
+        d = self.get_document(uri, check_etag)
+        print '\nin attribute\n'
+        return d.addCallbacks(self._cb_get_attribute, callbackArgs=(uri, ))
 
-    def get_etag(self, uri):
-        return self.storage.get_etag(uri)
+    def _cb_delete_attribute(self, response, uri, check_etag):
+        if response.code == 404:
+            raise ResourceNotFound
+        document = response.data
+        xml_doc = etree.parse(StringIO(document))        
+        node_selector = uri.node_selector
+        application = getApplicationForURI(uri)
+        ns_dict = node_selector.get_ns_bindings(application.default_ns)
+        try:
+            elem = xml_doc.xpath(node_selector.target_selector, ns_dict)
+        except:
+            raise ResourceNotFound
+        if len(elem) != 1:
+            raise ResourceNotFound
+        elem = elem[0]
+        attribute = node_selector.target_node[1:]
+        if elem.get(attribute):  ## check if the attribute exists
+            del elem.attrib[attribute]
+        else:
+            raise ResourceNotFound
+        new_document = etree.tostring(xml_doc)
+        return self.put_document(uri, new_document, check_etag)
+
+    def delete_attribute(self, uri, check_etag):
+        d = self.get_document(uri, check_etag)
+        return d.addCallbacks(self._cb_delete_attribute, callbackArgs=(uri, check_etag))
+
+    def _cb_put_attribute(self, response, uri, attribute, check_etag):
+        """This is called when the document that relates to the element is retreived."""
+        if response.code == 404:
+            raise NoParentError
+        document = response.data
+        xml_doc = etree.parse(StringIO(document))
+        node_selector = uri.node_selector
+        application = getApplicationForURI(uri)
+        ns_dict = node_selector.get_ns_bindings(application.default_ns)
+        try:
+            elem = xml_doc.xpath(node_selector.target_selector, ns_dict)
+        except:
+            raise NoParentError
+            #raise Exception # TODO ce exceptie intoarcem daca selectorul nu e valid ?
+        if len(elem) != 1:
+            raise NoParentError
+        elem = elem[0]
+        attr_name = node_selector.target_node[1:]
+        elem.set(attr_name, attribute)
+        new_document = etree.tostring(xml_doc)
+        return self.put_document(uri, new_document, check_etag)
+
+    def put_attribute(self, uri, attribute, check_etag):
+        ## TODO verifica daca atributul e valid
+        d = self.get_document(uri, check_etag)
+        return d.addCallbacks(self._cb_put_attribute, callbackArgs=(uri, attribute, check_etag))
 
 
 class PresenceRulesApplication(XCAPApplication):

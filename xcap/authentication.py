@@ -137,6 +137,9 @@ class XCAPAuthRealm(object):
 
 class XCAPAuthResource(HTTPAuthResource):
     
+    def allowedMethods(self):
+        return ('GET', 'PUT', 'DELETE', 'POST')    
+    
     def _updateRealm(self, realm):
         """Updates the realm of the attached credential factories."""
         for factory in self.credentialFactories.values():

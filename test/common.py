@@ -1,4 +1,5 @@
-
+# Copyright (C) 2007 AG Projects.
+#
 
 
 import unittest
@@ -39,8 +40,8 @@ class HTTPResponse(object):
 class XCAPTest(unittest.TestCase):
     xcap_root = 'http://10.0.0.1:433/xcap-root'
     auth = 'digest'
-    account = 'test@example.com'
-    password = 'test'
+    account = 'mircea@ag-projects.com'
+    password = '1234'
 
     def _execute_request(self, method, url, user, realm, password, headers={}, data=None):
         if self.auth == "basic":
@@ -58,24 +59,30 @@ class XCAPTest(unittest.TestCase):
             headers = getattr(e, 'headers', {})
             return HTTPResponse(e.code, headers)
 
-    def get_resource(self, application, headers={}):
+    def get_resource(self, application, node=None, headers={}):
         username, domain = self.account.split('@', 1)
         uri = "%s/%s/users/%s/index.xml" % (self.xcap_root, application, self.account)
+        if node:
+            uri += '~~' + node
         r = self._execute_request("GET", uri, username, domain, self.password, headers)
         self.status, self.headers, self.body = r.code, r.headers, r.body
 
-    def put_resource(self, application, resource, headers={}):
+    def put_resource(self, application, resource, node=None, headers={}):
         username, domain = self.account.split('@', 1)
         uri = "%s/%s/users/%s/index.xml" % (self.xcap_root, application, self.account)
+        if node:
+            uri += '~~' + node
         r = self._execute_request("PUT", uri, username, domain, self.password, headers, resource)
         self.status, self.headers, self.body = r.code, r.headers, r.body
 
-    def delete_resource(self, application, headers={}):
+    def delete_resource(self, application, node=None, headers={}):
         username, domain = self.account.split('@', 1)
         uri = "%s/%s/users/%s/index.xml" % (self.xcap_root, application, self.account)
+        if node:
+            uri += '~~' + node
         r = self._execute_request("DELETE", uri, username, domain, self.password, headers)
         self.status, self.headers, self.body = r.code, r.headers, r.body
-    
+
     def assertStatus(self, status, msg=None):
         if isinstance(status, int):
             if self.status != status:
@@ -116,7 +123,7 @@ class XCAPTest(unittest.TestCase):
         """Fail if value != self.body."""
         if value != self.body:
             if msg is None:
-                msg = 'expected body:\n%s\n\nactual body:\n%s' % (value, self.body)
+                msg = 'expected body:\n"%s"\n\nactual body:\n"%s"' % (value, self.body)
             raise self.failureException(msg)
 
     def assertInBody(self, value, msg=None):
