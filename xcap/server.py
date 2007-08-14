@@ -75,8 +75,8 @@ class XCAPRoot(resource.Resource, resource.LeafResource):
             terminal_selector = xcap_uri.node_selector.terminal_selector
             if isinstance(terminal_selector, AttributeSelector):
                 return XCAPAttribute(xcap_uri, application)
-            #elif isinstance(terminal_selector, NamespaceSelector):
-            #    return XCAPNamespaceSelector(xcap_uri, application)
+            elif isinstance(terminal_selector, NamespaceSelector):
+                return XCAPNamespaceBinding(xcap_uri, application)
             else: ## the request is for an element
                 return XCAPElement(xcap_uri, application)
 
@@ -126,7 +126,7 @@ class XCAPServer:
                 log.fatal("the SSL certificates or the private key could not be loaded")
             credentials = X509Credentials(cert, pKey)
             reactor.listenTLS(ServerConfig.port, channel.HTTPFactory(self.site), credentials, interface=ServerConfig.address)
-            print 'TLS started'
+            log.msg("TLS started")
         else:        
             reactor.listenTCP(ServerConfig.port, channel.HTTPFactory(self.site), interface=ServerConfig.address)
         reactor.run()

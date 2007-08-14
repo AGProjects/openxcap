@@ -125,3 +125,15 @@ class XCAPAttribute(XCAPResource):
         attribute = request.attachment
         d = self.application.put_attribute(self.xcap_uri, attribute, lambda e: self.checkEtag(request, e))
         return d
+
+
+class XCAPNamespaceBinding(XCAPResource):
+
+    content_type = MimeType.fromString("application/xcap-ns+xml")
+
+    def contentType(self):
+        return self.content_type
+
+    def http_GET(self, request):
+        d = self.application.get_ns_bindings(self.xcap_uri)
+        return d

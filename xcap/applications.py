@@ -302,6 +302,34 @@ class XCAPApplication(object):
         d = self.get_document(uri, check_etag)
         return d.addCallbacks(self._cb_put_attribute, callbackArgs=(uri, attribute, check_etag))
 
+    ## Namespace Bindings
+    
+    def _cb_get_ns_bindings(self, response, uri):
+        """This is called when the document that relates to the element is retreived."""
+        if response.code == 404:
+            raise ResourceNotFound
+        document = response.data
+        xml_doc = etree.parse(StringIO(document))
+        node_selector = uri.node_selector
+        ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
+        try:
+            selector = node_selector.element_selector + '/' + node_selector.terminal_selector
+            elem = xml_doc.xpath(selector, ns_dict)
+        except:
+            raise ResourceNotFound
+        if not elem:
+            raise ResourceNotFound
+        elem = elem[0]
+        namespaces = ''
+        for prefix, ns in elem.nsmap:
+            namespaces += ' xmlns%s="%s"' % (prefix and ':%s' % prefix or '', ns)
+        result = '<%s %s/>' % (elem.tag, namespaces)
+        return StatusResponse(200, response.etag, result)
+
+    def get_ns_bindings(self, uri, check_etag):
+        d = self.get_document(uri, check_etag)
+        return d.addCallbacks(self._cb_get_ns_bindings, callbackArgs=(uri, ))
+
 
 class PresenceRulesApplication(XCAPApplication):
     ## draft-ietf-simple-presence-rules-09
