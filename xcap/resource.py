@@ -13,19 +13,6 @@ from xcap.applications import getApplicationForURI
 from xcap.errors import *
 
 
-def log_request(request, size):
-    pass
-    #uri = request.xcap_uri
-    
-    ##protocol = "HTTP/%s.%s" % request.clientproto
-    ##log.msg("%s %s %s" % (request.method, urllib.unquote(request.uri), protocol))
-    #user_agent = request.headers.getHeader('user-agent', 'unknown')
-    #msg = "%s from %s %s %s (%d bytes). Client: %s" % (uri.user, request.remoteAddr.host,
-                                                #request.method, uri, size, user_agent)
-    ##log.msg(msg)
-    #print msg
-
-
 class XCAPResource(resource.Resource, resource.LeafResource, MetaDataMixin):
     
     def __init__(self, xcap_uri, application):

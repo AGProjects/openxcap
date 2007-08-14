@@ -11,6 +11,7 @@ from lxml import etree
 
 from application.configuration import readSettings, ConfigSection
 from application.process import process
+from application import log
 
 from xcap.errors import *
 from xcap.interfaces.storage import StatusResponse
@@ -47,6 +48,7 @@ class XCAPApplication(object):
         except: ## not a well formed XML document
             raise NotWellFormedError
         if not self.xml_schema.validate(xml_doc):
+            log.error("Failed to validate document against XML schema: %s" % self.xml_schema.error_log )
             raise SchemaValidationError("The document doesn't comply to the XML schema")
 
     def _check_additional_constraints(self, xcap_doc):
