@@ -26,7 +26,7 @@ def log_request(request, size):
     #print msg
 
 
-class XCAPResource(resource.Resource, MetaDataMixin):
+class XCAPResource(resource.Resource, resource.LeafResource, MetaDataMixin):
     
     def __init__(self, xcap_uri, application):
         self.xcap_uri = xcap_uri
@@ -39,10 +39,6 @@ class XCAPResource(resource.Resource, MetaDataMixin):
     
     def checkEtag(self, request, etag):
         http.checkPreconditions(request, etag=ETag(etag))
-
-    def locateChild(self, request, segments):
-        ## don't use object traversal, we are a leaf resource
-        return self, server.StopTraversal
 
     def setHeaders(self, response):
         ## Don't provide additional resource information to error responses,

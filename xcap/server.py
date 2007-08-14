@@ -54,15 +54,11 @@ def log_request(request):
                                                 request.method, uri, user_agent)
     log.msg(msg)
 
-class XCAPRoot(resource.Resource):
+class XCAPRoot(resource.Resource, resource.LeafResource):
     addSlash = True
 
     def allowedMethods(self):
         return ('GET', 'PUT', 'DELETE', 'POST')
-
-    def locateChild(self, request, segments):
-        ## don't use object traversal
-        return self, server.StopTraversal
 
     def resourceForURI(self, xcap_uri):
         application = getApplicationForURI(xcap_uri)
