@@ -88,17 +88,52 @@ class XCAPApplication(object):
     def put_document(self, uri, document, check_etag):
         self.validate_document(document)
         return self.storage.put_document(uri, document, check_etag)
-    
+
     def delete_document(self, uri, check_etag):
         return self.storage.delete_document(uri, check_etag)
-    
-    ## Element management
-    
-    def _create_element(self, parent, elem):
-        print 'create element: ', elem
-        print 'for parent: ', elem
 
-    def _modify_element(self, parent, target, elem):
+    ## Element management
+
+    def _create_element(self, parent, terminal_selector, elem):
+        left = target.find('[')
+        if left == -1:
+            name = target
+            position = None
+        else:
+            name = target[:left]
+            right = target.find(']')
+            content = target[left+1:right]
+            if content[0] != '@':
+                position = int(content)
+            else:
+                position = None
+        if position is None: ## there is no positional constraint
+            i = 0
+            sibling_found = False
+            for child in parent:
+                if child.tag == name:
+                    sibling_found = True
+                if child.tag != name and sibling_found:
+                    parent.insert(i, elem)
+                    break
+                i += 1
+            if len(parent) == i: ## we've reached the end without inserting the new element
+                parent.append(elem)
+        else: ## a positional insertion
+            wildcard = name == "*"
+            i = 0
+            j = 1
+            for child in parent:
+                if position == j:
+                    parent.insert(i, elem)
+                    break
+                if (wildcard and type(child) is etree._Element) or (not wildcard and child.tag == name):
+                    j += 1
+                i += 1
+            if wildcard and position == j:
+                parent.insert(i, elem)
+
+    def _replace_element(self, parent, target, elem):
         parent.replace(target, elem)
 
     def _cb_put_element(self, response, uri, xml_elem, check_etag):
@@ -120,9 +155,9 @@ class XCAPApplication(object):
         parent = parent[0]
         target = parent.xpath(node_selector.terminal_selector, ns_dict)
         if target:
-            self._modify_element(parent, target[0], xml_elem)
+            self._replace_element(parent, target[0], xml_elem)
         else:
-            self._create_element(parent, xml_elem)
+            self._create_element(parent, node_selector.terminal_selector, xml_elem)
         new_document = etree.tostring(xml_doc)
         return self.put_document(uri, new_document, check_etag)
 
