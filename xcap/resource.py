@@ -40,6 +40,12 @@ class XCAPResource(resource.Resource, resource.LeafResource, MetaDataMixin):
     def checkEtag(self, request, etag):
         http.checkPreconditions(request, etag=ETag(etag))
 
+    def renderHTTP(self, request):
+        d = resource.Resource.renderHTTP(self, request)
+        d.addCallback(self.sendResponse)
+        d.addErrback(self.onError)
+        return d
+
     def setHeaders(self, response):
         ## Don't provide additional resource information to error responses,
         ## this is already done by the responses in the errors module
@@ -74,22 +80,16 @@ class XCAPDocument(XCAPResource):
 
     def http_GET(self, request):
         d = self.application.get_document(self.xcap_uri, lambda e: self.checkEtag(request, e))
-        d.addCallback(self.sendResponse)
-        d.addErrback(self.onError)
         return d
 
     def http_PUT(self, request):
         application = self.application
         document = request.attachment
         d = application.put_document(self.xcap_uri, document, lambda e: self.checkEtag(request, e))
-        d.addCallback(self.sendResponse)
-        d.addErrback(self.onError)
         return d
 
     def http_DELETE(self, request):
         d = self.application.delete_document(self.xcap_uri, lambda e: self.checkEtag(request, e))
-        d.addCallback(self.sendResponse)
-        d.addErrback(self.onError)
         return d        
 
     def contentType(self):
@@ -102,14 +102,10 @@ class XCAPElement(XCAPResource):
 
     def http_GET(self, request):
         d = self.application.get_element(self.xcap_uri, lambda e: self.checkEtag(request, e))
-        d.addCallback(self.sendResponse)
-        d.addErrback(self.onError)
         return d
 
     def http_DELETE(self, request):
         d = self.application.delete_element(self.xcap_uri, lambda e: self.checkEtag(request, e))
-        d.addCallback(self.sendResponse)
-        d.addErrback(self.onError)
         return d
 
     def http_PUT(self, request):
@@ -118,8 +114,6 @@ class XCAPElement(XCAPResource):
             raise http.HTTPError(responsecode.UNSUPPORTED_MEDIA_TYPE)
         element = request.attachment
         d = self.application.put_element(self.xcap_uri, element, lambda e: self.checkEtag(request, e))        
-        d.addCallback(self.sendResponse)
-        d.addErrback(self.onError)
         return d
 
     def contentType(self):
@@ -134,14 +128,10 @@ class XCAPAttribute(XCAPResource):
 
     def http_GET(self, request):
         d = self.application.get_attribute(self.xcap_uri, lambda e: self.checkEtag(request, e))
-        d.addCallback(self.sendResponse)
-        d.addErrback(self.onError)
         return d
 
     def http_DELETE(self, request):
         d = self.application.delete_attribute(self.xcap_uri, lambda e: self.checkEtag(request, e))
-        d.addCallback(self.sendResponse)
-        d.addErrback(self.onError)
         return d
 
     def http_PUT(self, request):
@@ -150,6 +140,4 @@ class XCAPAttribute(XCAPResource):
             raise http.HTTPError(responsecode.UNSUPPORTED_MEDIA_TYPE)
         attribute = request.attachment
         d = self.application.put_attribute(self.xcap_uri, attribute, lambda e: self.checkEtag(request, e))
-        d.addCallback(self.sendResponse)
-        d.addErrback(self.onError)
         return d
