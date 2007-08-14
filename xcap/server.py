@@ -58,7 +58,7 @@ class XCAPRoot(resource.Resource, resource.LeafResource):
     addSlash = True
 
     def allowedMethods(self):
-        return ('GET', 'PUT', 'DELETE', 'POST')
+        return ('GET', 'PUT', 'DELETE')
 
     def resourceForURI(self, xcap_uri):
         application = getApplicationForURI(xcap_uri)

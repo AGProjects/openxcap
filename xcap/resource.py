@@ -36,7 +36,7 @@ class XCAPResource(resource.Resource, resource.LeafResource, MetaDataMixin):
     def checkPreconditions(self, request):
         ## don't let renderHTTP to automatically check preconditions, we'll do this ourselves
         return None
-    
+
     def checkEtag(self, request, etag):
         http.checkPreconditions(request, etag=ETag(etag))
 
@@ -58,19 +58,16 @@ class XCAPResource(resource.Resource, resource.LeafResource, MetaDataMixin):
                     response.headers.setHeader(header, value)
         return response
 
-    def onError(self, f):
-        ## If we get an HTTPError, return its attached response
-        f.trap(http.HTTPError)
-        return f.value.response
-
     def sendResponse(self, response):
         if response.etag:
             self.e_tag = ETag(response.etag)
         response = http.Response(response.code, stream=response.data)
         return self.setHeaders(response)
 
-    def http_POST(self, request):
-        return self.http_PUT(request)
+    def onError(self, f):
+        ## If we get an HTTPError, return its attached response
+        f.trap(http.HTTPError)
+        return f.value.response
 
     def etag(self):
         return self.e_tag or None
