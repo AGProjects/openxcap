@@ -47,12 +47,19 @@ readSettings('Server', ServerConfig)
 readSettings('TLS', TLSConfig)
 
 
-def log_request(request):
+def log_request(request, response):
     uri = request.xcap_uri
+    method = request.method
     user_agent = request.headers.getHeader('user-agent', 'unknown')
-    msg = "%s from %s %s %s - client: %s" % (uri.user, request.remoteAddr.host,
-                                                request.method, uri, user_agent)
+    size = 0
+    if method == "GET" and response.stream is not None:
+        size = response.stream.length
+    elif method in ("PUT", "DELETE") and request.stream is not None:
+        size = request.stream.length
+    msg = '%s from %s "%s %s" %s %d- %s' % (uri.user, request.remoteAddr.host,
+                                        method, uri, response.code, size, user_agent)
     log.msg(msg)
+
 
 class XCAPRoot(resource.Resource, resource.LeafResource):
     addSlash = True
@@ -73,16 +80,25 @@ class XCAPRoot(resource.Resource, resource.LeafResource):
             else: ## the request is for an element
                 return XCAPElement(xcap_uri, application)
 
+    def cbLogRequest(self, response, request):
+        try:
+            log_request(request, response)
+        except Exception, e:
+            log.error("Error while logging XCAP request: %s" % str(e))
+            log.err()
+        return response
+
     def renderHTTP(self, request):
         ## forward the request to the appropiate XCAP resource, based on the 
         ## XCAP request URI
         xcap_uri = request.xcap_uri
         application = getApplicationForURI(xcap_uri)
-        log_request(request)
         if not application:
             return http.Response(responsecode.NOT_FOUND, stream="Application not supported")
         resource = self.resourceForURI(xcap_uri) ## let the appropriate resource handle the request
-        return resource.renderHTTP(request)
+        d = resource.renderHTTP(request)
+        d.addCallback(self.cbLogRequest, request)
+        return d
 
 
 class XCAPServer:

@@ -59,7 +59,6 @@ class DatabasePasswordChecker:
                    WHERE username = %(username)s AND domain = %(domain)s""" % {
                     "username": quote(username, "char"), 
                     "domain":   quote(domain, "char")}
-        print query
         return self.conn.runQuery(query).addCallback(self._got_query_results, credentials)
 
     def _got_query_results(self, rows, credentials):
@@ -154,7 +153,6 @@ class XCAPAuthResource(HTTPAuthResource):
            
            Intrebarea e unde fac aceasta modificare. Daca pun in authenticate,
            e facut in fiecare request, as vrea doar in cel initial, dar am nevoie de stare."""
-        log_request(request)
         uri = request.scheme + "://" + request.host + request.uri
         request.xcap_uri = parseNodeURI(uri, AuthenticationConfig.default_realm)
         realm = request.xcap_uri.user.domain
@@ -165,7 +163,6 @@ class XCAPAuthResource(HTTPAuthResource):
         """Requestul a fost autentificat, acum il autorizez, si anume ma uit daca
            user-ul autentificat este acelasi din request URI."""
 
-        print '_loginSucceeded. authorizing...'       
         avatarInterface, xcap_user = avatar ## the avatar is the authenticated XCAP User
         xcap_uri = request.xcap_uri
 
@@ -207,7 +204,7 @@ class XCAPAuthResource(HTTPAuthResource):
             d.addCallback(_renderResource)
             return d
         def _failed_reading(failure):
-            print 'PUT: failed reading : ', str(failure)
+            log.error('PUT: failed reading : ', str(failure))
             return http.Response(responsecode.INTERNAL_SERVER_ERROR, stream="Could not read data")
 
         if request.method in ('PUT', 'DELETE', 'POST'):
