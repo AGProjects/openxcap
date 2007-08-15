@@ -38,28 +38,11 @@ readSettings('Server', ServerConfig)
 
 print 'Supported Root URIs: %s' % ','.join(root_uris)
 
-class XCAPUser(object):     ## poate ar trebui definit ca username si realm
-    """XCAP User avatar."""
-    
-    def __init__(self, user_id): 
-        if user_id.startswith("sip:"):
-            user_id = user_id[4:]
-        _split = user_id.split('@', 1)
-        self.username = _split[0]
-        if len(_split) == 2:
-            self.domain = _split[1]
-        else:
-            self.domain = None
-
-    def __eq__(self, other):
-        return isinstance(other, XCAPUser) and self.username == other.username and self.domain == other.domain
-
 
 class TerminalSelector(str): pass
 class AttributeSelector(TerminalSelector): pass
 class NamespaceSelector(TerminalSelector): pass
 class ExtensionSelector(TerminalSelector): pass
-
 
 class NodeSelector(str):
 

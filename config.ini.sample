@@ -27,11 +27,16 @@ private_key = server.key
 ; The HTTP authentication type, this can be either 'basic' or 'digest'.
 ; If you're using TLS, it's better to choose 'basic' because the data is encrypted anyway.
 type = basic
+; Specify if the passwords are stored as plain text - Yes
+; or in a hashed format MD5('username:domain:password') - No
+cleartext_passwords = Yes
+; The default authentication realm
 default_realm = example.com
+; The database connection URI
 db_uri = mysql://username:password@db-host/openser
 
 [Storage]
-
+; The database connection URI
 db_uri = mysql://username:password@db-host/openser
 
 [OpenSER]

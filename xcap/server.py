@@ -29,6 +29,7 @@ server.VERSION = "OpenXCAP/%s" % version
 
 class AuthenticationConfig(ConfigSection):
     type = 'basic'
+    cleartext_passwords = True
     default_realm = 'example.com'
 
 class ServerConfig(ConfigSection):
@@ -105,13 +106,20 @@ class XCAPServer:
     
     def __init__(self):
         portal = Portal(authentication.XCAPAuthRealm())
-        checker = authentication.DatabasePasswordChecker()
-        portal.registerChecker(checker)
-        
-        if AuthenticationConfig.type == 'basic':
-            credential_factory = basic.BasicCredentialFactory(AuthenticationConfig.default_realm)
+
+        if AuthenticationConfig.cleartext_passwords:
+            checker = authentication.PlainDatabasePasswordChecker()
         else:
-            credential_factory = digest.DigestCredentialFactory('MD5', AuthenticationConfig.default_realm)
+            checker = authentication.HashDatabasePasswordChecker()
+        portal.registerChecker(checker)
+
+        auth_type = AuthenticationConfig.type
+        if auth_type == 'basic':
+            credential_factory = basic.BasicCredentialFactory(auth_type)
+        elif auth_type == 'digest':
+            credential_factory = digest.DigestCredentialFactory('MD5', auth_type)
+        else:
+            raise ValueError("Invalid authentication type: '%s'. Please check the configuration." % auth_type)
 
         root = authentication.XCAPAuthResource(XCAPRoot(),
                                             (credential_factory,),
@@ -123,7 +131,7 @@ class XCAPServer:
         if ServerConfig.tls:
             cert, pKey = TLSConfig.certificate, TLSConfig.private_key
             if cert is None or pKey is None:
-                log.fatal("the SSL certificates or the private key could not be loaded")
+                log.fatal("the TLS certificates or the private key could not be loaded")
             credentials = X509Credentials(cert, pKey)
             reactor.listenTLS(ServerConfig.port, channel.HTTPFactory(self.site), credentials, interface=ServerConfig.address)
             log.msg("TLS started")

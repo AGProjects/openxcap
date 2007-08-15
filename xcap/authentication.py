@@ -5,7 +5,7 @@
 
 from zope.interface import Interface, implements
 
-from twisted.internet import defer, threads
+from twisted.internet import defer
 from twisted.python import failure
 from twisted.cred import credentials, portal, checkers, error as credError
 from twisted.enterprise import adbapi, util as dbutil
@@ -28,17 +28,11 @@ class AuthenticationConfig(ConfigSection):
 ## We use this to overwrite some of the settings above on a local basis if needed
 readSettings('Authentication', AuthenticationConfig)
 
-def log_request(request):
-    uri = request.uri
-    user_agent = request.headers.getHeader('user-agent', 'unknown')
-    msg = "auth request from %s %s %s - client: %s" % (request.remoteAddr.host,
-                                                request.method, uri, user_agent)
-    log.msg(msg)
-
 ## credentials checkers
 
+
 class DatabasePasswordChecker:
-    """A credentials checker against the Subscriber table in OpenSER."""
+    """A credentials checker against a database subscriber table."""
 
     implements(checkers.ICredentialsChecker)
 
@@ -52,14 +46,7 @@ class DatabasePasswordChecker:
         self.conn = connectionForURI(AuthenticationConfig.db_uri)
 
     def _query_credentials(self, credentials):
-#        username, domain = credentials.username, credentials.realm
-        username, domain = credentials.username.split('@', 1)[0], credentials.realm
-        quote = dbutil.quote
-        query = """SELECT password FROM subscriber 
-                   WHERE username = %(username)s AND domain = %(domain)s""" % {
-                    "username": quote(username, "char"), 
-                    "domain":   quote(domain, "char")}
-        return self.conn.runQuery(query).addCallback(self._got_query_results, credentials)
+        raise NotImplementedError
 
     def _got_query_results(self, rows, credentials):
         if not rows:
@@ -68,14 +55,12 @@ class DatabasePasswordChecker:
             return self._authenticate_credentials(rows[0][0], credentials)
 
     def _authenticate_credentials(self, password, credentials):
-        return defer.maybeDeferred(
-                credentials.checkPassword, password).addCallback(
-                self._checkedPassword, credentials.username, credentials.realm)
+        raise NotImplementedError
 
     def _checkedPassword(self, matched, username, realm):
         if matched:
             username = username.split('@', 1)[0]
-            # this is the avatar ID ! :o
+            ## this is the avatar ID
             return "%s@%s" % (username, realm)
         else:
             raise credError.UnauthorizedLogin("Unauthorized login")
@@ -86,6 +71,47 @@ class DatabasePasswordChecker:
         d = self._query_credentials(credentials)
         return d
 
+
+class PlainDatabasePasswordChecker(DatabasePasswordChecker):
+    """A credentials checker against a database subscriber table."""
+
+    implements(checkers.ICredentialsChecker)
+
+    def _query_credentials(self, credentials):
+        username, domain = credentials.username.split('@', 1)[0], credentials.realm
+        quote = dbutil.quote
+        query = """SELECT password
+                   FROM subscriber 
+                   WHERE username = %(username)s AND domain = %(domain)s""" % {
+                    "username": quote(username, "char"), 
+                    "domain":   quote(domain, "char")}
+        return self.conn.runQuery(query).addCallback(self._got_query_results, credentials)
+
+    def _authenticate_credentials(self, hash, credentials):
+        return defer.maybeDeferred(
+                credentials.checkPassword, hash).addCallback(
+                self._checkedPassword, credentials.username, credentials.realm)
+    
+
+class HashDatabasePasswordChecker(DatabasePasswordChecker):
+    """A credentials checker against a database subscriber table."""
+
+    implements(checkers.ICredentialsChecker)
+
+    def _query_credentials(self, credentials):
+        username, domain = credentials.username.split('@', 1)[0], credentials.realm
+        quote = dbutil.quote
+        query = """SELECT ha1 
+                   FROM subscriber 
+                   WHERE username = %(username)s AND domain = %(domain)s""" % {
+                    "username": quote(username, "char"), 
+                    "domain":   quote(domain, "char")}
+        return self.conn.runQuery(query).addCallback(self._got_query_results, credentials)
+
+    def _authenticate_credentials(self, hash, credentials):
+        return defer.maybeDeferred(
+                credentials.checkHash, hash).addCallback(
+                self._checkedPassword, credentials.username, credentials.realm)
 
 ## avatars
 
@@ -138,7 +164,7 @@ class XCAPAuthRealm(object):
 class XCAPAuthResource(HTTPAuthResource):
     
     def allowedMethods(self):
-        return ('GET', 'PUT', 'DELETE', 'POST')    
+        return ('GET', 'PUT', 'DELETE')
     
     def _updateRealm(self, realm):
         """Updates the realm of the attached credential factories."""
@@ -146,23 +172,18 @@ class XCAPAuthResource(HTTPAuthResource):
             factory.realm = realm
 
     def authenticate(self, request):
-        """La fiecare nou request neautentificat caruia i se va trimite un
-           challenge, trebuie schimbat in prealabil realmul pentru care se face 
-           autentificarea, realm ce trebuie setat pe credential factories (basic sau digest).
-           Realmul este obtinut dinamic din request URI (XCAP URI).
-           
-           Intrebarea e unde fac aceasta modificare. Daca pun in authenticate,
-           e facut in fiecare request, as vrea doar in cel initial, dar am nevoie de stare."""
+        """Authenticates an XCAP request."""
         uri = request.scheme + "://" + request.host + request.uri
         request.xcap_uri = parseNodeURI(uri, AuthenticationConfig.default_realm)
+        ## For each request the authentication realm must be
+        ## dinamically deducted from the XCAP request URI
         realm = request.xcap_uri.user.domain
         self._updateRealm(realm)
         return HTTPAuthResource.authenticate(self, request)
 
     def _loginSucceeded(self, avatar, request):
-        """Requestul a fost autentificat, acum il autorizez, si anume ma uit daca
-           user-ul autentificat este acelasi din request URI."""
-
+        """Authorizes an XCAP request after it has been authenticated."""
+        
         avatarInterface, xcap_user = avatar ## the avatar is the authenticated XCAP User
         xcap_uri = request.xcap_uri
 
