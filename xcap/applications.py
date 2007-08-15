@@ -41,46 +41,42 @@ class XCAPApplication(object):
 
     ## Validation
 
-    def _check_schema_validation(self, xcap_doc):
+    def _check_UTF8_encoding(self, xml_doc):
+        """Check if the document is UTF8 encoded. Raise an NotUTF8Error if it's not."""
+        if xml_doc.docinfo.encoding != 'UTF-8':
+            log.error("The document is not UTF-8 encoded. Encoding is : %s" % xml_doc.docinfo.encoding)
+            raise NotUTF8Error()
+
+    def _check_schema_validation(self, xml_doc):
         """Check if the given XCAP document validates against the application's schema"""
-        try:
-            xml_doc = etree.parse(StringIO(xcap_doc))
-        except: ## not a well formed XML document
-            raise NotWellFormedError
         if not self.xml_schema.validate(xml_doc):
-            log.error("Failed to validate document against XML schema: %s" % self.xml_schema.error_log )
+            log.error("Failed to validate document against XML schema: %s" % self.xml_schema.error_log)
             raise SchemaValidationError("The document doesn't comply to the XML schema")
 
-    def _check_additional_constraints(self, xcap_doc):
+    def _check_additional_constraints(self, xml_doc):
         """Check additional validations constraints for this XCAP document. Should be 
            overriden in subclasses if specified by the application usage, and raise
            a ConstraintFailureError if needed."""
         pass
 
-    def _check_UTF8_encoding(self, xcap_doc):
-        """Check if the document is UTF8 encoded. Raise an NotUTF8Error if not."""
-        raise NotUTF8Error()
-
     def validate_document(self, xcap_doc):
         """Check if a document is valid for this application."""
-        # self._check_UTF8_encoding(self, xcap_doc)
-        #self._check_schema_validation(xcap_doc)
-        self._check_additional_constraints(xcap_doc)
+        try:
+            xml_doc = etree.parse(StringIO(xcap_doc))
+        except: ## not a well formed XML document
+            raise NotWellFormedError
+        self._check_UTF8_encoding(xml_doc)
+        # self._check_schema_validation(xml_doc)
+        self._check_additional_constraints(xml_doc)
 
-    #def validate_element(self, element):
-    #    """Check if an element is valid."""
-    
     ## Authorization policy
-    
+
     def is_authorized(self, xcap_user, xcap_uri):
         """Default authorization policy. Authorizes an XCAPUser for an XCAPUri.
            Return True if the user is authorized, False otherwise."""
         if xcap_user and xcap_user == xcap_uri.user:
             return True
         return False
-
-    def compute_etag(self, xcap_uri):
-        return str(time.time())
 
     ## Document management
 
@@ -160,7 +156,7 @@ class XCAPApplication(object):
             self._replace_element(parent, target[0], xml_elem)
         else:
             self._create_element(parent, node_selector.terminal_selector, xml_elem)
-        new_document = etree.tostring(xml_doc)
+        new_document = etree.tostring(xml_doc, 'UTF-8', xml_declaration=True)
         return self.put_document(uri, new_document, check_etag)
 
     def put_element(self, uri, element, check_etag):
@@ -214,7 +210,7 @@ class XCAPApplication(object):
             raise ResourceNotFound
         elem = elem[0]
         elem.getparent().remove(elem)
-        new_document = etree.tostring(xml_doc)
+        new_document = etree.tostring(xml_doc, 'UTF-8', xml_declaration=True)
         return self.put_document(uri, new_document, check_etag)
 
     def delete_element(self, uri, check_etag):
@@ -268,7 +264,7 @@ class XCAPApplication(object):
             del elem.attrib[attribute]
         else:
             raise ResourceNotFound
-        new_document = etree.tostring(xml_doc)
+        new_document = etree.tostring(xml_doc, 'UTF-8', xml_declaration=True)
         return self.put_document(uri, new_document, check_etag)
 
     def delete_attribute(self, uri, check_etag):
@@ -294,7 +290,7 @@ class XCAPApplication(object):
         elem = elem[0]
         attr_name = node_selector.terminal_selector[1:]
         elem.set(attr_name, attribute)
-        new_document = etree.tostring(xml_doc)
+        new_document = etree.tostring(xml_doc, 'UTF-8', xml_declaration=True)
         return self.put_document(uri, new_document, check_etag)
 
     def put_attribute(self, uri, attribute, check_etag):
