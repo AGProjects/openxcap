@@ -15,7 +15,7 @@ from twisted.web2.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 from application.configuration import readSettings, ConfigSection
 from application import log
 
-from xcap.applications import getApplicationForURI
+from xcap.appusage import getApplicationForURI
 from xcap.dbutil import connectionForURI
 from xcap.errors import ResourceNotFound
 from xcap.uri import parseNodeURI

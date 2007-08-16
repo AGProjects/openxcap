@@ -9,7 +9,7 @@ from twisted.web2 import http, resource, responsecode, stream, server
 from twisted.web2.http_headers import ETag, MimeType
 from twisted.web2.static import MetaDataMixin
 
-from xcap.applications import getApplicationForURI
+from xcap.appusage import getApplicationForURI
 from xcap.errors import *
 
 

@@ -17,11 +17,11 @@ from twisted.cred.portal import Portal
 from twisted.cred import credentials, portal, checkers, error as credError
 from twisted.web2.auth import digest, basic, wrapper
 
-from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute
 from xcap import authentication
-from xcap.applications import getApplicationForURI
-from xcap.uri import XCAPUri, AttributeSelector, NamespaceSelector, ExtensionSelector
+from xcap.appusage import getApplicationForURI
+from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute
 from xcap.tls import Certificate, PrivateKey
+from xcap.uri import XCAPUri, AttributeSelector, NamespaceSelector, ExtensionSelector
 from xcap import __version__ as version
 
 server.VERSION = "OpenXCAP/%s" % version

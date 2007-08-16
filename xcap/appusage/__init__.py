@@ -1,33 +1,49 @@
 # Copyright (C) 2007 AG Projects.
 #
 
-"""XCAP application module"""
+"""XCAP application usage module"""
 
 import os
-import time
 
 from StringIO import StringIO
 from lxml import etree
 
 from application.configuration import readSettings, ConfigSection
+from application.configuration.datatypes import StringList
 from application.process import process
 from application import log
 
 from xcap.errors import *
 from xcap.interfaces.storage import StatusResponse
 
+supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pres-rules',
+                          'resource-lists', 'pidf-manipulation')
 
-#class ServerConfig(ConfigSection):
+class EnabledApplications(StringList):
+    def __new__(typ, value):
+        apps = StringList.__new__(typ, value)
+        if len(apps) == 1 and apps[0] == "all":
+            return supported_applications
+        for app in apps:
+            if app not in supported_applications:
+                log.warn("ignoring unknown application : %s" % app)
+                apps.remove(app)
+        return apps
+
+class ServerConfig(ConfigSection):
+    _dataTypes = {'applications': EnabledApplications}
+    applications = EnabledApplications("all")
 
 class StorageConfig(ConfigSection):
     backend = 'database'
     db_uri = 'mysql://user:pass@db/openser'
 
 ## We use this to overwrite some of the settings above on a local basis if needed
+readSettings('Server', ServerConfig)
 readSettings('Storage', StorageConfig)
 
 
-class XCAPApplication(object):
+class ApplicationUsage(object):
     """Base class defining an XCAP application"""
     id = None                ## the Application Unique ID (AUID)
     default_ns = None        ## the default XML namespace
@@ -327,35 +343,35 @@ class XCAPApplication(object):
         return d.addCallbacks(self._cb_get_ns_bindings, callbackArgs=(uri, ))
 
 
-class PresenceRulesApplication(XCAPApplication):
+class PresenceRulesApplication(ApplicationUsage):
     ## draft-ietf-simple-presence-rules-09
     id = "pres-rules"
     default_ns = "urn:ietf:params:xml:ns:pres-rules"
     mime_type = "application/auth-policy+xml"
 
 
-class ResourceListsApplication(XCAPApplication):
+class ResourceListsApplication(ApplicationUsage):
     ## RFC 4826
     id = "resource-lists"
     default_ns = "urn:ietf:params:xml:ns:resource-lists"
     mime_type= "application/resource-lists+xml"
 
 
-class RLSServicesApplication(XCAPApplication):
+class RLSServicesApplication(ApplicationUsage):
     ## RFC 4826
     id = "rls-services"
     default_ns = "urn:ietf:params:xml:ns:rls-services"
     mime_type= "application/rls-services+xml"
 
 
-class PIDFManipulationApplication(XCAPApplication):
+class PIDFManipulationApplication(ApplicationUsage):
     ## RFC 4827
     id = "pidf-manipulation"
     default_ns = "urn:ietf:params:xml:ns:pidf"
     mime_type= "application/pidf+xml"
 
 
-class XCAPCapabilitiesApplication(XCAPApplication):
+class XCAPCapabilitiesApplication(ApplicationUsage):
     ## RFC 4825
     id = "xcap-caps"
     default_ns = "urn:ietf:params:xml:ns:xcap-caps"
@@ -368,7 +384,6 @@ storage_backend = __import__('xcap.interfaces.storage.%s' % StorageConfig.backen
 #except ImportError:
 #    raise RuntimeError("Couldn't find the '%s' storage module" % StorageConfig.backend)
 Storage = storage_backend.Storage
-
 
 applications = {'pres-rules':     PresenceRulesApplication(open(os.path.join(schemas_directory, 'presence-rules.xsd'), 'r').read(), Storage()),
                 'org.openmobilealliance.pres-rules': PresenceRulesApplication(open(os.path.join(schemas_directory, 'presence-rules.xsd'), 'r').read(), Storage()),
