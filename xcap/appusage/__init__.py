@@ -82,7 +82,7 @@ class ApplicationUsage(object):
         except: ## not a well formed XML document
             raise NotWellFormedError
         self._check_UTF8_encoding(xml_doc)
-        # self._check_schema_validation(xml_doc)
+        self._check_schema_validation(xml_doc)
         self._check_additional_constraints(xml_doc)
 
     ## Authorization policy
@@ -355,6 +355,45 @@ class ResourceListsApplication(ApplicationUsage):
     id = "resource-lists"
     default_ns = "urn:ietf:params:xml:ns:resource-lists"
     mime_type= "application/resource-lists+xml"
+    
+    def _check_additional_constraints(self, xml_doc):
+        """Check additional constraints (see section 3.4.5 of RFC 4826)."""
+        list_tag = "{%s}list" % self.default_ns
+        entry_tag = "{%s}entry" % self.default_ns
+        entry_ref_tag = "{%s}entry-ref" % self.default_ns
+        external_tag ="{%s}tag" % self.default_ns
+        for elem in xml_doc.getiterator():
+            name_attrs = set()
+            uri_attrs = set()
+            ref_attrs = set()
+            anchor_attrs = set()
+            for child in elem.getchildren():
+                if child.tag == list_tag:
+                    name = child.get("name")
+                    if name in name_attrs:
+                        raise UniquenessFailureError()
+                    else:
+                        name_attrs.add(name)
+                elif child.tag == entry_tag:
+                    uri = child.get("uri")
+                    if uri in uri_attrs:
+                        raise UniquenessFailureError()
+                    else:
+                        uri_attrs.add(uri)
+                elif child.tag == entry_ref_tag:
+                    ref = child.get("ref")
+                    if ref in ref_attrs:
+                        raise UniquenessFailureError()
+                    else:
+                        # TODO check if it's a relative URI, else raise ConstraintFailure
+                        ref_attrs.add(ref)
+                elif child.tag == external_tag:
+                    anchor = child.get("anchor")
+                    if anchor in anchor_attrs:
+                        raise UniquenessFailureError()
+                    else:
+                        # TODO check if it's a HTTP URL, else raise ConstraintFailure
+                        anchor_attrs.add(anchor)
 
 
 class RLSServicesApplication(ApplicationUsage):

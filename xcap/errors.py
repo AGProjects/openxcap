@@ -15,7 +15,8 @@ __all__ = [
     
     'NotWellFormedError', 'SchemaValidationError', 'NotUTF8Error',
     
-    'NotXMLFragmentError', 'CannotInsertError', 'NoParentError'
+    'NotXMLFragmentError', 'CannotInsertError', 'NoParentError', 'UniquenessFailureError',
+    'ConstraintFailureError'
     ]
 
 
@@ -69,8 +70,6 @@ class ErrorResponse(Response):
         # Its MIME type, registered by this specification, is "application/xcap-error+xml".
 
         self.headers.setHeader("content-type", http_headers.MimeType("application", "xcap-error+xml", mime_params))
-
-        #self.headers.setHeader("content-type", http_headers.MimeType("text", "html", mime_params))
 
 
 class SchemaValidationError(XCAPError):

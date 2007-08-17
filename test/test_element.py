@@ -106,7 +106,7 @@ class ElementTest(XCAPTest):
         self.assertStatus(409)        ## <not-parent>
         
         self.put_resource('resource-lists', second_element_xml, '/resource-lists/list[@name="friends"]/entry[1]', headers)
-        self.assertStatus(200)
+        self.assertStatus(409)        ## <uniqueness-failure>
 
 
 def suite():
