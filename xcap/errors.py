@@ -10,13 +10,13 @@ from twisted.web2.http import Response, HTTPError
 
 __all__ = [
     'XCAPError',
-    
     'ResourceNotFound',
     
-    'NotWellFormedError', 'SchemaValidationError', 'NotUTF8Error',
+    'NotWellFormedError', 'SchemaValidationError', 'NotUTF8Error', 'NotXMLAtrributeValueError',
     
-    'NotXMLFragmentError', 'CannotInsertError', 'NoParentError', 'UniquenessFailureError',
-    'ConstraintFailureError'
+    'NotXMLFragmentError', 'CannotInsertError', 'CannotDeleteError', 'NoParentError', 
+    
+    'UniquenessFailureError', 'ConstraintFailureError'
     ]
 
 
@@ -39,14 +39,17 @@ class XCAPError(HTTPError):
         HTTPError.__init__(self, self.response)
 
     def build_xml_output(self):
+        if self.description:
+            phrase_attr = ' phrase="%s"' % self.description
+        else:
+            phrase_attr = ''
         output = """<?xml version="1.0" encoding="UTF-8"?>
                     <xcap-error xmlns="%(namespace)s">
-                      <%(tag)s>%(description)s
-                      </%(tag)s>
+                      <%(tag)s%(phrase)s/>
                     </xcap-error>""" % {
-                        "namespace"  : self.namespace,
-                        "description": self.description,
-                        "tag"        : self.tag}
+                        "namespace": self.namespace,
+                        "phrase"   : phrase_attr,
+                        "tag"      : self.tag}
         return output
 
 
@@ -67,8 +70,7 @@ class ErrorResponse(Response):
 
         Response.__init__(self, code=code, stream=output)
 
-        # Its MIME type, registered by this specification, is "application/xcap-error+xml".
-
+        ## Its MIME type, registered by this specification, is "application/xcap-error+xml".
         self.headers.setHeader("content-type", http_headers.MimeType("application", "xcap-error+xml", mime_params))
 
 
@@ -96,29 +98,32 @@ class ConstraintFailureError(XCAPError):
 class NotUTF8Error(XCAPError):
     tag = "not-utf-8"
 
-class NoParentError(XCAPError): # TODO
+class NoParentError(XCAPError):
     tag = "no-parent"
 
-    #<xs:element name="no-parent" substitutionGroup="error-element">
-     #<xs:annotation>
-      #<xs:documentation>This indicates that an attempt to insert
-   #an element, attribute or document failed because the document or
-   #element into which the insertion was
-   #supposed to occur does not exist</xs:documentation>
-     #</xs:annotation>
-     #<xs:complexType>
-      #<xs:sequence>
-       #<xs:element name="ancestor" type="xs:anyURI" minOccurs="0">
-        #<xs:annotation>
-         #<xs:documentation>Contains an HTTP URI that points to the
-   #element which is the closest ancestor that does exist.
-         #</xs:documentation>
-        #</xs:annotation>
-       #</xs:element>
-      #</xs:sequence>
-      #<xs:attribute name="description" type="xs:string" use="optional"/>
-     #</xs:complexType>
-    #</xs:element>
+    def __init__(self, description="", ancestor=None):
+        self.ancestor = ancestor
+        XCAPError.__init__(self, description)
+
+    def build_xml_output(self):
+        if self.description:
+            phrase_attr = ' phrase="%s"' % self.description
+        else:
+            phrase_attr = ''
+        if self.ancestor:
+            ancestor = "<ancestor>%s</ancestor>" % self.ancestor
+        else:
+            ancestor = ""
+        output = """<?xml version="1.0" encoding="UTF-8"?>
+                    <xcap-error xmlns="%(namespace)s">
+                      <%(tag)s%(phrase)s>%(ancestor)s
+                      </%(tag)s>
+                    </xcap-error>""" % {
+                        "namespace": self.namespace,
+                        "phrase"   : phrase_attr,
+                        "ancestor" : ancestor,
+                        "tag"      : self.tag}
+        return output
 
 class UniquenessFailureError(XCAPError): # TODO
     tag = "uniqueness-failure"
@@ -166,10 +171,3 @@ class UniquenessFailureError(XCAPError): # TODO
      #</exists>
     #</uniqueness-failure>
    #</xcap-error>
-
-if __name__ == "__main__":
-
-    err = SchemaValidationError("validation error")
-
-    print err.build_xml_output()
-    print err.response
