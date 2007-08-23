@@ -15,11 +15,11 @@ Prerequisites:
 
  - LibXML (http://xmlsoft.org/downloads.html)
  - Python 2.4 or newer (www.python.org)
- - Twisted framework (http://twistedmatrix.com) - Twisted Core and Twisted Web 2
- (TODO check if the tarball is enough, if not, get it from the SVN trunk)
+ - Twisted framework (http://twistedmatrix.com) - Twisted Core and Twisted Web 2 
+   (get them from the SVN trunk)
  - lxml (http://codespeak.net/lxml)
  - python-application (TODO)
- 
+
  To enable TLS support, you need:
  - GnuTLS library (http://www.gnu.org/software/gnutls)
  - python-gnutls (http://pypi.python.org/pypi/python-gnutls)
