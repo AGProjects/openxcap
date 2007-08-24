@@ -91,7 +91,7 @@ class PlainDatabasePasswordChecker(DatabasePasswordChecker):
         return defer.maybeDeferred(
                 credentials.checkPassword, hash).addCallback(
                 self._checkedPassword, credentials.username, credentials.realm)
-    
+
 
 class HashDatabasePasswordChecker(DatabasePasswordChecker):
     """A credentials checker against a database subscriber table."""

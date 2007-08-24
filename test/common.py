@@ -39,7 +39,7 @@ class HTTPResponse(object):
 
 class XCAPTest(unittest.TestCase):
     xcap_root = 'http://10.0.0.1:433/xcap-root'
-    auth = 'digest'
+    auth = 'basic'
     account = 'mircea@ag-projects.com'
     password = '1234'
 
