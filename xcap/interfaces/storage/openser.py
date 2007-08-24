@@ -72,8 +72,6 @@ class Storage(database.Storage):
             u = tuple(w.split('@', 1))
             if u not in db_watchers['active']:
                 to_add.append(u)
-        print 'to_delete : ', to_delete
-        print 'to_add : ', to_add
         quote = dbutil.quote
         for w in to_delete:
             w_username, w_domain = w
@@ -85,7 +83,6 @@ class Storage(database.Storage):
                            "w_username": quote(w_username, "char"),
                            "w_domain": quote(w_domain, "char"),
                            }
-            print 'delete query: ', query
             trans.execute(query)
             query = """UPDATE active_watchers
                        SET status = %(subs_status)s
@@ -97,7 +94,6 @@ class Storage(database.Storage):
                            "w_username": quote(w_username, "char"),
                            "w_domain": quote(w_domain, "char"),
                            }
-            print 'update query: ', query
             trans.execute(query)
         for w in to_add:
             w_username, w_domain = w
@@ -111,7 +107,6 @@ class Storage(database.Storage):
                            "subs_status": quote("active", "char"),
                            "time": quote(int(time.time()), "int")
                            }
-            print 'insert query: ', query
             try:
                 trans.execute(query)
             except Exception, e: ## TODO the watcher existed, but it wasn't set to active
@@ -124,7 +119,6 @@ class Storage(database.Storage):
                                "domain"  : quote(user.domain, "char"),
                                "w_username": quote(w_username, "char"),
                                "w_domain": quote(w_domain, "char")}                
-                print 'update query: ', query
                 trans.execute(query)
             
             query = """UPDATE active_watchers
@@ -137,7 +131,6 @@ class Storage(database.Storage):
                            "w_username": quote(w_username, "char"),
                            "w_domain": quote(w_domain, "char"),
                            }
-            print 'update query: ', query
             trans.execute(query)
 
     def _update_blocked_watchers(self, trans, user, db_watchers, auth_policy):
@@ -153,8 +146,6 @@ class Storage(database.Storage):
             u = tuple(w.split('@', 1))
             if u not in db_watchers['terminated']:
                 to_terminate.append(u)
-        print 'to_delete : ', to_delete
-        print 'to_terminate : ', to_terminate
         quote = dbutil.quote
         for w in to_delete:
             w_username, w_domain = w
@@ -166,7 +157,6 @@ class Storage(database.Storage):
                            "w_username": quote(w_username, "char"),
                            "w_domain": quote(w_domain, "char"),
                            }
-            print 'delete query: ', query
             trans.execute(query)
         for w in to_terminate:
             ## block watcher permanently
@@ -181,7 +171,6 @@ class Storage(database.Storage):
                            "subs_status": quote("terminated", "char"),
                            "time": quote(int(time.time()), "int")
                            }
-            print 'insert query: ', query
             try:
                 trans.execute(query)
             except Exception, e: ## TODO the watcher existed, but it wasn't set to active
@@ -194,7 +183,6 @@ class Storage(database.Storage):
                                "domain"  : quote(user.domain, "char"),
                                "w_username": quote(w_username, "char"),
                                "w_domain": quote(w_domain, "char")}                
-                print 'update query: ', query
                 trans.execute(query)
             ## block watcher in server memory, let OpenSER purge the active watcher
             query = """UPDATE active_watchers
@@ -207,21 +195,17 @@ class Storage(database.Storage):
                            "w_username": quote(w_username, "char"),
                            "w_domain": quote(w_domain, "char"),
                            }
-            print 'update query: ', query
             trans.execute(query)
 
     def _merge_watchers(self, trans, uri, document):
         user = uri.user
         db_watchers = self._get_watchers_from_database(trans, uri.user)
         auth_policy = self._get_policy_from_xml(document)
-        print 'db watchers: ', db_watchers
-        print 'auth_policy: ', auth_policy
         self._update_allowed_watchers(trans, user, db_watchers, auth_policy)
         self._update_blocked_watchers(trans, user, db_watchers, auth_policy)
 
     def _put_document(self, trans, uri, document, check_etag):
         response = database.Storage._put_document(self, trans, uri, document, check_etag)
-        print 'merging watchers...'
         self._merge_watchers(trans, uri, document)
         return response
 
