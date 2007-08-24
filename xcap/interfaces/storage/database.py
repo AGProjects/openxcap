@@ -29,11 +29,11 @@ class Storage(object):
     
     implements(IStorage)
 
-    app_mapping = {"pres-rules"       : 1,
-                   "org.openmobilealliance.pres-rules": 1,
-                   "resource-lists"   : 2,
-                   "rls-services"     : 3,
-                   "pidf-manipulation": 4}
+    app_mapping = {"pres-rules"       : 2,
+                   "org.openmobilealliance.pres-rules": 2,
+                   "resource-lists"   : 4,
+                   "rls-services"     : 8,
+                   "pidf-manipulation": 16}
 
     def __init__(self):
         self.__db_connect()
