@@ -1,0 +1,103 @@
+OpenXCAP
+--------
+
+Copyright (c) 2007 AG Projects 
+http://ag-projects.com
+
+Author: Mircea Amarascu
+
+License
+-------
+
+See LICENSE file.
+
+
+Project description
+-------------------
+
+XCAP protocol allows a client to read, write, and modify application
+configuration data stored in XML format on a server. XCAP maps XML document
+sub-trees and element attributes to HTTP URIs, so that these components can
+be directly accessed by HTTP. An XCAP server is used by the XCAP clients to
+store data like Presence policy in combination with a SIP Presence server
+that supports PUBLISH/SUBSCRIBE/NOTIFY methods to provide a complete
+[http://www.tech-invite.com/Ti-sip-WGs.html#wg-simple SIP SIMPLE] server
+solution.
+
+The XCAP server is used as a policy decision maker by the SIP Presence
+server to manage the subscriptions and notifications of presence information
+based on end-user controlled preferences. The XCAP server can also be used
+to publish to SIP devices information retrieved from external sources and
+using different APIs acting like a bridge between real-time communications
+based on SIP protocol and other web technologies like SOAP/XML.
+
+OpenXCAP is an open source, easy extensible, fully featured XCAP server with
+TLS security and support for multiple realms. The server is written in
+Python programming language and is based on the following RFCs:
+
+    * The Extensible Markup Language (XML) Configuration Access Protocol
+    (XCAP) [http://www.tools.ietf.org/html/rfc4825 RFC 4825]
+
+    * Formats for Representing Resource Lists
+    [http://www.tools.ietf.org/html/rfc4826 RFC 4826]
+    
+    * Usage for Manipulating Presence Document Contents
+    [http://www.tools.ietf.org/html/rfc4827 RFC 4827]
+    
+    * Presence Authorization Rules
+    [http://tech-invite.com/SIPWGs/03-WG-SIMPLE/Drafts/draft-ietf-simple-presence-rules-10.txt
+    draft-ietf-simple-presence-rules-10]
+
+
+Features
+--------
+
+Supported XCAP applications
+
+    * Resource lists (auid = resource-lists). A resource lists application
+    is any application that needs access to a list of resources, identified
+    by a URI, to which operations, such as subscriptions, can be applied.
+
+    * RLS Services (auid = rls-services). A Resource List Server (RLS)
+    services application is Session Initiation Protocol (SIP) application
+    whereby a server receives SIP SUBSCRIBE requests for resource, and
+    generates subscriptions towards the resource list.
+
+    * PIDF Manipulation (auid = pidf-manipulation). Pidf-manipulation
+    application usage defines how XCAP is used to manipulate the contents of
+    PIDF based presence documents.
+
+    * Presence Rules (auid = presence-rules). A Presence Rules application
+    is an application which uses authorization policies, also known as
+    authorization rules, to specify what presence information can be given
+    to which watchers, and when.
+
+
+Data storage
+
+OpenXCAP server supports multiple back-end storage systems and works out of
+the box with [http://openser.org OpenSER Proxy/Registrar/Presence] server.
+
+
+XCAP clients
+------------
+
+No server is useful without clients supporting their features. Here is list
+with XCAP clients known to be working with OpenXCAP:
+
+    * [http://openser.org OpenSER]
+    * simple-soap-proxy (under development). This client allows publication of arbitrary information and policy management using an easy to use SOAP/XML interface
+    * Eyebeam from [http://www.counterpath.com/eyebeam-overview.html Counterpath]
+
+
+Support
+-------
+
+OpenXCAP has been started as a graduating thesis by Mircea Amarascu at the
+Polytechnic University of Bucharest in the spring of 2007 and is supported
+via the wiki collaboration system from http://openxcap.org.
+
+For OpenSER users and interactions beetween OpenXCAP and OpenSER please
+consult also the http://openser.org/pipermail/users/ OpenSER users mailing
+list.
+
