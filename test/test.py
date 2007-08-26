@@ -33,7 +33,8 @@ def run():
         'test_element',
         'test_attribute',
         'test_etags',
-        'test_auth'
+        'test_auth',
+        'test_pidf'
     ]
     
     t = TestHarness(testList)

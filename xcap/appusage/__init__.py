@@ -427,7 +427,7 @@ Storage = storage_backend.Storage
 applications = {'pres-rules':     PresenceRulesApplication(open(os.path.join(schemas_directory, 'presence-rules.xsd'), 'r').read(), Storage()),
                 'org.openmobilealliance.pres-rules': PresenceRulesApplication(open(os.path.join(schemas_directory, 'presence-rules.xsd'), 'r').read(), Storage()),
                 'resource-lists': ResourceListsApplication(open(os.path.join(schemas_directory, 'resource-lists.xsd'), 'r').read(), Storage()),
-                'pidf-manipulation': PIDFManipulationApplication(open(os.path.join(schemas_directory, 'resource-lists.xsd'), 'r').read(), Storage())}
+                'pidf-manipulation': PIDFManipulationApplication(open(os.path.join(schemas_directory, 'pidf.xsd'), 'r').read(), Storage())}
 
 
 def getApplicationForURI(xcap_uri):

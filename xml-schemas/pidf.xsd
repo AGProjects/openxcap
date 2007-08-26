@@ -1,4 +1,4 @@
-   <?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
    <xs:schema targetNamespace="urn:ietf:params:xml:ns:pidf"
         xmlns:tns="urn:ietf:params:xml:ns:pidf"
         xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -84,4 +84,4 @@
          </xs:documentation>
        </xs:annotation>
      </xs:attribute>
-   </xs:schema>
+</xs:schema>
