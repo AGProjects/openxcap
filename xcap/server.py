@@ -21,6 +21,7 @@ from twisted.web2.auth import digest, basic, wrapper
 from xcap import authentication
 from xcap.appusage import getApplicationForURI
 from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute
+from xcap.tls import Certificate, PrivateKey
 from xcap.uri import XCAPUri, AttributeSelector, NamespaceSelector, ExtensionSelector
 from xcap import __version__ as version
 
@@ -37,6 +38,7 @@ class ServerConfig(ConfigSection):
     port = 8000
     address = '0.0.0.0'
     tls = False
+    backend = 'Database'
     trusted_peers = []
 
 class TLSConfig(ConfigSection):
@@ -108,11 +110,14 @@ class XCAPServer:
     
     def __init__(self):
         portal = Portal(authentication.XCAPAuthRealm())
-
+        try:
+            backend = __import__('xcap.interfaces.backend.%s' % ServerConfig.backend.lower(), globals(), locals(), [''])
+        except ImportError:
+            raise RuntimeError("Couldn't find the '%s' storage module" % ServerConfig.backend.lower())
         if AuthenticationConfig.cleartext_passwords:
-            http_checker = authentication.PlainDatabasePasswordChecker()
+            http_checker = backend.PlainPasswordChecker()
         else:
-            http_checker = authentication.HashDatabasePasswordChecker()
+            http_checker = backend.HashPasswordChecker()
         portal.registerChecker(http_checker)
         portal.registerChecker(authentication.TrustedPeerChecker(ServerConfig.trusted_peers))
 
@@ -133,7 +138,6 @@ class XCAPServer:
         channel.HTTPFactory.noisy = False
         if ServerConfig.tls:
             from gnutls.interfaces.twisted import X509Credentials
-            from xcap.tls import Certificate, PrivateKey
             cert, pKey = TLSConfig.certificate, TLSConfig.private_key
             if cert is None or pKey is None:
                 log.fatal("the TLS certificates or the private key could not be loaded")

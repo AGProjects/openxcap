@@ -17,17 +17,26 @@ from xcap.interfaces.backend import database
 from xcap.interfaces.openser import ManagementInterface
 from xcap.errors import ResourceNotFound
 
-class StorageConfig(ConfigSection):
-    db_uri = 'mysql://user:pass@db/openser'
+class OpenSERConfig(ConfigSection):
+    authentication_db_uri = 'mysql://user:pass@db/openser'
+    storage_db_uri = 'mysql://user:pass@db/openser'
+    xmlrpc_url = 'http://localhost:8080'
 
 ## We use this to overwrite some of the settings above on a local basis if needed
-readSettings('Storage', StorageConfig)
+readSettings('OpenSER', OpenSERConfig)
+
+class PlainPasswordChecker(database.PlainPasswordChecker):
+    db_uri = OpenSERConfig.authentication_db_uri
+class HashPasswordChecked(database.HashPasswordChecker):
+    db_uri = OpenSERConfig.authentication_db_uri
 
 class Storage(database.Storage):
+    
+    db_uri = OpenSERConfig.storage_db_uri
 
     def __init__(self):
         database.Storage.__init__(self)
-        self._mi = ManagementInterface()
+        self._mi = ManagementInterface(OpenSERConfig.xmlrpc_url)
 
     def _notify_watchers(self, response, user_id):
         def _eb_mi(f):

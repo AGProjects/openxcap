@@ -13,7 +13,7 @@ from twisted.web2 import http, server, stream
 from twisted.web2.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 
 from application.configuration import readSettings, ConfigSection
-from application.configuration.datatypes import NetworkRangeList, StringList
+from application.configuration.datatypes import StringList, NetworkRangeList
 from application import log
 
 from xcap.appusage import getApplicationForURI
@@ -21,16 +21,12 @@ from xcap.dbutil import connectionForURI
 from xcap.errors import ResourceNotFound
 from xcap.uri import XCAPUser, parseNodeURI
 
-
 class ServerConfig(ConfigSection):
-    #_dataTypes = {'trusted_peers': NetworkRangeList}
     _dataTypes = {'trusted_peers': StringList}
     trusted_peers = []
 
 class AuthenticationConfig(ConfigSection):
     default_realm = 'example.com'
-    db_uri = 'mysql://user:pass@db/openser'
-
 
 ## We use this to overwrite some of the settings above on a local basis if needed
 readSettings('Authentication', AuthenticationConfig)
@@ -63,89 +59,6 @@ class TrustedPeerChecker:
         if credentials.checkPeer(self.trusted_peers):
             return defer.succeed(credentials.peer)
         return defer.fail(credError.UnauthorizedLogin())
-
-
-class DatabasePasswordChecker:
-    """A credentials checker against a database subscriber table."""
-
-    implements(checkers.ICredentialsChecker)
-
-    credentialInterfaces = (credentials.IUsernamePassword,
-        credentials.IUsernameHashedPassword)
-
-    def __init__(self):
-        self.__db_connect()
-
-    def __db_connect(self):
-        self.conn = connectionForURI(AuthenticationConfig.db_uri)
-
-    def _query_credentials(self, credentials):
-        raise NotImplementedError
-
-    def _got_query_results(self, rows, credentials):
-        if not rows:
-            raise credError.UnauthorizedLogin("Unauthorized login")
-        else:
-            return self._authenticate_credentials(rows[0][0], credentials)
-
-    def _authenticate_credentials(self, password, credentials):
-        raise NotImplementedError
-
-    def _checkedPassword(self, matched, username, realm):
-        if matched:
-            username = username.split('@', 1)[0]
-            ## this is the avatar ID
-            return "%s@%s" % (username, realm)
-        else:
-            raise credError.UnauthorizedLogin("Unauthorized login")
-
-    def requestAvatarId(self, credentials):
-        """Return the avatar ID for the credentials which must have the username 
-           and realm attributes, or an UnauthorizedLogin in case of a failure."""
-        d = self._query_credentials(credentials)
-        return d
-
-
-class PlainDatabasePasswordChecker(DatabasePasswordChecker):
-    """A credentials checker against a database subscriber table."""
-
-    implements(checkers.ICredentialsChecker)
-
-    def _query_credentials(self, credentials):
-        username, domain = credentials.username.split('@', 1)[0], credentials.realm
-        quote = dbutil.quote
-        query = """SELECT password
-                   FROM subscriber 
-                   WHERE username = %(username)s AND domain = %(domain)s""" % {
-                    "username": quote(username, "char"), 
-                    "domain":   quote(domain, "char")}
-        return self.conn.runQuery(query).addCallback(self._got_query_results, credentials)
-
-    def _authenticate_credentials(self, hash, credentials):
-        return defer.maybeDeferred(
-                credentials.checkPassword, hash).addCallback(
-                self._checkedPassword, credentials.username, credentials.realm)
-
-
-class HashDatabasePasswordChecker(DatabasePasswordChecker):
-    """A credentials checker against a database subscriber table."""
-
-    implements(checkers.ICredentialsChecker)
-
-    def _query_credentials(self, credentials):
-        username, domain = credentials.username.split('@', 1)[0], credentials.realm
-        quote = dbutil.quote
-        query = """SELECT ha1 
-                   FROM subscriber 
-                   WHERE username = %(username)s AND domain = %(domain)s""" % {
-                    "username": quote(username, "char"), 
-                    "domain":   quote(domain, "char")}
-        return self.conn.runQuery(query).addCallback(self._got_query_results, credentials)
-
-    def _authenticate_credentials(self, hash, credentials):
-        return defer.maybeDeferred(
-                credentials.checkHash, hash).addCallback(
-                self._checkedPassword, credentials.username, credentials.realm)
 
 ## avatars
 
@@ -263,7 +176,7 @@ class XCAPAuthResource(HTTPAuthResource):
             log.error('PUT: failed reading : ', str(failure))
             return http.Response(responsecode.INTERNAL_SERVER_ERROR, stream="Could not read data")
 
-        if request.method in ('PUT', 'DELETE', 'POST'):
+        if request.method in ('PUT', 'DELETE'):
             # we need to authenticate the request after all the attachment stream
             # has been read
             data = []
