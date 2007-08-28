@@ -10,17 +10,11 @@ address = 0.0.0.0
 port = 8000
 ; TLS enabling
 tls = No
-; The applications supported by this server
-applications = pres-rules, rls-services, resource-lists
 ; The XCAP Root URI
 root = http://xcap.example.com
-
-[TLS]
-
-; Server certificate
-certificate = server.crt
-; Server private key
-private_key = server.key
+; The backend to be used for storage and authentication. Current supported
+; values are Database and OpenSER.
+backend = Database
 
 [Authentication]
 
@@ -32,17 +26,32 @@ type = basic
 cleartext_passwords = Yes
 ; The default authentication realm
 default_realm = example.com
-; The database connection URI
-db_uri = mysql://username:password@db-host/openser
+; A list of trusted peers from where XCAP requests are accepted without HTTP authentication
+trusted_peers = 10.0.0.0/24, 192.168.0.1
 
-[Storage]
-; The database connection URI
-db_uri = mysql://username:password@db-host/openser
+[TLS]
+
+; Server X509 certificate
+certificate = server.crt
+; Server X509 private key
+private_key = server.key
+
+[Database]
+
+; Configuration settings for Database backend, active if this backend was selected
+; in the [Server] section
+; The database connection URI for the datase with subscriber accounts
+authentication_db_uri = mysql://username:password@db-host/openser
+; The database connection URI for the database that stores the XCAP documents
+storage_db_uri = mysql://username:password@db-host/openser
 
 [OpenSER]
 
-; Configuration settings for OpenSER interfacing, if the OpenSER storage backend 
-; is selected.
-
+; Configuration settings for OpenSER backend, active if this backend was selected
+; in the [Server] section
+; The database connection URI for the datase with subscriber accounts
+authentication_db_uri = mysql://username:password@db-host/openser
+; The database connection URI for the database that stores the XCAP documents
+storage_db_uri = mysql://username:password@db-host/openser
 ; The address and port where the XMLRPC Management Interface of OpenSER is listening
 xmlrpc_url = http://localhost:8080
