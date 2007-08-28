@@ -3,6 +3,8 @@
 
 """XCAP authentication module"""
 
+from xcap import tweaks
+
 from zope.interface import Interface, implements
 
 from twisted.internet import defer

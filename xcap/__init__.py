@@ -3,6 +3,4 @@
 
 """XCAP package"""
 
-__version__ = "0.5.0"
-
-from xcap import tweaks
+__version__ = "0.7.0"
