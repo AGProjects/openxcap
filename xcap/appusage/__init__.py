@@ -30,10 +30,19 @@ class EnabledApplications(StringList):
                 apps.remove(app)
         return apps
 
+
+class Backend(object):
+    """Configuration datatype, used to select a backend module from the configuration file."""
+    def __new__(typ, value):
+        try:
+            return __import__('xcap.interfaces.backend.%s' % value.lower(), globals(), locals(), [''])
+        except ImportError, e:
+            raise ValueError("Couldn't find the '%s' backend module: %s" % (value.lower(), str(e)))
+
 class ServerConfig(ConfigSection):
-    _dataTypes = {'applications': EnabledApplications}
+    _dataTypes = {'applications': EnabledApplications, 'backend': Backend}
     applications = EnabledApplications("all")
-    backend = 'Database'
+    backend = Backend('Database')
 
 ## We use this to overwrite some of the settings above on a local basis if needed
 readSettings('Server', ServerConfig)
@@ -414,11 +423,7 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
 
 
 schemas_directory = os.path.join(process._local_config_directory, 'xml-schemas')
-try:
-    storage_backend = __import__('xcap.interfaces.backend.%s' % ServerConfig.backend.lower(), globals(), locals(), [''])
-except ImportError:
-    raise RuntimeError("Couldn't find the '%s' storage module" % ServerConfig.backend.lower())
-Storage = storage_backend.Storage
+Storage = ServerConfig.backend.Storage
 
 applications = {'pres-rules':     PresenceRulesApplication(open(os.path.join(schemas_directory, 'presence-rules.xsd'), 'r').read(), Storage()),
                 'org.openmobilealliance.pres-rules': PresenceRulesApplication(open(os.path.join(schemas_directory, 'presence-rules.xsd'), 'r').read(), Storage()),

@@ -27,6 +27,13 @@ from xcap import __version__ as version
 
 server.VERSION = "OpenXCAP/%s" % version
 
+class Backend(object):
+    """Configuration datatype, used to select a backend module from the configuration file."""
+    def __new__(typ, value):
+        try:
+            return __import__('xcap.interfaces.backend.%s' % value.lower(), globals(), locals(), [''])
+        except ImportError, e:
+            raise ValueError("Couldn't find the '%s' backend module: %s" % (value.lower(), str(e)))
 
 class AuthenticationConfig(ConfigSection):
     type = 'basic'
@@ -34,11 +41,11 @@ class AuthenticationConfig(ConfigSection):
     default_realm = 'example.com'
 
 class ServerConfig(ConfigSection):
-    _dataTypes = {'trusted_peers': StringList}
+    _dataTypes = {'trusted_peers': StringList, 'backend': Backend}
     port = 8000
     address = '0.0.0.0'
     tls = False
-    backend = 'Database'
+    backend = Backend('Database')
     trusted_peers = []
 
 class TLSConfig(ConfigSection):
@@ -110,14 +117,10 @@ class XCAPServer:
     
     def __init__(self):
         portal = Portal(authentication.XCAPAuthRealm())
-        try:
-            backend = __import__('xcap.interfaces.backend.%s' % ServerConfig.backend.lower(), globals(), locals(), [''])
-        except ImportError:
-            raise RuntimeError("Couldn't find the '%s' storage module" % ServerConfig.backend.lower())
         if AuthenticationConfig.cleartext_passwords:
-            http_checker = backend.PlainPasswordChecker()
+            http_checker = ServerConfig.backend.PlainPasswordChecker()
         else:
-            http_checker = backend.HashPasswordChecker()
+            http_checker = ServerConfig.backend.HashPasswordChecker()
         portal.registerChecker(http_checker)
         portal.registerChecker(authentication.TrustedPeerChecker(ServerConfig.trusted_peers))
 
