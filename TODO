@@ -1,0 +1,6 @@
+TODO list
+
+- RLS services support
+- Complete XML element/attribute management functions
+- More tests, both automated and with real clients
+- Make the storage backends work with other database engines besides MySQL
