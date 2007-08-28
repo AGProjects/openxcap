@@ -18,7 +18,7 @@ from application import log
 from xcap.appusage import getApplicationForURI
 from xcap.dbutil import connectionForURI
 from xcap.errors import ResourceNotFound
-from xcap.uri import parseNodeURI
+from xcap.uri import XCAPUser, parseNodeURI
 
 
 class AuthenticationConfig(ConfigSection):
@@ -115,49 +115,35 @@ class HashDatabasePasswordChecker(DatabasePasswordChecker):
 
 ## avatars
 
-class IXCAPUser(Interface):
+class IAuthUser(Interface):
     pass
 
+class ITrustedPeer(Interface):
+    pass
 
-class XCAPUser(object):     ## poate ar trebui definit ca username si realm
-    """XCAP User avatar."""
-    implements(IXCAPUser)
+class AuthUser(str):
+    """Authenticated XCAP User avatar."""
+    implements(IAuthUser)
 
-    def __init__(self, user_id): 
-        if user_id.startswith("sip:"):
-            user_id = user_id[4:]
-        _split = user_id.split('@', 1)
-        self.username = _split[0]
-        if len(_split) == 2:
-            self.domain = _split[1]
-        else:
-            self.domain = None
-
-    def __eq__(self, other):
-        return isinstance(other, XCAPUser) and self.username == other.username and self.domain == other.domain
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __nonzero__(self):
-        return bool(self.username) and bool(self.domain)
-
-    def __str__(self):
-        return "%s@%s" % (self.username, self.domain)
+class TrustedPeer(str):
+    """Trusted peer avatar."""
+    implements(ITrustedPeer)
 
 ## realm
 
 class XCAPAuthRealm(object):
-    """XCAP authentication realm. Receives an avatar ID ( a string identifying the user)
+    """XCAP authentication realm. Receives an avatar ID (a string identifying the user)
        and a list of interfaces the avatar needs to support. It returns an avatar that
        encapsulates data about that user."""
     implements(portal.IRealm)
 
     def requestAvatar(self, avatarId, mind, *interfaces):
-        if IXCAPUser in interfaces:
-            return IXCAPUser, XCAPUser(avatarId)
+        if IAuthUser in interfaces:
+            return IAuthUser, AuthUser(avatarId)
+        elif ITrustedPeer in interfaces:
+            return ITrustedPeer, TrustedPeer(avatarId)
 
-        raise NotImplementedError("Only IXCAPUser interface is supported")
+        raise NotImplementedError("Only IAuthUser and ITrustedPeer interfaces are supported")
 
 ## authentication wrapper for XCAP resources
 
@@ -184,7 +170,7 @@ class XCAPAuthResource(HTTPAuthResource):
     def _loginSucceeded(self, avatar, request):
         """Authorizes an XCAP request after it has been authenticated."""
         
-        avatarInterface, xcap_user = avatar ## the avatar is the authenticated XCAP User
+        interface, avatar_id = avatar ## the avatar is the authenticated XCAP User
         xcap_uri = request.xcap_uri
 
         application = getApplicationForURI(xcap_uri)
@@ -192,7 +178,9 @@ class XCAPAuthResource(HTTPAuthResource):
         if not application:
             raise ResourceNotFound
 
-        if application and application.is_authorized(xcap_user, xcap_uri):
+        if interface is IAuthUser and application.is_authorized(XCAPUser(avatar_id), xcap_uri):
+            return HTTPAuthResource._loginSucceeded(self, avatar, request)
+        elif interface is ITrustedPeer:
             return HTTPAuthResource._loginSucceeded(self, avatar, request)
         else:
             return failure.Failure(

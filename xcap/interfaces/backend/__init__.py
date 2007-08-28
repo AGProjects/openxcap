@@ -27,7 +27,7 @@ class IStorage(Interface):
         
         @param check_etag: a callable used to check the etag of the stored document
 
-        @returns: a deferred that'll be fired when the document is fetched, or the document"""
+        @returns: a deferred that'll be fired when the document is fetched"""
 
     def put_document(self, uri, document, check_etag):
         """Insert or replace an XCAP document.
@@ -49,5 +49,9 @@ class IStorage(Interface):
         """
 
     def generate_etag(self, uri, document):
-        """Generate an etag for the give XCAP URI and document
+        """Generate an etag for the give XCAP URI and document.
+
+        @param uri: an XCAP URI that contains the XCAP user and the document selector
+
+        @param document: an XCAP document
         """

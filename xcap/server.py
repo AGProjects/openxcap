@@ -123,7 +123,7 @@ class XCAPServer:
 
         root = authentication.XCAPAuthResource(XCAPRoot(),
                                             (credential_factory,),
-                                            portal, (authentication.IXCAPUser,))
+                                            portal, (authentication.IAuthUser,))
         self.site = server.Site(root)
 
     def start(self):

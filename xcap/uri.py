@@ -9,7 +9,6 @@ import urlparse
 from application.configuration import readSettings, ConfigSection, getSection
 from application import log
 
-import xcap
 from xcap.errors import *
 
 
@@ -37,6 +36,31 @@ class ServerConfig(ConfigSection):
 readSettings('Server', ServerConfig)
 
 print 'Supported Root URIs: %s' % ','.join(root_uris)
+
+class XCAPUser(object):
+    """XCAP ID."""
+
+    def __init__(self, user_id):
+        if user_id.startswith("sip:"):
+            user_id = user_id[4:]
+        _split = user_id.split('@', 1)
+        self.username = _split[0]
+        if len(_split) == 2:
+            self.domain = _split[1]
+        else:
+            self.domain = None
+
+    def __eq__(self, other):
+        return isinstance(other, XCAPUser) and self.username == other.username and self.domain == other.domain
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __nonzero__(self):
+        return bool(self.username) and bool(self.domain)
+
+    def __str__(self):
+        return "%s@%s" % (self.username, self.domain)
 
 
 class TerminalSelector(str): pass
@@ -149,7 +173,7 @@ class XCAPUri(object):
             self.node_selector = NodeSelector(_split[1]) 
         else:
             self.node_selector = None
-        self.user = xcap.authentication.XCAPUser(self.doc_selector.user_id)
+        self.user = self.doc_selector.user_id and XCAPUser(self.doc_selector.user_id)
         if not self.user.domain:
             self.user.domain = realm
         self.application_id = self.doc_selector.application_id
