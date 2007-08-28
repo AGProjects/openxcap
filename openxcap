@@ -18,6 +18,7 @@ if __name__ == '__main__':
     fullname = 'Open XCAP'
     description = 'An open source XCAP Server'
 
+    config_directory = '/etc/openxcap'
     runtime_directory = '/var/run/openxcap'
     default_pid = "%s/%s.pid" % (runtime_directory, name)
 
@@ -33,6 +34,7 @@ if __name__ == '__main__':
 
     pidFile = options.pidFile
 
+    process._system_config_directory = config_directory
     try:
         process.runtime_directory = runtime_directory
     except ProcessError, e:
