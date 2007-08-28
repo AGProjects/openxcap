@@ -13,16 +13,16 @@ from zope.interface import implements
 from twisted.enterprise import adbapi, util as dbutil
 from twisted.internet import defer
 
-from xcap.interfaces.storage import IStorage, StatusResponse
+from xcap.interfaces.backend import IStorage, StatusResponse
 from xcap.errors import ResourceNotFound
 from xcap.dbutil import connectionForURI
 
 
-class StorageConfig(ConfigSection):
-    db_uri = 'mysql://user:pass@db/openser'
+class DatabaseConfig(ConfigSection):
+    storage_db_uri = 'mysql://user:pass@db/openser'
 
 ## We use this to overwrite some of the settings above on a local basis if needed
-readSettings('Storage', StorageConfig)
+readSettings('Database', DatabaseConfig)
 
 class Storage(object):
     __metaclass__ = Singleton
@@ -39,7 +39,7 @@ class Storage(object):
         self.__db_connect()
 
     def __db_connect(self):
-        self.conn = connectionForURI(StorageConfig.db_uri)
+        self.conn = connectionForURI(DatabaseConfig.storage_db_uri)
 
     def _get_document(self, trans, uri, check_etag):
         username, domain = uri.user.username, uri.user.domain

@@ -14,7 +14,7 @@ from application.process import process
 from application import log
 
 from xcap.errors import *
-from xcap.interfaces.storage import StatusResponse
+from xcap.interfaces.backend import StatusResponse
 
 supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pres-rules',
                           'resource-lists', 'pidf-manipulation')
@@ -33,14 +33,10 @@ class EnabledApplications(StringList):
 class ServerConfig(ConfigSection):
     _dataTypes = {'applications': EnabledApplications}
     applications = EnabledApplications("all")
-
-class StorageConfig(ConfigSection):
-    backend = 'database'
-    db_uri = 'mysql://user:pass@db/openser'
+    backend = 'Database'
 
 ## We use this to overwrite some of the settings above on a local basis if needed
 readSettings('Server', ServerConfig)
-readSettings('Storage', StorageConfig)
 
 
 class ApplicationUsage(object):
@@ -418,10 +414,10 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
 
 
 schemas_directory = os.path.join(process._local_config_directory, 'xml-schemas')
-#try:
-storage_backend = __import__('xcap.interfaces.storage.%s' % StorageConfig.backend, globals(), locals(), [''])
-#except ImportError:
-#    raise RuntimeError("Couldn't find the '%s' storage module" % StorageConfig.backend)
+try:
+    storage_backend = __import__('xcap.interfaces.backend.%s' % ServerConfig.backend.lower(), globals(), locals(), [''])
+except ImportError:
+    raise RuntimeError("Couldn't find the '%s' storage module" % ServerConfig.backend.lower())
 Storage = storage_backend.Storage
 
 applications = {'pres-rules':     PresenceRulesApplication(open(os.path.join(schemas_directory, 'presence-rules.xsd'), 'r').read(), Storage()),

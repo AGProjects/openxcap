@@ -1,7 +1,7 @@
 # Copyright (C) 2006-2007 AG-Projects.
 #
 
-"""Interface to the storage subsystem"""
+"""Interface to the backend subsystem"""
 
 __all__ = ['database', 'openser']
 
@@ -51,4 +51,3 @@ class IStorage(Interface):
     def generate_etag(self, uri, document):
         """Generate an etag for the give XCAP URI and document
         """
-

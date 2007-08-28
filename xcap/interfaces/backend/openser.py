@@ -13,7 +13,7 @@ from twisted.internet import defer
 from application.configuration import readSettings, ConfigSection
 from application import log
 
-from xcap.interfaces.storage import database
+from xcap.interfaces.backend import database
 from xcap.interfaces.openser import ManagementInterface
 from xcap.errors import ResourceNotFound
 
