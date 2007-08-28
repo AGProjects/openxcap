@@ -30,7 +30,6 @@ class EnabledApplications(StringList):
                 apps.remove(app)
         return apps
 
-
 class Backend(object):
     """Configuration datatype, used to select a backend module from the configuration file."""
     def __new__(typ, value):
@@ -421,8 +420,7 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
     default_ns = "urn:ietf:params:xml:ns:xcap-caps"
     mime_type= "application/xcap-caps+xml"
 
-
-schemas_directory = os.path.join(process._local_config_directory, 'xml-schemas')
+schemas_directory = os.path.join(os.path.dirname(globals()["__file__"]), "../", "xml-schemas")
 Storage = ServerConfig.backend.Storage
 
 applications = {'pres-rules':     PresenceRulesApplication(open(os.path.join(schemas_directory, 'presence-rules.xsd'), 'r').read(), Storage()),
