@@ -6,11 +6,12 @@
 import os
 
 from application.configuration import readSettings, ConfigSection
+from application.configuration.datatypes import StringList, NetworkRangeList
 from application import log
-from gnutls.interfaces.twisted import X509Credentials
 
 from zope.interface import implements
 
+from twisted.internet import pollreactor; pollreactor.install()
 from twisted.internet import reactor
 from twisted.web2 import channel, resource, http, responsecode, server
 from twisted.cred.portal import Portal
@@ -20,7 +21,6 @@ from twisted.web2.auth import digest, basic, wrapper
 from xcap import authentication
 from xcap.appusage import getApplicationForURI
 from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute
-from xcap.tls import Certificate, PrivateKey
 from xcap.uri import XCAPUri, AttributeSelector, NamespaceSelector, ExtensionSelector
 from xcap import __version__ as version
 
@@ -33,9 +33,11 @@ class AuthenticationConfig(ConfigSection):
     default_realm = 'example.com'
 
 class ServerConfig(ConfigSection):
+    _dataTypes = {'trusted_peers': StringList}
     port = 8000
     address = '0.0.0.0'
     tls = False
+    trusted_peers = []
 
 class TLSConfig(ConfigSection):
     _dataTypes = {'certificate': Certificate, 'private_key': PrivateKey}
@@ -108,10 +110,11 @@ class XCAPServer:
         portal = Portal(authentication.XCAPAuthRealm())
 
         if AuthenticationConfig.cleartext_passwords:
-            checker = authentication.PlainDatabasePasswordChecker()
+            http_checker = authentication.PlainDatabasePasswordChecker()
         else:
-            checker = authentication.HashDatabasePasswordChecker()
-        portal.registerChecker(checker)
+            http_checker = authentication.HashDatabasePasswordChecker()
+        portal.registerChecker(http_checker)
+        portal.registerChecker(authentication.TrustedPeerChecker(ServerConfig.trusted_peers))
 
         auth_type = AuthenticationConfig.type
         if auth_type == 'basic':
@@ -127,8 +130,10 @@ class XCAPServer:
         self.site = server.Site(root)
 
     def start(self):
-        channel.HTTPFactory.noisy = True
+        channel.HTTPFactory.noisy = False
         if ServerConfig.tls:
+            from gnutls.interfaces.twisted import X509Credentials
+            from xcap.tls import Certificate, PrivateKey
             cert, pKey = TLSConfig.certificate, TLSConfig.private_key
             if cert is None or pKey is None:
                 log.fatal("the TLS certificates or the private key could not be loaded")

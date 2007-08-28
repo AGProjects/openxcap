@@ -13,6 +13,7 @@ from twisted.web2 import http, server, stream
 from twisted.web2.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 
 from application.configuration import readSettings, ConfigSection
+from application.configuration.datatypes import NetworkRangeList, StringList
 from application import log
 
 from xcap.appusage import getApplicationForURI
@@ -21,14 +22,47 @@ from xcap.errors import ResourceNotFound
 from xcap.uri import XCAPUser, parseNodeURI
 
 
+class ServerConfig(ConfigSection):
+    #_dataTypes = {'trusted_peers': NetworkRangeList}
+    _dataTypes = {'trusted_peers': StringList}
+    trusted_peers = []
+
 class AuthenticationConfig(ConfigSection):
     default_realm = 'example.com'
     db_uri = 'mysql://user:pass@db/openser'
 
+
 ## We use this to overwrite some of the settings above on a local basis if needed
 readSettings('Authentication', AuthenticationConfig)
+readSettings('Server', ServerConfig)
+
+## Trusted Peer credentials
+
+class TrustedPeerCredentials:
+    implements(credentials.ICredentials)
+
+    def __init__(self, peer):
+        self.peer = peer
+
+    def checkPeer(self, trusted_peers):
+        return self.peer in trusted_peers
 
 ## credentials checkers
+
+class TrustedPeerChecker:
+
+    implements(checkers.ICredentialsChecker)
+    credentialInterfaces = (credentials.ICredentials,)
+
+    def __init__(self, trusted_peers):
+        self.trusted_peers = trusted_peers
+
+    def requestAvatarId(self, credentials):
+        """Return the avatar ID for the credentials which must have a 'peer' attribute,
+           or an UnauthorizedLogin in case of a failure."""
+        if credentials.checkPeer(self.trusted_peers):
+            return defer.succeed(credentials.peer)
+        return defer.fail(credError.UnauthorizedLogin())
 
 
 class DatabasePasswordChecker:
@@ -148,10 +182,10 @@ class XCAPAuthRealm(object):
 ## authentication wrapper for XCAP resources
 
 class XCAPAuthResource(HTTPAuthResource):
-    
+
     def allowedMethods(self):
         return ('GET', 'PUT', 'DELETE')
-    
+
     def _updateRealm(self, realm):
         """Updates the realm of the attached credential factories."""
         for factory in self.credentialFactories.values():
@@ -165,6 +199,19 @@ class XCAPAuthResource(HTTPAuthResource):
         ## dinamically deducted from the XCAP request URI
         realm = request.xcap_uri.user.domain
         self._updateRealm(realm)
+        remote_addr = request.remoteAddr.host
+        if ServerConfig.trusted_peers:
+            return self.portal.login(TrustedPeerCredentials(remote_addr),
+                                     None,
+                                     ITrustedPeer
+                                     ).addCallbacks(self._loginSucceeded,
+                                                    self._trustedPeerLoginFailed,
+                                                    (request,), None,
+                                                    (request,), None)
+        return HTTPAuthResource.authenticate(self, request)
+
+    def _trustedPeerLoginFailed(self, result, request):
+        """If the peer is not trusted, fallback to HTTP basic/digest authentication."""
         return HTTPAuthResource.authenticate(self, request)
 
     def _loginSucceeded(self, avatar, request):
