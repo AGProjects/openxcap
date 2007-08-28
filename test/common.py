@@ -40,8 +40,8 @@ class HTTPResponse(object):
 class XCAPTest(unittest.TestCase):
     xcap_root = 'http://10.0.0.1:433/xcap-root'
     auth = 'basic'
-    account = 'mircea@ag-projects.com'
-    password = '1234'
+    account = 'test@example.com'
+    password = 'test'
 
     def _execute_request(self, method, url, user, realm, password, headers={}, data=None):
         if self.auth == "basic":

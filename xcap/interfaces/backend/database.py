@@ -1,7 +1,7 @@
 # Copyright (C) 2007 AG-Projects.
 #
 
-"""Implementation of a database storage"""
+"""Implementation of a database backend."""
 
 import md5
 import time

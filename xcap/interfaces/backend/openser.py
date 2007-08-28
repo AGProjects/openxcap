@@ -1,7 +1,7 @@
 # Copyright (C) 2007 AG-Projects.
 #
 
-"""Implementation of an OpenSER database storage"""
+"""Implementation of an OpenSER backend."""
 
 import time
 from StringIO import StringIO

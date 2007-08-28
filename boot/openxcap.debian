@@ -4,11 +4,10 @@
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
-# INSTALL_DIR="/usr/local"
-INSTALL_DIR="/home/mircea/work/darcs"
+INSTALL_DIR="/usr/bin"
 RUNTIME_DIR="/var/run"
 
-SERVER="$INSTALL_DIR/openxcap/openxcap"
+SERVER="$INSTALL_DIR/openxcap"
 PID="$RUNTIME_DIR/openxcap.pid"
 
 # Options for the OpenXCAP server. Do not include --pid <pidfile>
