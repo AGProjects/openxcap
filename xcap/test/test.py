@@ -34,7 +34,8 @@ def run():
         'test_attribute',
         'test_etags',
         'test_auth',
-        'test_pidf'
+        'test_pidf',
+        'test_presrules'
     ]
     
     t = TestHarness(testList)
