@@ -13,6 +13,8 @@ from application.configuration.datatypes import StringList
 from application.process import process
 from application import log
 
+from twisted.internet import defer
+
 from xcap.errors import *
 from xcap.interfaces.backend import StatusResponse
 
@@ -84,6 +86,7 @@ class ApplicationUsage(object):
         try:
             xml_doc = etree.parse(StringIO(xcap_doc))
         except: ## not a well formed XML document
+            log.error("XML document is not well formed.")
             raise NotWellFormedError
         self._check_UTF8_encoding(xml_doc)
         self._check_schema_validation(xml_doc)
@@ -420,10 +423,41 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
     default_ns = "urn:ietf:params:xml:ns:xcap-caps"
     mime_type= "application/xcap-caps+xml"
 
+    def __init__(self):
+        pass
+
+    def _get_document(self):
+        if hasattr(self, 'doc'):
+            return self.doc
+        auids = ""
+        extensions = ""
+        namespaces = ""
+        for (id, app) in applications.items():
+            auids += "<auid>%s<auid>\n" % id
+            namespaces += "<namespace>%s<namespace>\n" % app.default_ns
+        doc = """<?xml version='1.0' encoding='UTF-8'?>
+        <xcap-caps xmlns='urn:ietf:params:xml:ns:xcap-caps'>
+            <auids>
+            %(auids)s</auids>
+            <extensions>
+            %(extensions)s</extensions>
+            <namespaces>
+            %(namespaces)s</namespaces>
+        </xcap-caps>""" % {"auids": auids,
+                           "extensions": extensions,
+                           "namespaces": namespaces}
+        self.doc = etree.predoc
+        return self.doc
+
+    def get_document(self, uri, check_etag):
+        return defer.succeed(StatusResponse(200, data=self._get_document()))
+
+
 schemas_directory = os.path.join(os.path.dirname(globals()["__file__"]), "../", "xml-schemas")
 Storage = ServerConfig.backend.Storage
 
-applications = {'pres-rules':     PresenceRulesApplication(open(os.path.join(schemas_directory, 'common-policy.xsd'), 'r').read(), Storage()),
+applications = {'xcap-caps':      XCAPCapabilitiesApplication(),
+                'pres-rules':     PresenceRulesApplication(open(os.path.join(schemas_directory, 'common-policy.xsd'), 'r').read(), Storage()),
                 'org.openmobilealliance.pres-rules': PresenceRulesApplication(open(os.path.join(schemas_directory, 'common-policy.xsd'), 'r').read(), Storage()),
                 'resource-lists': ResourceListsApplication(open(os.path.join(schemas_directory, 'resource-lists.xsd'), 'r').read(), Storage()),
                 'pidf-manipulation': PIDFManipulationApplication(open(os.path.join(schemas_directory, 'pidf.xsd'), 'r').read(), Storage())}
