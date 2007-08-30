@@ -5,7 +5,7 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 INSTALL_DIR="/usr/bin"
-RUNTIME_DIR="/var/run"
+RUNTIME_DIR="/var/run/openxcap"
 
 SERVER="$INSTALL_DIR/openxcap"
 PID="$RUNTIME_DIR/openxcap.pid"
