@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+
+DEB_PYTHON_SYSTEM=pycentral
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/python-distutils.mk
+
+clean::
+	-rm -rf build dist MANIFEST
+
+install::
+	install -m 0644 config.ini.sample debian/openxcap/etc/openxcap/config.ini
+	dh_movefiles -popenxcap
+
+remove-version-control:
+	@@dh_testdir
+	@@echo Removing version control files and directories ...
+	@@find $(CURDIR) \( -name CVS -o -name .cvsignore -o -name _darcs -o -name .boring -o -name .svn \) -exec rm -rf {} +
+

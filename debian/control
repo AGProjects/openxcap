@@ -1,0 +1,24 @@
+Source: openxcap
+Section: net
+Priority: optional
+Maintainer: Mircea Amarascu <mircea@ag-projects.com>
+Build-Depends: cdbs (>= 0.4.47), debhelper (>= 5.0.42), python-all-dev (>= 2.4.4), python-central (>= 0.5.6), libssl-dev (>= 0.9.8)
+XS-Python-Version: >= 2.4
+Standards-Version: 3.7.2
+
+Package: openxcap
+Architecture: any
+Depends: ${python:Depends}, ${shlibs:Depends}, libxml2, libgnutls13, python-lxml, python-zopeinterface, python-twisted-core, python-twisted-web2, python-application, python-gnutls
+Provides: ${python:Provides}
+XB-Python-Version: ${python:Versions}
+Description: OpenXCAP server
+ XCAP protocol allows a client to read, write, and modify application
+ configuration data stored in XML format on a server. XCAP maps XML document
+ sub-trees and element attributes to HTTP URIs, so that these components can
+ be directly accessed by HTTP. An XCAP server is used by the XCAP clients to
+ store data like Presence policy in combination with a SIP Presence server
+ that supports PUBLISH/SUBSCRIBE/NOTIFY methods to provide a complete
+ [http://www.tech-invite.com/Ti-sip-WGs.html#wg-simple SIP SIMPLE] server
+ solution.
+ .
+ This package contains OpenXCAP, an open source implementation of an XCAP server.
