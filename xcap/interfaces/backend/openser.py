@@ -27,7 +27,7 @@ readSettings('OpenSER', OpenSERConfig)
 
 class PlainPasswordChecker(database.PlainPasswordChecker):
     db_uri = OpenSERConfig.authentication_db_uri
-class HashPasswordChecked(database.HashPasswordChecker):
+class HashPasswordChecker(database.HashPasswordChecker):
     db_uri = OpenSERConfig.authentication_db_uri
 
 class Storage(database.Storage):
