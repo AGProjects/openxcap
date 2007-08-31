@@ -14,6 +14,7 @@ from application.process import process
 from application import log
 
 from twisted.internet import defer
+from twisted.python import failure
 
 from xcap.errors import *
 from xcap.interfaces.backend import StatusResponse
@@ -107,7 +108,10 @@ class ApplicationUsage(object):
         return self.storage.get_document(uri, check_etag)
 
     def put_document(self, uri, document, check_etag):
-        self.validate_document(document)
+        try:
+            self.validate_document(document)
+        except Exception:
+            return defer.fail(failure.Failure())
         return self.storage.put_document(uri, document, check_etag)
 
     def delete_document(self, uri, check_etag):
