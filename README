@@ -6,6 +6,7 @@ http://ag-projects.com
 
 Author: Mircea Amarascu
 
+
 License
 -------
 
@@ -83,20 +84,28 @@ with XCAP clients known to be working with OpenXCAP:
     - OpenSER from http://openser.org
     
     - simple-soap-proxy (under development by AG Projects). This client
-    allows publication of arbitrary information and policy management using
-    an easy to use SOAP/XML interface
+      allows publication of arbitrary information and policy management using
+      an easy to use SOAP/XML interface
     
-    - Eyebeam from http://www.counterpath.com/eyebeam-overview.html
+    - Eyebeam from http://www.counterpath.com
 
 
 Support
 -------
 
 OpenXCAP has been started as a graduating thesis by Mircea Amarascu at the
-Polytechnic University of Bucharest in the spring of 2007 and is supported
-via the wiki collaboration system from http://openxcap.org.
+Polytechnic University of Bucharest in the spring of 2007.
 
-For OpenSER users and interactions beetween OpenXCAP and OpenSER please
-consult also the http://openser.org/pipermail/users/ OpenSER users mailing
-list.
+The project is supported via this wiki collaboration system provided at
+http://openxcap.org by AG Projects.
+
+    - To open ticket please Register first. The ticketing support system is
+      available only for registered users. Please beware that the support is
+      provided by the community on a best-effort basis.
+
+    - For interaction between OpenXCAP and OpenSER you may consult the OpenSER
+      users mailing list at http://openser.org/pipermail/users/
+
+    - For commercial support or other licensing options please contact AG Projects
+      at http://ag-projects.com
 
