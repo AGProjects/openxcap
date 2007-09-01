@@ -27,8 +27,6 @@ class NSBindingsTest(XCAPTest):
 
         self.get_resource('resource-lists', '/resource-lists/list[@name="friends"]/namespace::*')
         self.assertStatus(200)
-        self.assertInBody(list_element_xml)
-        #self.assertBody(list_element_xml)
         self.assertHeader('ETag')
         self.assertHeader('Content-type', 'application/xcap-ns+xml')
 

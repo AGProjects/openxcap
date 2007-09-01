@@ -135,5 +135,5 @@ class XCAPNamespaceBinding(XCAPResource):
         return self.content_type
 
     def http_GET(self, request):
-        d = self.application.get_ns_bindings(self.xcap_uri)
+        d = self.application.get_ns_bindings(self.xcap_uri, lambda e: self.checkEtag(request, e))
         return d

@@ -334,9 +334,11 @@ class ApplicationUsage(object):
         document = response.data
         xml_doc = etree.parse(StringIO(document))
         node_selector = uri.node_selector
+        application = getApplicationForURI(uri)
         ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
         try:
-            selector = node_selector.element_selector + '/' + node_selector.terminal_selector
+            #selector = node_selector.element_selector + '/' + node_selector.terminal_selector
+            selector = node_selector.element_selector
             elem = xml_doc.xpath(selector, ns_dict)
         except:
             raise ResourceNotFound
@@ -344,7 +346,7 @@ class ApplicationUsage(object):
             raise ResourceNotFound
         elem = elem[0]
         namespaces = ''
-        for prefix, ns in elem.nsmap:
+        for prefix, ns in elem.nsmap.items():
             namespaces += ' xmlns%s="%s"' % (prefix and ':%s' % prefix or '', ns)
         result = '<%s %s/>' % (elem.tag, namespaces)
         return StatusResponse(200, response.etag, result)
@@ -439,7 +441,7 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
         for (id, app) in applications.items():
             auids += "<auid>%s<auid>\n" % id
             namespaces += "<namespace>%s<namespace>\n" % app.default_ns
-        doc = """<?xml version='1.0' encoding='UTF-8'?>
+        self.doc = """<?xml version='1.0' encoding='UTF-8'?>
         <xcap-caps xmlns='urn:ietf:params:xml:ns:xcap-caps'>
             <auids>
             %(auids)s</auids>
@@ -450,7 +452,6 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
         </xcap-caps>""" % {"auids": auids,
                            "extensions": extensions,
                            "namespaces": namespaces}
-        self.doc = etree.predoc
         return self.doc
 
     def get_document(self, uri, check_etag):

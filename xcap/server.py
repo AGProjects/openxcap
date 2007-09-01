@@ -20,7 +20,7 @@ from twisted.web2.auth import digest, basic, wrapper
 
 from xcap import authentication
 from xcap.appusage import getApplicationForURI
-from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute
+from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute, XCAPNamespaceBinding
 from xcap.tls import Certificate, PrivateKey
 from xcap.uri import XCAPUri, AttributeSelector, NamespaceSelector, ExtensionSelector
 from xcap import __version__ as version
