@@ -19,12 +19,18 @@ from xcap.errors import ResourceNotFound
 from xcap.dbutil import connectionForURI
 
 
-class DatabaseConfig(ConfigSection):
+class Config(ConfigSection):
     authentication_db_uri = 'mysql://user:pass@db/openser'
     storage_db_uri = 'mysql://user:pass@db/openser'
+    subscriber_table = 'subscriber'
+    user_col = 'username'
+    domain_col = 'domain'
+    password_col = 'password'
+    ha1_col = 'ha1'
+    xcap_table = 'xcap_xml'
 
 ## We use this to overwrite some of the settings above on a local basis if needed
-readSettings('Database', DatabaseConfig)
+readSettings('Database', Config)
 
 class PasswordChecker:
     """A credentials checker against a database subscriber table."""
@@ -34,13 +40,11 @@ class PasswordChecker:
     credentialInterfaces = (credentials.IUsernamePassword,
         credentials.IUsernameHashedPassword)
 
-    db_uri = DatabaseConfig.authentication_db_uri
-
     def __init__(self):
         self.__db_connect()
 
     def __db_connect(self):
-        self.conn = connectionForURI(self.db_uri)
+        self.conn = connectionForURI(Config.authentication_db_uri)
 
     def _query_credentials(self, credentials):
         raise NotImplementedError
@@ -78,9 +82,14 @@ class PlainPasswordChecker(PasswordChecker):
     def _query_credentials(self, credentials):
         username, domain = credentials.username.split('@', 1)[0], credentials.realm
         quote = dbutil.quote
-        query = """SELECT password
-                   FROM subscriber
-                   WHERE username = %(username)s AND domain = %(domain)s""" % {
+        query = """SELECT %(password_col)s
+                   FROM %(table)s
+                   WHERE %(user_col)s = %(username)s
+                   AND %(domain_col)s = %(domain)s""" % {
+                    "password_col": Config.password_col,
+                    "user_col": Config.user_col,
+                    "domain_col": Config.domain_col,
+                    "table":    Config.subscriber_table,
                     "username": quote(username, "char"),
                     "domain":   quote(domain, "char")}
         return self.conn.runQuery(query).addCallback(self._got_query_results, credentials)
@@ -100,9 +109,14 @@ class HashPasswordChecker(PasswordChecker):
     def _query_credentials(self, credentials):
         username, domain = credentials.username.split('@', 1)[0], credentials.realm
         quote = dbutil.quote
-        query = """SELECT ha1
-                   FROM subscriber
-                   WHERE username = %(username)s AND domain = %(domain)s""" % {
+        query = """SELECT %(ha1_col)s
+                   FROM %(table)s
+                   WHERE %(user_col)s = %(username)s
+                   AND %(domain_col)s = %(domain)s""" % {
+                    "ha1_col":  Config.ha1_col,
+                    "user_col": Config.user_col,
+                    "domain_col": Config.domain_col,
+                    "table":    Config.subscriber_table,
                     "username": quote(username, "char"),
                     "domain":   quote(domain, "char")}
         return self.conn.runQuery(query).addCallback(self._got_query_results, credentials)
@@ -124,21 +138,20 @@ class Storage(object):
                    "rls-services"     : 1<<3,
                    "pidf-manipulation": 1<<4}
 
-    db_uri = DatabaseConfig.storage_db_uri
-
     def __init__(self):
         self.__db_connect()
 
     def __db_connect(self):
-        self.conn = connectionForURI(self.db_uri)
+        self.conn = connectionForURI(Config.storage_db_uri)
 
     def _get_document(self, trans, uri, check_etag):
         username, domain = uri.user.username, uri.user.domain
         doc_type = self.app_mapping[uri.application_id]
         quote = dbutil.quote
-        query = """SELECT xcap, etag FROM xcap_xml
+        query = """SELECT xcap, etag FROM %(table)s
                    WHERE username = %(username)s AND domain = %(domain)s
                    AND doc_type= %(doc_type)s""" % {
+                       "table":    Config.xcap_table,
                        "username": quote(username, "char"),
                        "domain"  : quote(domain, "char"),
                        "doc_type": quote(doc_type, "int")}
@@ -156,9 +169,10 @@ class Storage(object):
         username, domain = uri.user.username, uri.user.domain
         doc_type = self.app_mapping[uri.application_id]
         quote = dbutil.quote
-        query = """SELECT etag FROM xcap_xml
+        query = """SELECT etag FROM %(table)s
                    WHERE username = %(username)s AND domain = %(domain)s
                    AND doc_type= %(doc_type)s""" % {
+                       "table":    Config.xcap_table,
                        "username": quote(username, "char"),
                        "domain"  : quote(domain, "char"),
                        "doc_type": quote(doc_type, "int")}
@@ -167,9 +181,10 @@ class Storage(object):
         if not result:
             ## the document doesn't exist, create it
             etag = self.generate_etag(uri, document)
-            query = """INSERT INTO xcap_xml
+            query = """INSERT INTO %(table)s
                        (username, domain, doc_type, etag, xcap) 
                        VALUES (%(username)s, %(domain)s, %(doc_type)s, %(etag)s, %(document)s)""" % {
+                           "table":    Config.xcap_table,
                            "username": quote(username, "char"),
                            "domain"  : quote(domain, "char"),
                            "doc_type": quote(doc_type, "int"),
@@ -183,10 +198,11 @@ class Storage(object):
             check_etag(old_etag)
             ## the document exists, replace it
             etag = self.generate_etag(uri, document)
-            query = """UPDATE xcap_xml
+            query = """UPDATE %(table)s
                        SET xcap = %(document)s, etag = %(etag)s
                        WHERE username = %(username)s AND domain = %(domain)s
                        AND doc_type = %(doc_type)s AND etag = %(old_etag)s""" % {
+                           "table":    Config.xcap_table,
                            "document": quote(document, "char"),
                            "etag":     quote(etag, "char"),
                            "username": quote(username, "char"),
@@ -201,9 +217,10 @@ class Storage(object):
         username, domain = uri.user.username, uri.user.domain
         doc_type = self.app_mapping[uri.application_id]
         quote = dbutil.quote
-        query = """SELECT etag FROM xcap_xml
+        query = """SELECT etag FROM %(table)s
                    WHERE username = %(username)s AND domain = %(domain)s
                    AND doc_type= %(doc_type)s""" % {
+                       "table":    Config.xcap_table,
                        "username": quote(username, "char"),
                        "domain"  : quote(domain, "char"),
                        "doc_type": quote(doc_type, "int")}
@@ -212,9 +229,10 @@ class Storage(object):
         if result:
             etag = result[0][0]
             check_etag(etag)
-            query = """DELETE FROM xcap_xml
+            query = """DELETE FROM %(table)s
                        WHERE username = %(username)s AND domain = %(domain)s
                        AND doc_type= %(doc_type)s""" % {
+                           "table":    Config.xcap_table,
                            "username": quote(username, "char"),
                            "domain"  : quote(domain, "char"),
                            "doc_type": quote(doc_type, "int")}
