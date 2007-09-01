@@ -4,7 +4,7 @@ if [ "$1" = "purge" ]; then
     rm -f /etc/openxcap/config.ini
 fi
 
-rm -f /var/run/openxcap.pid
+rm -f /var/run/openxcap/openxcap.pid
 
 #DEBHELPER#
 
