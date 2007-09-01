@@ -311,7 +311,6 @@ class ApplicationUsage(object):
             elem = xml_doc.xpath(node_selector.element_selector, ns_dict)
         except:
             raise NoParentError
-            #raise Exception # TODO ce exceptie intoarcem daca selectorul nu e valid ?
         if len(elem) != 1:
             raise NoParentError
         elem = elem[0]
