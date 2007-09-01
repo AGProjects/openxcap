@@ -191,6 +191,7 @@ def parseNodeURI(node_uri, default_realm='example.com'):
             xcap_root = uri
             break
     if xcap_root is None:
+        log.error("XCAP root not found for request URI: %s" % node_uri)
         raise ResourceNotFound("XCAP root not found for uri: %s" % node_uri)
     resource_selector = node_uri[len(xcap_root):]
     return XCAPUri(xcap_root, resource_selector, default_realm)
