@@ -23,7 +23,6 @@ if __name__ == '__main__':
     default_pid = "%s/%s.pid" % (runtime_directory, name)
 
     parser = OptionParser(version="%%prog %s" % xcap.__version__)
-    parser = OptionParser()
     parser.add_option("--no-fork", action="store_false", dest="fork", default=1,
                       help="run the process in the foreground (for debugging)")
     parser.add_option("--pid", dest="pidFile", default=default_pid,
