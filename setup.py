@@ -28,6 +28,5 @@ solution.""",
       ],
       packages = ['xcap', 'xcap.appusage', 'xcap.interfaces', 'xcap.interfaces.backend', 'xcap.test'],
       scripts  = ['openxcap'],
-      package_data = {'xcap': ['xml-schemas/*']},
-      data_files=[('/etc/openxcap', ['config.ini.sample'])]
+      package_data = {'xcap': ['xml-schemas/*']}
       )
