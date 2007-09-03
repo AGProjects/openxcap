@@ -11,14 +11,11 @@ Package: openxcap
 Architecture: all
 Depends: ${python:Depends}, python-lxml, python-zopeinterface, python-twisted-core, python-twisted-web2, python-application, python-gnutls
 XB-Python-Version: ${python:Versions}
-Description: OpenXCAP server
- XCAP protocol allows a client to read, write, and modify application
+Description: XCAP server implementation
+ The XCAP protocol allows a client to read, write and modify application
  configuration data stored in XML format on a server. XCAP maps XML document
  sub-trees and element attributes to HTTP URIs, so that these components can
  be directly accessed by HTTP. An XCAP server is used by the XCAP clients to
  store data like Presence policy in combination with a SIP Presence server
- that supports PUBLISH/SUBSCRIBE/NOTIFY methods to provide a complete
- [http://www.tech-invite.com/Ti-sip-WGs.html#wg-simple SIP SIMPLE] server
- solution.
- .
- This package contains OpenXCAP, an open source implementation of an XCAP server.
+ that supports PUBLISH/SUBSCRIBE/NOTIFY methods to provide a complete server
+ solution [http://www.tech-invite.com/Ti-sip-WGs.html#wg-simple SIP SIMPLE].
