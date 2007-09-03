@@ -1,3 +1,12 @@
+openxcap (0.9.1) unstable; urgency=low
+
+  * Fixed the debian control file.
+  * Fixed some lintian warnings.
+  * Added MANIFEST.in file.
+  * Removed no longer needed remove-version-control rule.
+
+ -- Dan Pascu <dan@ag-projects.com>  Mon, 03 Sep 2007 12:14:03 +0300
+
 openxcap (0.9.0) unstable; urgency=low
 
   * Initial release.

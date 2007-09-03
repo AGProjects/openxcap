@@ -8,7 +8,6 @@ include /usr/share/cdbs/1/class/python-distutils.mk
 clean::
 	-rm -rf build dist MANIFEST
 
-install::
+install/openxcap::
 	install -m 0644 config.ini.sample debian/openxcap/etc/openxcap/config.ini
-	dh_movefiles -popenxcap
 
