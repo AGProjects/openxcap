@@ -9,7 +9,7 @@ Standards-Version: 3.7.2
 
 Package: openxcap
 Architecture: all
-Depends: ${python:Depends}, python-lxml, python-zopeinterface, python-twisted-core, python-twisted-web2, python-application, python-gnutls
+Depends: ${python:Depends}, python-lxml, python-zopeinterface, python-twisted-core, python-twisted-web, python-twisted-web2, python-application, python-gnutls
 XB-Python-Version: ${python:Versions}
 Description: XCAP server implementation
  The XCAP protocol allows a client to read, write and modify application
