@@ -4,8 +4,11 @@ openxcap (0.9.1) unstable; urgency=low
   * Fixed some lintian warnings.
   * Added MANIFEST.in file.
   * Removed no longer needed remove-version-control rule.
+  * Fixed install rule name.
+  * Do not copy config.ini.sample as it is into /etc/openxcap/
+  * Added tls directory and .placeholder to prevent it from being purged.
 
- -- Dan Pascu <dan@ag-projects.com>  Mon, 03 Sep 2007 12:14:03 +0300
+ -- Dan Pascu <dan@ag-projects.com>  Mon, 03 Sep 2007 12:34:09 +0300
 
 openxcap (0.9.0) unstable; urgency=low
 
