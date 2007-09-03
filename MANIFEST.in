@@ -1,0 +1,3 @@
+recursive-include scripts mysql-create.sql
+recursive-include xcap/xml-schemas *.xsd
+include INSTALL LICENSE MANIFEST.in TODO config.ini.sample
