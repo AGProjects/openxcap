@@ -34,9 +34,9 @@ trusted_peers =
 [TLS]
 
 ; Server X509 certificate
-certificate = /etc/openxcap/tls/server.crt
+certificate = tls/server.crt
 ; Server X509 private key
-private_key = /etc/openxcap/tls/server.key
+private_key = tls/server.key
 
 [Database]
 
