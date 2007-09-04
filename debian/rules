@@ -10,4 +10,3 @@ clean::
 
 install/openxcap::
 	install -m 0644 config.ini.sample debian/openxcap/etc/openxcap/config.ini
-
