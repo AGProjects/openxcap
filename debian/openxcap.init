@@ -27,7 +27,7 @@ DESC="OpenXCAP server"
 
 test -f $SERVER || exit 0
 
-if [ "$PID" != "/var/run/openxcap.pid" ]; then
+if [ "$PID" != "/var/run/openxcap/openxcap.pid" ]; then
     OPTIONS="--pid $PID $OPTIONS"
 fi
 

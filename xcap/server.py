@@ -122,6 +122,8 @@ class XCAPServer:
         else:
             http_checker = ServerConfig.backend.HashPasswordChecker()
         portal.registerChecker(http_checker)
+        if ServerConfig.trusted_peers:
+            log.info("Trusted peers: %s" % ", ".join(ServerConfig.trusted_peers))
         portal.registerChecker(authentication.TrustedPeerChecker(ServerConfig.trusted_peers))
 
         auth_type = AuthenticationConfig.type
