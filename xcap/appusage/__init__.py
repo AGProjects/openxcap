@@ -5,7 +5,7 @@
 
 import os
 
-from StringIO import StringIO
+from cStringIO import StringIO
 from lxml import etree
 
 from application.configuration import readSettings, ConfigSection

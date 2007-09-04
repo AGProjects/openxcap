@@ -4,8 +4,6 @@
 """Implementation of an OpenSER backend."""
 
 import time
-from StringIO import StringIO
-from lxml import etree
 
 from twisted.enterprise import adbapi, util as dbutil
 from twisted.internet import defer
