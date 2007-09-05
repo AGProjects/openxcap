@@ -38,11 +38,11 @@ class Storage(database.Storage):
         database.Storage.__init__(self)
         self._mi = ManagementInterface(Config.xmlrpc_url)
 
-    def _notify_watchers(self, response, user_id):
+    def _notify_watchers(self, response, user_id, type):
         def _eb_mi(f):
             log.error("Error while notifying OpenSER management interface for 'user' %s: %s" % (user_id, f.getErrorMessage()))
             return response
-        d = self._mi.notify_watchers('%s@%s' % (user_id.username, user_id.domain))
+        d = self._mi.notify_watchers('%s@%s' % (user_id.username, user_id.domain), type)
         d.addCallback(lambda x: response)
         d.addErrback(_eb_mi)
         return d
@@ -52,5 +52,9 @@ class Storage(database.Storage):
         d = self.conn.runInteraction(super(Storage, self)._put_document, uri, document, check_etag)        
         if application_id in ('pres-rules', 'org.openmobilealliance.pres-rules', 'pidf-manipulation'):
             ## signal OpenSER of the modification through the management interface
-            d.addCallback(self._notify_watchers, uri.user)
+            if application_id == 'pidf-manipulation':
+                type = 1
+            else:
+                type = 0
+            d.addCallback(self._notify_watchers, uri.user, type)
         return d

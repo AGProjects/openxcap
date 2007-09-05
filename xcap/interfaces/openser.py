@@ -14,6 +14,8 @@ class ManagementInterface(object):
     def __init__(self, url):
         self.proxy = xmlrpc.Proxy(url + '/RPC2')
 
-    def notify_watchers(self, id):
-        d = self.proxy.callRemote('refreshWatchers', 'sip:' + id, 'presence' )
+    def notify_watchers(self, id, type=0):
+        """Instruct OpenSER to NOTIFY all the watchers of this presentity.
+           @type can be 0 to signal presence rules changes, or 1 for static PIDF changes."""
+        d = self.proxy.callRemote('refreshWatchers', 'sip:' + id, 'presence', type)
         return d
