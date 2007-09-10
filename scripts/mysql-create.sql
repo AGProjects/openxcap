@@ -12,7 +12,7 @@ CREATE TABLE `xcap_xml` (
   `id` int(10) NOT NULL auto_increment,
   `username` varchar(66) NOT NULL,
   `domain` varchar(128) NOT NULL,
-  `xcap` text NOT NULL,
+  `doc` text NOT NULL,
   `doc_type` int(11) NOT NULL,
   `etag` varchar(64) NOT NULL,
   PRIMARY KEY  (`id`),

@@ -148,7 +148,7 @@ class Storage(object):
         username, domain = uri.user.username, uri.user.domain
         doc_type = self.app_mapping[uri.application_id]
         quote = dbutil.quote
-        query = """SELECT xcap, etag FROM %(table)s
+        query = """SELECT doc, etag FROM %(table)s
                    WHERE username = %(username)s AND domain = %(domain)s
                    AND doc_type= %(doc_type)s""" % {
                        "table":    Config.xcap_table,
@@ -182,7 +182,7 @@ class Storage(object):
             ## the document doesn't exist, create it
             etag = self.generate_etag(uri, document)
             query = """INSERT INTO %(table)s
-                       (username, domain, doc_type, etag, xcap) 
+                       (username, domain, doc_type, etag, doc)
                        VALUES (%(username)s, %(domain)s, %(doc_type)s, %(etag)s, %(document)s)""" % {
                            "table":    Config.xcap_table,
                            "username": quote(username, "char"),
@@ -199,7 +199,7 @@ class Storage(object):
             ## the document exists, replace it
             etag = self.generate_etag(uri, document)
             query = """UPDATE %(table)s
-                       SET xcap = %(document)s, etag = %(etag)s
+                       SET doc = %(document)s, etag = %(etag)s
                        WHERE username = %(username)s AND domain = %(domain)s
                        AND doc_type = %(doc_type)s AND etag = %(old_etag)s""" % {
                            "table":    Config.xcap_table,
