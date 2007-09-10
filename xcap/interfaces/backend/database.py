@@ -27,7 +27,7 @@ class Config(ConfigSection):
     domain_col = 'domain'
     password_col = 'password'
     ha1_col = 'ha1'
-    xcap_table = 'xcap_xml'
+    xcap_table = 'xcap'
 
 ## We use this to overwrite some of the settings above on a local basis if needed
 readSettings('Database', Config)
