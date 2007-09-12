@@ -16,6 +16,8 @@ root = http://xcap.example.com/
 ; The backend to be used for storage and authentication. Current supported
 ; values are Database and OpenSER.
 backend = Database
+; Validate XCAP documents against XML schemas, default is Yes
+document_validation = No
 
 [Authentication]
 

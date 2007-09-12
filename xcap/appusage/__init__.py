@@ -45,6 +45,7 @@ class ServerConfig(ConfigSection):
     _dataTypes = {'applications': EnabledApplications, 'backend': Backend}
     applications = EnabledApplications("all")
     backend = Backend('Database')
+    document_validation = True
 
 ## We use this to overwrite some of the settings above on a local basis if needed
 readSettings('Server', ServerConfig)
@@ -90,7 +91,8 @@ class ApplicationUsage(object):
             log.error("XML document is not well formed.")
             raise NotWellFormedError
         self._check_UTF8_encoding(xml_doc)
-        self._check_schema_validation(xml_doc)
+	if ServerConfig.document_validation:
+        	self._check_schema_validation(xml_doc)
         self._check_additional_constraints(xml_doc)
 
     ## Authorization policy
