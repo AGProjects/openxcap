@@ -42,7 +42,7 @@
        maxOccurs="unbounded"/>
      </xs:sequence>
      <xs:attribute name="uri" type="xs:anyURI" use="required"/>
-     <xs:anyAttribute namespace="##other"/>
+     <xs:anyAttribute namespace="##other" processContents="lax"/>
     </xs:complexType>
     <xs:complexType name="entry-refType">
      <xs:sequence>
