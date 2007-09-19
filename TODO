@@ -4,5 +4,4 @@ TODO list
 - Complete XML element/attribute management functions
 - More tests, both automated and with real clients
 - Make the storage backends work with other database engines besides MySQL
-- Add a package ChangeLog at top level (people don't know about the debian
-  changelog).
+- Support multiple XCAP root URIs.
