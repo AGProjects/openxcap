@@ -35,6 +35,8 @@ trusted_peers =
 
 [TLS]
 
+; Location of X509 certificate and private key that identify this server. The path is
+; relative to /etc/openxcap, or it can be given as an absolute path.
 ; Server X509 certificate
 certificate = tls/server.crt
 ; Server X509 private key
