@@ -1,3 +1,10 @@
+Changes in version 0.9.3
+------------------------
+
+  * Adjusted OpenXCAP to use python-application >= 1.0.9
+  * Set TLS mode based on http/https scheme of the root URI.
+  * document_validation defaults to Yes in config.ini.sample
+
 Changes in version 0.9.2
 ------------------------
 

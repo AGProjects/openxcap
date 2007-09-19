@@ -1,3 +1,11 @@
+openxcap (0.9.3) unstable; urgency=low
+
+  * Adjusted OpenXCAP to use python-application >= 1.0.9
+  * Set TLS mode based on http/https scheme of the root URI.
+  * document_validation defaults to Yes in config.ini.sample
+
+ -- Mircea Amarascu <mircea@ag-projects.com>  Wed, 19 Sep 2007 15:20:16 +0300
+
 openxcap (0.9.2) unstable; urgency=low
 
   * Changed the name and structure of xcap_xml table.
