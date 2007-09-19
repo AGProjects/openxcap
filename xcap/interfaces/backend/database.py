@@ -6,8 +6,8 @@
 import md5
 import time
 
+from application.configuration import *
 from application.python.util import Singleton
-from application.configuration import readSettings, ConfigSection
 
 from zope.interface import implements
 from twisted.cred import credentials, portal, checkers, error as credError
@@ -30,7 +30,8 @@ class Config(ConfigSection):
     xcap_table = 'xcap'
 
 ## We use this to overwrite some of the settings above on a local basis if needed
-readSettings('Database', Config)
+configuration = ConfigFile('config.ini')
+configuration.read_settings('Database', Config)
 
 class PasswordChecker:
     """A credentials checker against a database subscriber table."""

@@ -14,7 +14,7 @@ from twisted.enterprise import adbapi, util as dbutil
 from twisted.web2 import http, server, stream
 from twisted.web2.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 
-from application.configuration import readSettings, ConfigSection
+from application.configuration import *
 from application.configuration.datatypes import StringList, NetworkRangeList
 from application import log
 
@@ -24,15 +24,16 @@ from xcap.errors import ResourceNotFound
 from xcap.uri import XCAPUser, parseNodeURI
 
 class ServerConfig(ConfigSection):
-    _dataTypes = {'trusted_peers': StringList}
+    _datatypes = {'trusted_peers': StringList}
     trusted_peers = []
 
 class AuthenticationConfig(ConfigSection):
     default_realm = 'example.com'
 
 ## We use this to overwrite some of the settings above on a local basis if needed
-readSettings('Authentication', AuthenticationConfig)
-readSettings('Server', ServerConfig)
+configuration = ConfigFile('config.ini')
+configuration.read_settings('Authentication', AuthenticationConfig)
+configuration.read_settings('Server', ServerConfig)
 
 ## Trusted Peer credentials
 

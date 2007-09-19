@@ -5,7 +5,6 @@
 
 from twisted.web import xmlrpc
 
-from application.configuration import readSettings, ConfigSection
 from application.python.util import Singleton
 
 class ManagementInterface(object):

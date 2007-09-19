@@ -8,7 +8,7 @@ import time
 from twisted.enterprise import adbapi, util as dbutil
 from twisted.internet import defer
 
-from application.configuration import readSettings, ConfigSection
+from application.configuration import *
 from application import log
 
 from xcap.interfaces.backend import database
@@ -27,7 +27,8 @@ class Config(ConfigSection):
     xmlrpc_url = 'http://localhost:8080'
 
 ## We use this to overwrite some of the settings above on a local basis if needed
-readSettings('OpenSER', Config)
+configuration = ConfigFile('config.ini')
+configuration.read_settings('OpenSER', Config)
 
 class PlainPasswordChecker(database.PlainPasswordChecker): pass
 class HashPasswordChecker(database.HashPasswordChecker): pass

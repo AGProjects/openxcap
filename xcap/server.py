@@ -5,7 +5,7 @@
 
 import os
 
-from application.configuration import readSettings, ConfigSection
+from application.configuration import *
 from application.configuration.datatypes import StringList, NetworkRangeList
 from application import log
 
@@ -41,7 +41,7 @@ class AuthenticationConfig(ConfigSection):
     default_realm = 'example.com'
 
 class ServerConfig(ConfigSection):
-    _dataTypes = {'trusted_peers': StringList, 'backend': Backend}
+    _datatypes = {'trusted_peers': StringList, 'backend': Backend}
     port = 8000
     address = '0.0.0.0'
     root = 'http://xcap.example.com/'
@@ -49,14 +49,15 @@ class ServerConfig(ConfigSection):
     trusted_peers = []
 
 class TLSConfig(ConfigSection):
-    _dataTypes = {'certificate': Certificate, 'private_key': PrivateKey}
+    _datatypes = {'certificate': Certificate, 'private_key': PrivateKey}
     certificate = None
     private_key = None
 
 ## We use this to overwrite some of the settings above on a local basis if needed
-readSettings('Authentication', AuthenticationConfig)
-readSettings('Server', ServerConfig)
-readSettings('TLS', TLSConfig)
+configuration = ConfigFile('config.ini')
+configuration.read_settings('Authentication', AuthenticationConfig)
+configuration.read_settings('Server', ServerConfig)
+configuration.read_settings('TLS', TLSConfig)
 
 
 def log_request(request, response):

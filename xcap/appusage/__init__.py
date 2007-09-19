@@ -8,7 +8,7 @@ import os
 from cStringIO import StringIO
 from lxml import etree
 
-from application.configuration import readSettings, ConfigSection
+from application.configuration import *
 from application.configuration.datatypes import StringList
 from application.process import process
 from application import log
@@ -42,13 +42,14 @@ class Backend(object):
             raise ValueError("Couldn't find the '%s' backend module: %s" % (value.lower(), str(e)))
 
 class ServerConfig(ConfigSection):
-    _dataTypes = {'applications': EnabledApplications, 'backend': Backend}
+    _datatypes = {'applications': EnabledApplications, 'backend': Backend}
     applications = EnabledApplications("all")
     backend = Backend('Database')
     document_validation = True
 
 ## We use this to overwrite some of the settings above on a local basis if needed
-readSettings('Server', ServerConfig)
+configuration = ConfigFile('config.ini')
+configuration.read_settings('Server', ServerConfig)
 
 
 class ApplicationUsage(object):

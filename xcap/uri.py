@@ -6,17 +6,18 @@
 import re
 import urlparse
 
-from application.configuration import readSettings, ConfigSection, getSection
+from application.configuration import *
 from application import log
 
 from xcap.errors import *
 
+configuration = ConfigFile('config.ini')
 
 class XCAPRootURIs(tuple):
     """Configuration data type. A tuple of defined XCAP Root URIs is extracted from
        the configuration file."""
     def __new__(typ):
-        uris = [value for name, value in getSection("Server") or [] if name == "root"]
+        uris = [value for name, value in configuration.get_section("Server") or [] if name == "root"]
         for uri in uris:
             scheme, host, path, params, query, fragment = urlparse.urlparse(uri)
             if not scheme or not host or scheme not in ("http", "https"):
@@ -29,11 +30,11 @@ class XCAPRootURIs(tuple):
 root_uris = XCAPRootURIs()
 
 class ServerConfig(ConfigSection):
-    _dataTypes = {'root_uris': XCAPRootURIs}
+    _datatypes = {'root_uris': XCAPRootURIs}
     root_uris = ()
 
 ## We use this to overwrite some of the settings above on a local basis if needed
-readSettings('Server', ServerConfig)
+configuration.read_settings('Server', ServerConfig)
 
 print 'Supported Root URIs: %s' % ','.join(root_uris)
 
