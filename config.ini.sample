@@ -8,10 +8,8 @@
 ; 0.0.0.0 means any address of this host
 address = 0.0.0.0
 port = 8000
-; TLS enabling
-tls = No
-; The XCAP Root URI; must not contain any port number and 
-; must always start with http:// even if https:// is used to access the server
+; The XCAP Root URI; must not contain any port number. If it has the 'https' scheme,
+; the server will listen for requests in TLS mode.
 root = http://xcap.example.com/
 ; The backend to be used for storage and authentication. Current supported
 ; values are Database and OpenSER.

@@ -44,7 +44,7 @@ class ServerConfig(ConfigSection):
     _dataTypes = {'trusted_peers': StringList, 'backend': Backend}
     port = 8000
     address = '0.0.0.0'
-    tls = False
+    root = 'http://xcap.example.com/'
     backend = Backend('Database')
     trusted_peers = []
 
@@ -141,7 +141,7 @@ class XCAPServer:
 
     def start(self):
         channel.HTTPFactory.noisy = False
-        if ServerConfig.tls:
+        if ServerConfig.root.startswith('https'):
             from gnutls.interfaces.twisted import X509Credentials
             cert, pKey = TLSConfig.certificate, TLSConfig.private_key
             if cert is None or pKey is None:

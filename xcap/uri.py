@@ -134,7 +134,7 @@ class DocumentSelector(str):
         self.application_id = segments[0]
         self.context = segments[1]     ## either "global" or "users"
         if self.context not in ("users", "global"):
-            raise ValueError("the Document Selector context must be 'users' or 'global'")
+            raise ValueError("the Document Selector context must be 'users' or 'global': '%s'" % self.context)
         self.user_id = None
         if self.context == "users":
             self.user_id = segments[2]
