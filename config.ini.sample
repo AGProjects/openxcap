@@ -17,7 +17,7 @@ root = http://xcap.example.com/
 ; values are Database and OpenSER.
 backend = Database
 ; Validate XCAP documents against XML schemas, default is Yes
-document_validation = No
+document_validation = Yes
 
 [Authentication]
 
