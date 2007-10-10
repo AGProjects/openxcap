@@ -1,3 +1,9 @@
+Changes in version 0.9.4
+------------------------
+
+  * Added "watchers" application to query OpenSER presence watchers.
+  * Include debian directory in the source archive.
+
 Changes in version 0.9.3
 ------------------------
 
