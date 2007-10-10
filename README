@@ -68,6 +68,11 @@ Supported XCAP applications
     authorization rules, to specify what presence information can be given
     to which watchers, and when.
 
+    - Watchers (auid = watchers). This this a custom application that queries
+    the OpenSER database for a list of presence watchers and their status.
+    The XML schema for this application can be found in
+    xcap/xml-schemas/watchers.xsd. This application is read-only.
+
 
 Data storage
 

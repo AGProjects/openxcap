@@ -20,7 +20,7 @@ from xcap.errors import *
 from xcap.interfaces.backend import StatusResponse
 
 supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pres-rules',
-                          'resource-lists', 'pidf-manipulation')
+                          'resource-lists', 'pidf-manipulation', 'watchers')
 
 class EnabledApplications(StringList):
     def __new__(typ, value):
@@ -460,6 +460,31 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
         return defer.succeed(StatusResponse(200, data=self._get_document()))
 
 
+class WatchersApplication(ResourceListsApplication):
+    id = "watchers"
+    default_ns = "http://openxcap.org/ns/watchers"
+    mime_type= "application/xml"
+
+    def _watchers_to_xml(self, watchers):
+        root = etree.Element("watchers", nsmap={None: self.default_ns})
+        for watcher in watchers:
+            watcher_elem = etree.SubElement(root, "watcher")
+            for name, value in watcher.iteritems():
+                element = etree.SubElement(watcher_elem, name)
+                element.text = value
+        doc = etree.tostring(root, encoding="utf-8", pretty_print=True, xml_declaration=True)
+        #self.validate_document(doc)
+        return StatusResponse(200, data=doc)
+
+    def get_document(self, uri, check_etag):
+        watchers_def = self.storage.get_watchers(uri)
+        watchers_def.addCallback(self._watchers_to_xml)
+        return watchers_def
+
+    def put_document(self, uri, document, check_etag):
+        raise ResourceNotFound("This application is read-only") # TODO: test and add better error
+
+
 schemas_directory = os.path.join(os.path.dirname(globals()["__file__"]), "../", "xml-schemas")
 Storage = ServerConfig.backend.Storage
 
@@ -467,7 +492,8 @@ applications = {'xcap-caps':      XCAPCapabilitiesApplication(),
                 'pres-rules':     PresenceRulesApplication(open(os.path.join(schemas_directory, 'common-policy.xsd'), 'r').read(), Storage()),
                 'org.openmobilealliance.pres-rules': PresenceRulesApplication(open(os.path.join(schemas_directory, 'common-policy.xsd'), 'r').read(), Storage()),
                 'resource-lists': ResourceListsApplication(open(os.path.join(schemas_directory, 'resource-lists.xsd'), 'r').read(), Storage()),
-                'pidf-manipulation': PIDFManipulationApplication(open(os.path.join(schemas_directory, 'pidf.xsd'), 'r').read(), Storage())}
+                'pidf-manipulation': PIDFManipulationApplication(open(os.path.join(schemas_directory, 'pidf.xsd'), 'r').read(), Storage()),
+                'watchers': WatchersApplication(open(os.path.join(schemas_directory, 'watchers.xsd'), 'r').read(), Storage())}
 
 
 def getApplicationForURI(xcap_uri):

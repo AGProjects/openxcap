@@ -253,3 +253,29 @@ class Storage(object):
 
     def generate_etag(self, uri, document):
         return md5.new(uri.xcap_root + str(uri.doc_selector) + str(time.time())).hexdigest()
+
+    def _get_watchers(self, trans, uri):
+        status_mapping = {1: "allow",
+                          2: "confirm",
+                          3: "deny"}
+        presentity_uri = "sip:%s@%s" % (uri.user.username, uri.user.domain)
+        quote = dbutil.quote
+        query = """SELECT w_user, w_domain, subs_status FROM watchers
+                   WHERE p_uri = %s""" % quote(presentity_uri, "char")
+        trans.execute(query)
+        result = trans.fetchall()
+        watchers = [{"id": "%s@%s" % (w_user, w_domain),
+                     "status": status_mapping.get(subs_status, "unknown"),
+                     "online": "false"} for w_user, w_domain, subs_status in result]
+        query = """SELECT from_user, from_domain FROM active_watchers
+                   WHERE pres_uri = %s AND event = 'presence'""" % quote(presentity_uri, "char")
+        trans.execute(query)
+        result = trans.fetchall()
+        active_watchers = set("%s@%s" % pair for pair in result)
+        for watcher in watchers:
+            if watcher["id"] in active_watchers:
+                watcher["online"] = "true"
+        return watchers
+
+    def get_watchers(self, uri):
+        return self.conn.runInteraction(self._get_watchers, uri)
