@@ -1,4 +1,8 @@
+recursive-include debian  changelog compat control copyright pycompat rules
+recursive-include debian  openxcap.dirs openxcap.init openxcap.postrm
 recursive-include scripts mysql-create.sql
 recursive-include tls     .placeholder
 recursive-include xcap/xml-schemas *.xsd
+prune debian/tmp
+prune debian/openxcap-*
 include INSTALL LICENSE MANIFEST.in TODO config.ini.sample
