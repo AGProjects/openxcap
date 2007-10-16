@@ -23,7 +23,7 @@ class Config(ConfigSection):
     domain_col = 'domain'
     password_col = 'password'
     ha1_col = 'ha1'
-    xcap_table = 'xcap'
+    xcap_table = 'xcap_xml'
     xmlrpc_url = 'http://localhost:8080'
 
 ## We use this to overwrite some of the settings above on a local basis if needed
