@@ -260,15 +260,15 @@ class Storage(object):
                           3: "deny"}
         presentity_uri = "sip:%s@%s" % (uri.user.username, uri.user.domain)
         quote = dbutil.quote
-        query = """SELECT w_user, w_domain, subs_status FROM watchers
-                   WHERE p_uri = %s""" % quote(presentity_uri, "char")
+        query = """SELECT watcher_username, watcher_domain, status FROM watchers
+                   WHERE presentity_uri = %s""" % quote(presentity_uri, "char")
         trans.execute(query)
         result = trans.fetchall()
         watchers = [{"id": "%s@%s" % (w_user, w_domain),
                      "status": status_mapping.get(subs_status, "unknown"),
                      "online": "false"} for w_user, w_domain, subs_status in result]
-        query = """SELECT from_user, from_domain FROM active_watchers
-                   WHERE pres_uri = %s AND event = 'presence'""" % quote(presentity_uri, "char")
+        query = """SELECT watcher_username, watcher_domain FROM active_watchers
+                   WHERE presentity_uri = %s AND event = 'presence'""" % quote(presentity_uri, "char")
         trans.execute(query)
         result = trans.fetchall()
         active_watchers = set("%s@%s" % pair for pair in result)
