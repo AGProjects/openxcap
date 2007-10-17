@@ -1,3 +1,10 @@
+Changes in version 0.9.5
+------------------------        
+
+  * Changed watcher application to reflect new database column names of
+    OpenSER revision 2923
+  * Changed default SQL table name from "xcap" to "xcap_xml"
+
 Changes in version 0.9.4
 ------------------------
 

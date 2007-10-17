@@ -1,3 +1,10 @@
+openxcap (0.9.5) unstable; urgency=low
+
+  * Changed watcher application to reflect new database column names of OpenSER revision 2923
+  * Changed default SQL table name from "xcap" to "xcap_xml"
+
+ -- Adrian Georgescu <ag@ag-projects.com>  Wed, 17 Oct 2007 16:40:05 +0200
+
 openxcap (0.9.4) unstable; urgency=low
 
   * Added "watchers" application to query OpenSER presence watchers.
