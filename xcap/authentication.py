@@ -37,8 +37,14 @@ configuration.read_settings('Server', ServerConfig)
 
 ## Trusted Peer credentials
 
+class ITrustedPeerCredentials(credentials.ICredentials):
+
+    def checkPeer(self, trusted_peers):
+        pass
+
+
 class TrustedPeerCredentials:
-    implements(credentials.ICredentials)
+    implements(ITrustedPeerCredentials)
 
     def __init__(self, peer):
         self.peer = peer
@@ -51,7 +57,7 @@ class TrustedPeerCredentials:
 class TrustedPeerChecker:
 
     implements(checkers.ICredentialsChecker)
-    credentialInterfaces = (credentials.ICredentials,)
+    credentialInterfaces = (ITrustedPeerCredentials,)
 
     def __init__(self, trusted_peers):
         self.trusted_peers = trusted_peers
