@@ -9,8 +9,17 @@ Prerequisites:
  - Twisted framework (http://twistedmatrix.com) - Twisted Core and Twisted Web 2 
    (get them from the SVN trunk)
  - lxml (http://codespeak.net/lxml)
- - python-application (TODO)
+ - python-application
 
  To enable TLS support, you need:
  - GnuTLS library (http://www.gnu.org/software/gnutls)
  - python-gnutls (http://pypi.python.org/pypi/python-gnutls)
+
+The software has been tested on debian unstable using the following versions:
+
+ - libxml2: 2.6.28.dfsg-1
+ - python: 2.4.4-6
+ - python-lxml: 1.1.2-1
+ - twisted: 2.5.0
+ - python-application: 1.0.9
+ - python-gnutls: 1.1.1
