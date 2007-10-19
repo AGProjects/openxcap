@@ -1,3 +1,9 @@
+Changes in version 0.9.7
+-----------------------
+
+  * Prevented Twisted from printing SQL login info in the log
+  * Added some info to INSTALL about tested versions
+
 Changes in version 0.9.6
 ------------------------
 

@@ -1,3 +1,10 @@
+openxcap (0.9.7) unstable; urgency=low
+
+  * Prevented Twisted from printing SQL login info in the log
+  * Added some info to INSTALL about tested versions
+
+ -- Ruud Klaver <ruud@ag-projects.com>  Fri, 19 Oct 2007 14:33:08 +0200
+
 openxcap (0.9.6) unstable; urgency=low
 
   * Fixed trusted peer authentication bug against the latest Twisted svn trunk.
