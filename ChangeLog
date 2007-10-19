@@ -1,5 +1,11 @@
+Changes in version 0.9.6
+------------------------
+
+  * Fixed trusted peer authentication bug against the latest Twisted
+    svn trunk.
+
 Changes in version 0.9.5
-------------------------        
+------------------------
 
   * Changed watcher application to reflect new database column names of
     OpenSER revision 2923
