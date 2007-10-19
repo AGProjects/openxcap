@@ -64,4 +64,4 @@ def connectionForURI(uri):
     except:
         raise AssertionError("Database scheme '%s' is not supported." % schema)
     return adbapi.ConnectionPool(module, db=path.strip('/'), user=user or '',
-                                 passwd=password or '', host=host or 'localhost')
+                                 passwd=password or '', host=host or 'localhost', cp_noisy=False)
