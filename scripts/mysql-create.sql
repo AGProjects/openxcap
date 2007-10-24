@@ -8,7 +8,7 @@ CREATE TABLE subscriber (
     KEY username_id (username)
 ) ENGINE=InnoDB;
 
-CREATE TABLE `xcap_xml` (
+CREATE TABLE `xcap` (
   `id` int(10) NOT NULL auto_increment,
   `username` varchar(66) NOT NULL,
   `domain` varchar(128) NOT NULL,
