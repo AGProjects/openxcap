@@ -12,9 +12,12 @@ CREATE TABLE `xcap` (
   `id` int(10) NOT NULL auto_increment,
   `username` varchar(66) NOT NULL,
   `domain` varchar(128) NOT NULL,
-  `doc` text NOT NULL,
+  `doc` blob NOT NULL,
   `doc_type` int(11) NOT NULL,
   `etag` varchar(64) NOT NULL,
+  `source` int(11) NOT NULL,
+  `doc_uri` varchar(128) NOT NULL,
+  `port` int(11) NOT NULL,
   PRIMARY KEY  (`id`),
-  UNIQUE KEY `udd_xcap` (`username`,`domain`,`doc_type`)
+  UNIQUE KEY `udd_xcap` (`username`,`domain`,`doc_type`,`doc_uri`)
 ) ENGINE=InnoDB;
