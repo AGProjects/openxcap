@@ -151,11 +151,12 @@ class Storage(object):
         quote = dbutil.quote
         query = """SELECT doc, etag FROM %(table)s
                    WHERE username = %(username)s AND domain = %(domain)s
-                   AND doc_type= %(doc_type)s""" % {
+                   AND doc_type= %(doc_type)s AND doc_uri=%(document_path)s""" % {
                        "table":    Config.xcap_table,
                        "username": quote(username, "char"),
                        "domain"  : quote(domain, "char"),
-                       "doc_type": quote(doc_type, "int")}
+                       "doc_type": quote(doc_type, "int"),
+                       "document_path": quote(uri.doc_selector.document_path, "char")}
         trans.execute(query)
         result = trans.fetchall()
         if result:
@@ -169,28 +170,31 @@ class Storage(object):
     def _put_document(self, trans, uri, document, check_etag):
         username, domain = uri.user.username, uri.user.domain
         doc_type = self.app_mapping[uri.application_id]
+        document_path = uri.doc_selector.document_path
         quote = dbutil.quote
         query = """SELECT etag FROM %(table)s
                    WHERE username = %(username)s AND domain = %(domain)s
-                   AND doc_type= %(doc_type)s""" % {
+                   AND doc_type= %(doc_type)s AND doc_uri=%(document_path)s""" % {
                        "table":    Config.xcap_table,
                        "username": quote(username, "char"),
                        "domain"  : quote(domain, "char"),
-                       "doc_type": quote(doc_type, "int")}
+                       "doc_type": quote(doc_type, "int"),
+                       "document_path": quote(document_path, "char")}
         trans.execute(query)
         result = trans.fetchall()
         if not result:
             ## the document doesn't exist, create it
             etag = self.generate_etag(uri, document)
             query = """INSERT INTO %(table)s
-                       (username, domain, doc_type, etag, doc)
-                       VALUES (%(username)s, %(domain)s, %(doc_type)s, %(etag)s, %(document)s)""" % {
+                       (username, domain, doc_type, etag, doc, doc_uri)
+                       VALUES (%(username)s, %(domain)s, %(doc_type)s, %(etag)s, %(document)s, %(document_path)s)""" % {
                            "table":    Config.xcap_table,
                            "username": quote(username, "char"),
                            "domain"  : quote(domain, "char"),
                            "doc_type": quote(doc_type, "int"),
                            "etag":     quote(etag, "char"),
-                           "document": quote(document, "char")}
+                           "document": quote(document, "char"),
+                           "document_path": quote(document_path, "char")}
             trans.execute(query)
             return StatusResponse(201, etag)
         else:
@@ -202,14 +206,16 @@ class Storage(object):
             query = """UPDATE %(table)s
                        SET doc = %(document)s, etag = %(etag)s
                        WHERE username = %(username)s AND domain = %(domain)s
-                       AND doc_type = %(doc_type)s AND etag = %(old_etag)s""" % {
+                       AND doc_type = %(doc_type)s AND etag = %(old_etag)s
+                       AND doc_uri = %(document_path)s""" % {
                            "table":    Config.xcap_table,
                            "document": quote(document, "char"),
                            "etag":     quote(etag, "char"),
                            "username": quote(username, "char"),
                            "domain"  : quote(domain, "char"),
                            "doc_type": quote(doc_type, "int"),
-                           "old_etag": quote(old_etag, "char")}
+                           "old_etag": quote(old_etag, "char"),
+                           "document_path": quote(document_path, "char")}
             trans.execute(query)
             ## verifica daca update a modificat vreo coloana, daca nu arunca eroare
             return StatusResponse(200, etag)
@@ -217,14 +223,16 @@ class Storage(object):
     def _delete_document(self, trans, uri, check_etag):
         username, domain = uri.user.username, uri.user.domain
         doc_type = self.app_mapping[uri.application_id]
+        document_path = uri.doc_selector.document_path
         quote = dbutil.quote
         query = """SELECT etag FROM %(table)s
                    WHERE username = %(username)s AND domain = %(domain)s
-                   AND doc_type= %(doc_type)s""" % {
+                   AND doc_type= %(doc_type)s AND doc_uri = %(document_path)s""" % {
                        "table":    Config.xcap_table,
                        "username": quote(username, "char"),
                        "domain"  : quote(domain, "char"),
-                       "doc_type": quote(doc_type, "int")}
+                       "doc_type": quote(doc_type, "int"),
+                       "document_path": quote(document_path, "char")}
         trans.execute(query)
         result = trans.fetchall()
         if result:
@@ -232,11 +240,12 @@ class Storage(object):
             check_etag(etag)
             query = """DELETE FROM %(table)s
                        WHERE username = %(username)s AND domain = %(domain)s
-                       AND doc_type= %(doc_type)s""" % {
+                       AND doc_type= %(doc_type)s AND doc_uri = %(document_path)s""" % {
                            "table":    Config.xcap_table,
                            "username": quote(username, "char"),
                            "domain"  : quote(domain, "char"),
-                           "doc_type": quote(doc_type, "int")}
+                           "doc_type": quote(doc_type, "int"),
+                           "document_path": quote(document_path, "char")}
             trans.execute(query)
             return StatusResponse(200, etag)
         else:

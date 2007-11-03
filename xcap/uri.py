@@ -144,7 +144,8 @@ class DocumentSelector(str):
             segments = segments[2:]
         if not segments:
             raise ValueError("invalid Document Selector: missing document's path")
-        self.document = segments[-1]
+        self.document_path = '/'.join(segments)
+        self.filename = segments[-1]
         str.__init__(self, selector)
 
 
