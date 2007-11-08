@@ -1,7 +1,10 @@
 TODO list
 
+- Proper logging of URIs in syslog to reflect UA settings
+- Define authentication database URI per Realm
+- Normalize default document name per application
 - RLS services support
 - Complete XML element/attribute management functions
-- More tests, both automated and with real clients
+- Support multiple XCAP root URIs
+- Remove Twisted unnecessary logging
 - Make the storage backends work with other database engines besides MySQL
-- Support multiple XCAP root URIs.
