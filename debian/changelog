@@ -1,3 +1,10 @@
+openxcap (0.9.8) unstable; urgency=low
+
+  * Support subdirectories by using doc_uri column in xcap table.
+  * Updated MySQL xcap table structure
+
+ -- Adrian Georgescu <adigeo@ag-projects.com>  Fri, 09 Nov 2007 18:48:51 +0100
+
 openxcap (0.9.7) unstable; urgency=low
 
   * Prevented Twisted from printing SQL login info in the log
