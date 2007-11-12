@@ -5,6 +5,7 @@
 
 import re
 import urlparse
+import urllib
 
 from application.configuration import *
 from application import log
@@ -84,7 +85,7 @@ class NodeSelector(str):
             elif terminal == 'namespace::*':
                 self.terminal_selector = NamespaceSelector(terminal)
             else:
-                if terminal.find(':') == -1:
+                if terminal.split("[")[0].find(':') == -1:
                     terminal = '%s:%s' % (self.XPATH_DEFAULT_NS, terminal)
                 self.terminal_selector = ExtensionSelector(terminal)
         else:
@@ -172,7 +173,7 @@ class XCAPUri(object):
             log.error("Invalid Document Selector %s (%s)" % (doc_selector, str(e)))
             raise ResourceNotFound(str(e))
         if len(_split) == 2:                             ## the Node Selector
-            self.node_selector = NodeSelector(_split[1]) 
+            self.node_selector = NodeSelector(urllib.unquote(_split[1]))
         else:
             self.node_selector = None
         self.user = self.doc_selector.user_id and XCAPUser(self.doc_selector.user_id)
