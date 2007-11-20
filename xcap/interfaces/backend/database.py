@@ -247,7 +247,7 @@ class Storage(object):
                            "doc_type": quote(doc_type, "int"),
                            "document_path": quote(document_path, "char")}
             trans.execute(query)
-            return StatusResponse(200, etag)
+            return StatusResponse(200)
         else:
             return StatusResponse(404)
 
