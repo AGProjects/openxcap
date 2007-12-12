@@ -50,7 +50,7 @@ authentication_db_uri = mysql://username:password@db-host/openser
 storage_db_uri = mysql://username:password@db-host/openser
 ; Authentication and storage tables
 subscriber_table = subscriber
-xcap_table = xcap_xml
+xcap_table = xcap
 
 [OpenSER]
 
