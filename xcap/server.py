@@ -36,17 +36,18 @@ class Backend(object):
             raise ValueError("Couldn't find the '%s' backend module: %s" % (value.lower(), str(e)))
 
 class AuthenticationConfig(ConfigSection):
+    _datatypes = {'trusted_peers': StringList}
     type = 'basic'
     cleartext_passwords = True
     default_realm = 'example.com'
+    trusted_peers = []
 
 class ServerConfig(ConfigSection):
-    _datatypes = {'trusted_peers': StringList, 'backend': Backend}
+    _datatypes = {'backend': Backend}
     port = 8000
     address = '0.0.0.0'
     root = 'http://xcap.example.com/'
     backend = Backend('Database')
-    trusted_peers = []
 
 class TLSConfig(ConfigSection):
     _datatypes = {'certificate': Certificate, 'private_key': PrivateKey}
@@ -123,9 +124,10 @@ class XCAPServer:
         else:
             http_checker = ServerConfig.backend.HashPasswordChecker()
         portal.registerChecker(http_checker)
-        if ServerConfig.trusted_peers:
-            log.info("Trusted peers: %s" % ", ".join(ServerConfig.trusted_peers))
-        portal.registerChecker(authentication.TrustedPeerChecker(ServerConfig.trusted_peers))
+        trusted_peers = AuthenticationConfig.trusted_peers
+        if trusted_peers:
+            log.info("Trusted peers: %s" % ", ".join(trusted_peers))
+        portal.registerChecker(authentication.TrustedPeerChecker(trusted_peers))
 
         auth_type = AuthenticationConfig.type
         if auth_type == 'basic':

@@ -23,17 +23,14 @@ from xcap.dbutil import connectionForURI
 from xcap.errors import ResourceNotFound
 from xcap.uri import XCAPUser, parseNodeURI
 
-class ServerConfig(ConfigSection):
-    _datatypes = {'trusted_peers': StringList}
-    trusted_peers = []
-
 class AuthenticationConfig(ConfigSection):
+    _datatypes = {'trusted_peers': StringList}
     default_realm = 'example.com'
+    trusted_peers = []
 
 ## We use this to overwrite some of the settings above on a local basis if needed
 configuration = ConfigFile('config.ini')
 configuration.read_settings('Authentication', AuthenticationConfig)
-configuration.read_settings('Server', ServerConfig)
 
 ## Trusted Peer credentials
 
@@ -122,7 +119,7 @@ class XCAPAuthResource(HTTPAuthResource):
         realm = request.xcap_uri.user.domain
         self._updateRealm(realm)
         remote_addr = request.remoteAddr.host
-        if ServerConfig.trusted_peers:
+        if AuthenticationConfig.trusted_peers:
             return self.portal.login(TrustedPeerCredentials(remote_addr),
                                      None,
                                      ITrustedPeer
