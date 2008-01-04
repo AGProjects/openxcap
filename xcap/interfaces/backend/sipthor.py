@@ -27,7 +27,7 @@ from twisted.cred.checkers import ICredentialsChecker
 from twisted.cred.credentials import IUsernamePassword, IUsernameHashedPassword
 from twisted.cred.error import UnauthorizedLogin
 
-from thor.control import ControlLink, Notification
+from thor.control import ControlLink, Notification, Request
 from thor.eventservice import EventServiceClient, ThorEvent
 from thor.entities import ThorEntitiesRoleMap, GenericThorEntity as ThorEntity
 
@@ -75,6 +75,13 @@ configuration.read_settings('ThorNetwork', ThorNetworkConfig)
 
 sqlhub.processConnection = connectionForURI(Config.dburi)
 
+class GetOnlineDevices(Request):
+    def __new__(cls, account):
+        command = "get_watchers for %s" % account
+        instance = Request.__new__(cls, command)
+        return instance
+
+
 class XCAPProvisioning(EventServiceClient):
     __metaclass__ = Singleton
     topics = ["Thor.Members"]
@@ -113,6 +120,14 @@ class XCAPProvisioning(EventServiceClient):
         node = self.lookup(key)
         if node is not None:
             self.control.send_request(Notification("notify %s %s" % (action, key)), node)
+
+    def get_watchers(self, key):
+        node = self.lookup(key)
+        prefix, account = key.split(':', 1)
+        request = GetOnlineDevices(account)
+        request.deferred = Deferred()
+        self.control.send_request(request, node)
+        return request.deferred
 
     def handle_event(self, event):
         # print "Received event: %s" % event
@@ -415,3 +430,18 @@ class Storage(object):
 
     def generate_etag(self, uri, document):
         return md5.new(uri.xcap_root + str(uri.doc_selector) + str(time())).hexdigest()
+
+    def get_watchers(self, uri):
+        thor_key = "sip:%s@%s" % (uri.user.username, uri.user.domain)
+        result = self._provisioning.get_watchers(thor_key)
+        result.addCallback(self._get_watchers_decode)
+        return result
+
+    def _get_watchers_decode(self, response):
+        if response.code == 200:
+            watchers = cjson.decode(response.data)
+            for watcher in watchers:
+                watcher["online"] = str(watcher["online"]).lower()
+            return watchers
+        else:
+            print "error: %s" % response
