@@ -75,6 +75,12 @@ configuration.read_settings('ThorNetwork', ThorNetworkConfig)
 
 sqlhub.processConnection = connectionForURI(Config.dburi)
 
+def sanitize_application_id(application_id):
+    if application_id == "org.openmobilealliance.pres-rules":
+        return "pres-rules"
+    else:
+        return application_id
+
 class GetOnlineDevices(Request):
     def __new__(cls, account):
         command = "get_watchers for %s" % account
@@ -195,26 +201,28 @@ class DatabaseConnection(object):
 
     # Methods to be called in a separate thread:
     def _put_operation(self, uri, document, check_etag, new_etag, profile):
+        application_id = sanitize_application_id(uri.application_id)
         xcap_docs = profile.setdefault("xcap", {})
         try:
-            etag = xcap_docs[uri.application_id][uri.doc_selector.document_path][1]
+            etag = xcap_docs[application_id][uri.doc_selector.document_path][1]
         except KeyError:
             found = False
         else:
             found = True
             check_etag(etag)
-        xcap_app = xcap_docs.setdefault(uri.application_id, {})
+        xcap_app = xcap_docs.setdefault(application_id, {})
         xcap_app[uri.doc_selector.document_path] = (document, new_etag)
         return found
 
     def _delete_operation(self, uri, check_etag, profile):
+        application_id = sanitize_application_id(uri.application_id)
         xcap_docs = profile.setdefault("xcap", {})
         try:
-            etag = xcap_docs[uri.application_id][uri.doc_selector.document_path][1]
+            etag = xcap_docs[application_id][uri.doc_selector.document_path][1]
         except KeyError:
             raise DeleteNotFound()
         check_etag(etag)
-        del(xcap_docs[uri.application_id][uri.doc_selector.document_path])
+        del(xcap_docs[application_id][uri.doc_selector.document_path])
         return None
 
     def _do_memcache_cmd(self, cmd, *args, **kwargs):
@@ -394,7 +402,7 @@ class Storage(object):
         profile = cjson.decode(blob)
         try:
             xcap_docs = profile["xcap"]
-            doc, etag = xcap_docs[uri.application_id][uri.doc_selector.document_path]
+            doc, etag = xcap_docs[sanitize_application_id(uri.application_id)][uri.doc_selector.document_path]
         except KeyError:
             return StatusResponse(404)
         check_etag(etag)
