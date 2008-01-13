@@ -70,8 +70,9 @@ def log_request(request, response):
         size = response.stream.length
     elif method in ("PUT", "DELETE") and request.stream is not None:
         size = request.stream.length
+    log_uri = "%s://%s:%d%s" % (request.scheme, request.host, request.port, request.uri)
     msg = '%s from %s "%s %s" %s %d - %s' % (uri.user, request.remoteAddr.host,
-                                        method, uri, response.code, size, user_agent)
+                                        method, log_uri, response.code, size, user_agent)
     log.msg(msg)
 
 
