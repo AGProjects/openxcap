@@ -392,7 +392,16 @@ class Storage(object):
         self._database = DatabaseConnection()
         self._provisioning = XCAPProvisioning()
 
+    def _normalize_document_path(self, uri):
+        ## some clients e.g. counterpath's eyebeam save presence rules under
+        ## different filenames between versions and they expect to find the same
+        ## information, thus we are forcing all presence rules documents to be
+        ## saved under "index.xml" default filename
+        if uri.application_id in ("org.openmobilealliance.pres-rules", "pres-rules"):
+            uri.doc_selector.document_path = "index.xml"
+
     def get_document(self, uri, check_etag):
+        self._normalize_document_path(uri)
         memkey = "sip:%s@%s" % (uri.user.username, uri.user.domain)
         result = self._memcache.get(memkey)
         result.addCallback(self._get_got_blob, uri, check_etag)
@@ -409,6 +418,7 @@ class Storage(object):
         return StatusResponse(200, etag, doc)
 
     def put_document(self, uri, document, check_etag):
+        self._normalize_document_path(uri)
         etag = self.generate_etag(uri, document)
         result = self._database.put(uri, document, check_etag, etag)
         result.addCallback(self._cb_put, etag, "sip:%s@%s" % (uri.user.username, uri.user.domain))
@@ -423,6 +433,7 @@ class Storage(object):
         return StatusResponse(code, etag)
 
     def delete_document(self, uri, check_etag):
+        self._normalize_document_path(uri)
         result = self._database.delete(uri, check_etag)
         result.addCallback(self._cb_delete, "sip:%s@%s" % (uri.user.username, uri.user.domain))
         result.addErrback(self._eb_delete)

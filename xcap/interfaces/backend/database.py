@@ -145,8 +145,17 @@ class Storage(object):
     def __db_connect(self):
         self.conn = connectionForURI(Config.storage_db_uri)
 
+    def _normalize_document_path(self, uri):
+        ## some clients e.g. counterpath's eyebeam save presence rules under
+        ## different filenames between versions and they expect to find the same
+        ## information, thus we are forcing all presence rules documents to be
+        ## saved under "index.xml" default filename
+        if uri.application_id in ("org.openmobilealliance.pres-rules", "pres-rules"):
+            uri.doc_selector.document_path = "index.xml"
+
     def _get_document(self, trans, uri, check_etag):
         username, domain = uri.user.username, uri.user.domain
+        self._normalize_document_path(uri)
         doc_type = self.app_mapping[uri.application_id]
         quote = dbutil.quote
         query = """SELECT doc, etag FROM %(table)s
@@ -169,6 +178,7 @@ class Storage(object):
 
     def _put_document(self, trans, uri, document, check_etag):
         username, domain = uri.user.username, uri.user.domain
+        self._normalize_document_path(uri)
         doc_type = self.app_mapping[uri.application_id]
         document_path = uri.doc_selector.document_path
         quote = dbutil.quote
@@ -222,6 +232,7 @@ class Storage(object):
 
     def _delete_document(self, trans, uri, check_etag):
         username, domain = uri.user.username, uri.user.domain
+        self._normalize_document_path(uri)
         doc_type = self.app_mapping[uri.application_id]
         document_path = uri.doc_selector.document_path
         quote = dbutil.quote
