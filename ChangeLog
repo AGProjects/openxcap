@@ -1,5 +1,22 @@
+Changes in version 0.9.9
+------------------------
+
+  * Fixed node selector decoding
+  * Save presence rules documents under the same file name ("index.xml")
+  * Moved trusted_peers to [Authentication] config section
+  * Default xcap_table to "xcap" in config.ini.sample
+  * Improved URI logging
+  * DELETE of a full document doesn't produce an Etag in the 200 response
+  * Added SIP Thor backend
+
+Changes in version 0.9.8
+------------------------
+
+  * Support subdirectories by using doc_uri column in xcap table
+  * Updated MySQL xcap table structure
+
 Changes in version 0.9.7
------------------------
+------------------------
 
   * Prevented Twisted from printing SQL login info in the log
   * Added some info to INSTALL about tested versions
