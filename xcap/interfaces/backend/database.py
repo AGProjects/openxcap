@@ -299,3 +299,5 @@ class Storage(object):
 
     def get_watchers(self, uri):
         return self.conn.runInteraction(self._get_watchers, uri)
+
+installSignalHandlers = True

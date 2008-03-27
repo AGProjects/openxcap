@@ -6,6 +6,7 @@
 import md5
 from time import time
 from Queue import Queue
+import signal
 
 import cjson
 
@@ -15,6 +16,7 @@ from application import log
 from application.configuration import *
 from application.python.util import Singleton
 from application.system import default_host_ip
+from application.process import process
 
 from sqlobject import sqlhub, connectionForURI, SQLObject, AND
 from sqlobject import StringCol, IntCol, BLOBCol, DateTimeCol, SOBLOBCol, Col
@@ -151,6 +153,9 @@ class XCAPProvisioning(EventServiceClient):
         credentials.session_params.compressions = (COMP_LZO, COMP_DEFLATE, COMP_NULL)
         self.control = ControlLink(credentials)
         EventServiceClient.__init__(self, ThorNetworkConfig.domain, credentials)
+        process.signals.add_handler(signal.SIGHUP, self._handle_SIGHUP)
+        process.signals.add_handler(signal.SIGINT, self._handle_SIGINT)
+        process.signals.add_handler(signal.SIGTERM, self._handle_SIGTERM)
 
     def _disconnect_all(self, result):
         self.control.disconnect_all()
@@ -464,3 +469,5 @@ class Storage(object):
             return watchers
         else:
             print "error: %s" % response
+
+installSignalHandlers = False

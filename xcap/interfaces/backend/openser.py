@@ -59,3 +59,5 @@ class Storage(database.Storage):
                 type = 0
             d.addCallback(self._notify_watchers, uri.user, type)
         return d
+
+installSignalHandlers = database.installSignalHandlers
