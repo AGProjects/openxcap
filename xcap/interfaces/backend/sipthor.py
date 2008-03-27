@@ -9,20 +9,22 @@ from Queue import Queue
 
 import cjson
 
+from formencode import validators
+
 from application import log
 from application.configuration import *
 from application.python.util import Singleton
 from application.system import default_host_ip
 
 from sqlobject import sqlhub, connectionForURI, SQLObject, AND
-from sqlobject import StringCol, IntCol, BLOBCol, DateTimeCol
+from sqlobject import StringCol, IntCol, BLOBCol, DateTimeCol, SOBLOBCol, Col
+from sqlobject import MultipleJoin, ForeignKey
 
 from zope.interface import implements
 from twisted.internet import reactor
 from twisted.python.failure import Failure
 from twisted.internet.defer import Deferred, maybeDeferred
 from twisted.internet.protocol import ClientFactory
-from twisted.names.srvconnect import SRVConnector
 from twisted.cred.checkers import ICredentialsChecker
 from twisted.cred.credentials import IUsernamePassword, IUsernameHashedPassword
 from twisted.cred.error import UnauthorizedLogin
@@ -36,44 +38,90 @@ from gnutls.constants import *
 
 from xcap.tls import Certificate, PrivateKey
 from xcap.interfaces.backend import IStorage, StatusResponse
-from xcap.interfaces.backend.memcache import MemcacheProtocol, DisconnectedError, CommandUnsuccessful
 
-class Config(ConfigSection):
-    _datatypes = {'certificate': Certificate, 'private_key': PrivateKey, 'ca': Certificate,
-                  'memcache_certificate': Certificate, 'memcache_private_key': PrivateKey,
-                  'memcache_host': str, 'memcache_port': int}
+class ThorNodeConfig(ConfigSection):
+    _datatypes = {'certificate': Certificate, 'private_key': PrivateKey, 'ca': Certificate}
     certificate = None
     private_key = None
     ca = None
-    memcache_host = None
-    memcache_port = None
-    memcache_certificate = None
-    memcache_private_key = None
-    dburi = "mysql://user:pass@db/sipthor"
-    nodeIP = default_host_ip
 
 class ThorNetworkConfig(ConfigSection):
     domain = "sipthor.net"
     multiply = 1000
 
-class SIPAccount(SQLObject):
+
+class JSONValidator(validators.Validator):
+
+    def to_python(self, value, state):
+        if value is None:
+            return None
+        try:
+            return cjson.decode(value)
+        except:
+            raise validators.Invalid("expected a decodable JSON object in the JSONCol '%s', got %s %r instead" % (self.name, type(value), value), value, state)
+
+    def from_python(self, value, state):
+        if value is None:
+            return None
+        try:
+            return cjson.encode(value)
+        except:
+            raise validators.Invalid("expected an encodable JSON object in the JSONCol '%s', got %s %r instead" % (self.name, type(value), value), value, state)
+
+
+class SOJSONCol(SOBLOBCol):
+
+    def createValidators(self):
+        return [JSONValidator()] + super(SOJSONCol, self).createValidators()
+
+
+class JSONCol(Col):
+    baseClass = SOJSONCol
+
+
+class SipAccount(SQLObject):
     class sqlmeta:
-        table = 'sip_accounts'
-        cacheValues = False
-    username     = StringCol(length = 64, notNone = True)
-    domain       = StringCol(length = 128, notNone = True)
-    password     = StringCol(length = 25, notNone = True)
-    customerId   = IntCol(length = 20, default = 0, notNone = True)
-    resellerId   = IntCol(length = 20, default = 0, notNone = True)
-    ownerId      = IntCol(length = 20, default = 0, notNone = True)
-    profile      = BLOBCol()
+        table = 'sip_accounts_meta'
+    username   = StringCol(length=64)
+    domain     = StringCol(length=64)
+    firstName  = StringCol(length=64)
+    lastName   = StringCol(length=64)
+    email      = StringCol(length=64)
+    customerId = IntCol(default=0)
+    resellerId = IntCol(default=0)
+    ownerId    = IntCol(default=0)
+    changeDate = DateTimeCol(default=DateTimeCol.now)
+    ## joins
+    data       = MultipleJoin('SipAccountData', joinColumn='account_id')
+
+    def _set_profile(self, value):
+        data = list(self.data)
+        if not data:
+            SipAccountData(account=self, profile=value)
+        else:
+            data[0].profile = value
+
+    def _get_profile(self):
+        return self.data[0].profile
+
+    def set(self, **kwargs):
+        kwargs = kwargs.copy()
+        profile = kwargs.pop('profile', None)
+        SQLObject.set(self, **kwargs)
+        if profile is not None:
+            self._set_profile(profile)
+
+
+class SipAccountData(SQLObject):
+    class sqlmeta:
+        table = 'sip_accounts_data'
+    account  = ForeignKey('SipAccount', cascade=True)
+    profile  = JSONCol()
 
 
 configuration = ConfigFile('config.ini')
-configuration.read_settings('SIPThor', Config)
+configuration.read_settings('ThorNode', ThorNodeConfig)
 configuration.read_settings('ThorNetwork', ThorNetworkConfig)
-
-sqlhub.processConnection = connectionForURI(Config.dburi)
 
 def sanitize_application_id(application_id):
     if application_id == "org.openmobilealliance.pres-rules":
@@ -93,11 +141,12 @@ class XCAPProvisioning(EventServiceClient):
     topics = ["Thor.Members"]
 
     def __init__(self):
-        self.node = ThorEntity(Config.nodeIP, ['xcap_server'])
+        self._database = DatabaseConnection()
+        self.node = ThorEntity(default_host_ip, ['xcap_server'])
         self.networks = {}
         self.presence_message = ThorEvent('Thor.Presence', self.node.id)
         self.shutdown_message = ThorEvent('Thor.Leave', self.node.id)
-        credentials = X509Credentials(Config.certificate, Config.private_key, [Config.ca])
+        credentials = X509Credentials(ThorNodeConfig.certificate, ThorNodeConfig.private_key, [ThorNodeConfig.ca])
         credentials.verify_peer = True
         credentials.session_params.compressions = (COMP_LZO, COMP_DEFLATE, COMP_NULL)
         self.control = ControlLink(credentials)
@@ -108,12 +157,11 @@ class XCAPProvisioning(EventServiceClient):
         EventServiceClient._disconnect_all(self, result)
 
     def lookup(self, key):
-        prefix, id = key.split(':', 1)
         network = self.networks.get("sip_proxy", None)
         if network is None:
             return None
         try:
-            node = network.lookup_node(id)
+            node = network.lookup_node(key)
         except LookupError:
             node = None
         except:
@@ -122,15 +170,14 @@ class XCAPProvisioning(EventServiceClient):
             node = None
         return node
 
-    def notify(self, action, key):
-        node = self.lookup(key)
+    def notify(self, operation, entity_type, entity):
+        node = self.lookup(entity)
         if node is not None:
-            self.control.send_request(Notification("notify %s %s" % (action, key)), node)
+            self.control.send_request(Notification("notify %s %s %s" % (operation, entity_type, entity)), node)
 
     def get_watchers(self, key):
         node = self.lookup(key)
-        prefix, account = key.split(':', 1)
-        request = GetOnlineDevices(account)
+        request = GetOnlineDevices(key)
         request.deferred = Deferred()
         self.control.send_request(request, node)
         return request.deferred
@@ -139,6 +186,13 @@ class XCAPProvisioning(EventServiceClient):
         # print "Received event: %s" % event
         networks = self.networks
         role_map = ThorEntitiesRoleMap(event.message) ## mapping between role names and lists of nodes with that role
+        thor_databases = role_map.get('thor_database', [])
+        if thor_databases:
+            thor_databases.sort(lambda x, y: cmp(x.priority, y.priority) or cmp(x.ip, y.ip))
+            dburi = thor_databases[0].dburi
+        else:
+            dburi = None
+        self._database.update_dburi(dburi)
         all_roles = role_map.keys() + networks.keys()
         for role in all_roles:
             try:
@@ -169,35 +223,43 @@ class XCAPProvisioning(EventServiceClient):
             #print "Thor %s nodes: %s" % (role, str(network.nodes))
 
 
-class DeleteNotFound(Exception):
+class NotFound(Exception):
+    pass
+
+
+class NoDatabase(Exception):
     pass
 
 
 class DatabaseConnection(object):
     __metaclass__ = Singleton
 
-    # Methods to be called from the Twisted thread:
     def __init__(self):
-        self._memcache = MemcacheConnection()
+        self.dburi = None
 
+    # Methods to be called from the Twisted thread:
     def put(self, uri, document, check_etag, new_etag):
         defer = Deferred()
         operation = lambda profile: self._put_operation(uri, document, check_etag, new_etag, profile)
-        reactor.callInThread(self.modify_profile, uri.user.username, uri.user.domain, operation, defer)
+        reactor.callInThread(self.retrieve_profile, uri.user.username, uri.user.domain, operation, True, defer)
         return defer
 
     def delete(self, uri, check_etag):
         defer = Deferred()
         operation = lambda profile: self._delete_operation(uri, check_etag, profile)
-        reactor.callInThread(self.modify_profile, uri.user.username, uri.user.domain, operation, defer)
+        reactor.callInThread(self.retrieve_profile, uri.user.username, uri.user.domain, operation, True, defer)
         return defer
 
-    def _memcache_from_thread(self, return_queue, cmd, *args, **kwargs):
-        result = self._memcache.try_cmd(cmd, *args, **kwargs)
-        result.addBoth(self._cb_memcache_from_thread, return_queue)
+    def get(self, uri):
+        defer = Deferred()
+        operation = lambda profile: self._get_operation(uri, profile)
+        reactor.callInThread(self.retrieve_profile, uri.user.username, uri.user.domain, operation, False, defer)
+        return defer
 
-    def _cb_memcache_from_thread(self, result, return_queue):
-        return_queue.put(result)
+    def get_profile(self, username, domain):
+        defer = Deferred()
+        reactor.callInThread(self.retrieve_profile, username, domain, lambda profile: profile, False, defer)
+        return defer
 
     # Methods to be called in a separate thread:
     def _put_operation(self, uri, document, check_etag, new_etag, profile):
@@ -220,130 +282,74 @@ class DatabaseConnection(object):
         try:
             etag = xcap_docs[application_id][uri.doc_selector.document_path][1]
         except KeyError:
-            raise DeleteNotFound()
+            raise NotFound()
         check_etag(etag)
         del(xcap_docs[application_id][uri.doc_selector.document_path])
         return None
 
-    def _do_memcache_cmd(self, cmd, *args, **kwargs):
-        queue = Queue(1)
-        reactor.callFromThread(self._memcache_from_thread, queue, cmd, *args, **kwargs)
-        result = queue.get(True, 10)
-        if isinstance(result, Failure):
-            raise result.value
-        else:
-            return result
+    def _get_operation(self, uri, profile):
+        try:
+            xcap_docs = profile["xcap"]
+            doc, etag = xcap_docs[sanitize_application_id(uri.application_id)][uri.doc_selector.document_path]
+        except KeyError:
+            raise NotFound()
+        return doc, etag
 
-    def modify_profile(self, username, domain, operation, defer):
+    def retrieve_profile(self, username, domain, operation, update, defer):
         transaction = None
         try:
+            if self.dburi is None:
+                raise NoDatabase()
             transaction = sqlhub.processConnection.transaction()
-            db_account = SIPAccount.select(AND(SIPAccount.q.username == username, SIPAccount.q.domain == domain), forUpdate = True)[0]
-            profile = cjson.decode(db_account.profile)
-            result = operation(profile) # NB: modifies profile!
-            data = cjson.encode(profile)
-            self._do_memcache_cmd("set", "sip:%s@%s" % (username, domain), data)
-            db_account.profile = data
+            try:
+                db_account = SipAccount.select(AND(SipAccount.q.username == username, SipAccount.q.domain == domain), connection = transaction, forUpdate = update)[0]
+            except IndexError:
+                raise NotFound()
+            profile = db_account.profile
+            result = operation(profile) # NB: may modify profile!
+            if update:
+                db_account.profile = profile
+            transaction.commit()
         except Exception, e:
-            transaction.rollback()
+            if transaction:
+                transaction.rollback()
             reactor.callFromThread(defer.errback, e)
         else:
-            transaction.commit()
             reactor.callFromThread(defer.callback, result)
 
-
-class MemcacheConnection(ClientFactory, object):
-    __metaclass__ = Singleton
-    commands = ["get", "set"]
-
-    def __init__(self):
-        self.protocol = None
-        self.queue = []
-        if Config.memcache_certificate is None or Config.memcache_private_key is None or Config.ca is None:
-            use_tls = False
-        else:
-            use_tls = True
-            credentials = X509Credentials(Config.memcache_certificate, Config.memcache_private_key, [Config.ca])
-            credentials.verify_peer = True
-        if Config.memcache_host is None or Config.memcache_port is None:
-            if use_tls:
-                connector = SRVConnector(reactor, "memcache", ThorNetworkConfig.domain, self,
-                                         connectFuncName = "connectTLS", connectFuncArgs = [credentials])
+    def update_dburi(self, dburi):
+        if self.dburi != dburi:
+            if self.dburi is not None:
+                self.processConnection.close()
+            if dburi is None:
+                del self.processConnection
             else:
-                connector = SRVConnector(reactor, "memcache", ThorNetworkConfig.domain, self,
-                                         connectFuncName = "connectTCP")
-            connector.connect()
-        else:
-            if use_tls:
-                reactor.connectTLS(Config.memcache_host, Config.memcache_port, self, credentials)
-            else:
-                reactor.connectTCP(Config.memcache_host, Config.memcache_port, self)
+                sqlhub.processConnection = connectionForURI(dburi)
+            self.dburi = dburi
 
-    def __getattr__(self, name):
-        if name in self.commands:
-            return lambda *args, **kwargs: self.try_cmd(name, *args, **kwargs)
-        else:
-            raise AttributeError
 
-    def try_cmd(self, cmd, *args, **kwargs):
-        if self.protocol is not None:
-            return self._do_cmd(cmd, *args, **kwargs)
-        else:
-            defer = Deferred()
-            self.queue.append((defer, cmd, args, kwargs))
-            return defer
-
-    def _do_cmd(self, cmd, *args, **kwargs):
-        return self.protocol.do_command(cmd, *args, **kwargs)
-
-    def _send_backlog(self):
-        for defer, cmd, args, kwargs in self.queue:
-            result = self._do_cmd(cmd, *args, **kwargs)
-            result.chainDeferred(defer)
-        self.queue = []
-
-    def buildProtocol(self, addr):
-        self.protocol = MemcacheProtocol()
-        reactor.callLater(0, self._send_backlog) # We cannot do this directly as the protocol does not have a transport yet
-        return self.protocol
-
-    def clientConnectionLost(self, connector, reason):
-        log.warn("Connection to memcached server lost, reconnecting: %s" % reason.value)
-        reactor.callLater(1, connector.connect)
-
-    def clientConnectionFailed(self, connector, reason):
-        log.error("Connection to memcached server failed, retrying in 60 seconds: %s" % reason.value)
-        for defer, cmd, args, kwargs in self.queue:
-            defer.errback()
-        self.queue = []
-        reactor.callLater(60, connector.connect)
-
-class MemcachePasswordChecker(object):
-    """A credentials checker against memcached contents."""
-
+class SipthorPasswordChecker(object):
     implements(ICredentialsChecker)
-
     credentialInterfaces = (IUsernamePassword, IUsernameHashedPassword)
 
     def __init__(self):
-        self._memcache = MemcacheConnection()
+        self._database = DatabaseConnection()
 
     def _query_credentials(self, credentials):
         username, domain = credentials.username.split('@', 1)[0], credentials.realm
-        result = self._memcache.get("sip:%s@%s" % (username, domain))
+        result = self._database.get_profile(username, domain)
         result.addCallback(self._got_query_results, credentials)
         result.addErrback(self._got_unsuccessfull)
         return result
 
     def _got_unsuccessfull(self, failure):
-        failure.trap(CommandUnsuccessful)
+        failure.trap(NotFound)
         raise UnauthorizedLogin("Unauthorized login")
 
-    def _got_query_results(self, (blob, flags), credentials):
-        profile = cjson.decode(blob)
+    def _got_query_results(self, profile, credentials):
         return self._authenticate_credentials(profile, credentials)
 
-    def _authenticate_credentials(self, password, credentials):
+    def _authenticate_credentials(self, profile, credentials):
         raise NotImplementedError
 
     def _checkedPassword(self, matched, username, realm):
@@ -361,7 +367,7 @@ class MemcachePasswordChecker(object):
         return d
 
 
-class PlainPasswordChecker(MemcachePasswordChecker):
+class PlainPasswordChecker(SipthorPasswordChecker):
     """A credentials checker against a database subscriber table, where the passwords
        are stored in plain text."""
 
@@ -373,7 +379,7 @@ class PlainPasswordChecker(MemcachePasswordChecker):
                 self._checkedPassword, credentials.username, credentials.realm)
 
 
-class HashPasswordChecker(MemcachePasswordChecker):
+class HashPasswordChecker(SipthorPasswordChecker):
     """A credentials checker against a database subscriber table, where the passwords
        are stored as MD5 hashes."""
 
@@ -388,7 +394,6 @@ class Storage(object):
     __metaclass__ = Singleton
 
     def __init__(self):
-        self._memcache = MemcacheConnection()
         self._database = DatabaseConnection()
         self._provisioning = XCAPProvisioning()
 
@@ -402,18 +407,16 @@ class Storage(object):
 
     def get_document(self, uri, check_etag):
         self._normalize_document_path(uri)
-        memkey = "sip:%s@%s" % (uri.user.username, uri.user.domain)
-        result = self._memcache.get(memkey)
-        result.addCallback(self._get_got_blob, uri, check_etag)
+        result = self._database.get(uri)
+        result.addCallback(self._got_document, check_etag)
+        result.addErrback(self._eb_not_found)
         return result
 
-    def _get_got_blob(self, (blob, flags), uri, check_etag):
-        profile = cjson.decode(blob)
-        try:
-            xcap_docs = profile["xcap"]
-            doc, etag = xcap_docs[sanitize_application_id(uri.application_id)][uri.doc_selector.document_path]
-        except KeyError:
-            return StatusResponse(404)
+    def _eb_not_found(self, failure):
+        failure.trap(NotFound)
+        return StatusResponse(404)
+
+    def _got_document(self, (doc, etag), check_etag):
         check_etag(etag)
         return StatusResponse(200, etag, doc)
 
@@ -421,7 +424,8 @@ class Storage(object):
         self._normalize_document_path(uri)
         etag = self.generate_etag(uri, document)
         result = self._database.put(uri, document, check_etag, etag)
-        result.addCallback(self._cb_put, etag, "sip:%s@%s" % (uri.user.username, uri.user.domain))
+        result.addCallback(self._cb_put, etag, "%s@%s" % (uri.user.username, uri.user.domain))
+        result.addErrback(self._eb_not_found)
         return result
 
     def _cb_put(self, found, etag, thor_key):
@@ -429,29 +433,25 @@ class Storage(object):
             code = 200
         else:
             code = 201
-        self._provisioning.notify("update", thor_key)
+        self._provisioning.notify("update", "sip_account", thor_key)
         return StatusResponse(code, etag)
 
     def delete_document(self, uri, check_etag):
         self._normalize_document_path(uri)
         result = self._database.delete(uri, check_etag)
-        result.addCallback(self._cb_delete, "sip:%s@%s" % (uri.user.username, uri.user.domain))
-        result.addErrback(self._eb_delete)
+        result.addCallback(self._cb_delete, "%s@%s" % (uri.user.username, uri.user.domain))
+        result.addErrback(self._eb_not_found)
         return result
 
     def _cb_delete(self, nothing, thor_key):
-        self._provisioning.notify("update", thor_key)
+        self._provisioning.notify("update", "sip_account", thor_key)
         return StatusResponse(200)
-
-    def _eb_delete(self, failure):
-        failure.trap(DeleteNotFound)
-        return StatusResponse(404)
 
     def generate_etag(self, uri, document):
         return md5.new(uri.xcap_root + str(uri.doc_selector) + str(time())).hexdigest()
 
     def get_watchers(self, uri):
-        thor_key = "sip:%s@%s" % (uri.user.username, uri.user.domain)
+        thor_key = "%s@%s" % (uri.user.username, uri.user.domain)
         result = self._provisioning.get_watchers(thor_key)
         result.addCallback(self._get_watchers_decode)
         return result
