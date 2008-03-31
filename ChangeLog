@@ -1,3 +1,13 @@
+Changes in version 0.9.9.1
+--------------------------
+
+  * Removed memcache access from the SIPThor backend to reflect change in
+    architecture
+
+  * Have SIPThor backend gracefully disconnect by having it install its own
+    signal handlers. Backends now include a installSignalHandlers boolean
+    variable.
+
 Changes in version 0.9.9
 ------------------------
 

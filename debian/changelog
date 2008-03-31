@@ -1,3 +1,14 @@
+openxcap (0.9.9.1) unstable; urgency=low
+
+  * Removed memcache access from the SIPThor backend to reflect change in
+    architecture
+
+  * Have SIPThor backend gracefully disconnect by having it install its own
+    signal handlers. Backends now include a installSignalHandlers boolean
+    variable.
+
+ -- Ruud Klaver <ruud@ag-projects.com>  Mon, 31 Mar 2008 13:23:19 +0200
+
 openxcap (0.9.9) unstable; urgency=low
 
   * Fixed node selector decoding
