@@ -314,7 +314,7 @@ class DatabaseConnection(object):
             result = operation(profile) # NB: may modify profile!
             if update:
                 db_account.profile = profile
-            transaction.commit()
+            transaction.commit(close=True)
         except Exception, e:
             if transaction:
                 transaction.rollback()
