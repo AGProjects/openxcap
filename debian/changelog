@@ -1,3 +1,11 @@
+openxcap (0.9.9.2) unstable; urgency=low
+
+  * Changed debian package to not automatically start the server on install
+  * Fix for dburi being updated in SIPThor backend
+  * Fixed the SIPThor module to not make a new connection on every transaction
+
+ -- Ruud Klaver <ruud@ag-projects.com>  Wed, 14 May 2008 11:18:00 +0200
+
 openxcap (0.9.9.1) unstable; urgency=low
 
   * Removed memcache access from the SIPThor backend to reflect change in

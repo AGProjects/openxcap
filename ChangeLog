@@ -1,3 +1,10 @@
+Changes in version 0.9.9.2
+--------------------------
+
+  * Changed debian package to not automatically start the server on install
+  * Fix for dburi being updated in SIPThor backend
+  * Fixed the SIPThor module to not make a new connection on every transaction
+
 Changes in version 0.9.9.1
 --------------------------
 
