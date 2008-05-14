@@ -325,9 +325,9 @@ class DatabaseConnection(object):
     def update_dburi(self, dburi):
         if self.dburi != dburi:
             if self.dburi is not None:
-                self.processConnection.close()
+                sqlhub.processConnection.close()
             if dburi is None:
-                del self.processConnection
+                sqlhub.processConnection
             else:
                 sqlhub.processConnection = connectionForURI(dburi)
             self.dburi = dburi
