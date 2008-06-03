@@ -113,7 +113,7 @@ class NodeSelector(str):
                 continue
         return ns_bindings
 
-    def get_xpath_ns_bindings(self, namespaces = default_ns):
+    def get_xpath_ns_bindings(self, namespaces):
         ns_bindings = self.ns_bindings.copy()
         ns_bindings[self.XPATH_DEFAULT_NS] = default_ns
         return ns_bindings
