@@ -1,3 +1,8 @@
+Changes in version 0.9.9.4
+--------------------------
+
+  * Fixed one keyword argument too many
+
 Changes in version 0.9.9.3
 --------------------------
 

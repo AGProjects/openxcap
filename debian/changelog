@@ -1,3 +1,9 @@
+openxcap (0.9.9.4) unstable; urgency=low
+
+  * Fixed one keyword argument too many
+
+ -- Ruud Klaver <ruud@ag-projects.com>  Tue, 03 Jun 2008 10:38:27 +0200
+
 openxcap (0.9.9.3) unstable; urgency=low
 
   * Changed some lxml function argument from positional to keyword
