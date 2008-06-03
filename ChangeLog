@@ -1,3 +1,8 @@
+Changes in version 0.9.9.3
+--------------------------
+
+  * Changed some lxml function argument from positional to keyword
+
 Changes in version 0.9.9.2
 --------------------------
 
