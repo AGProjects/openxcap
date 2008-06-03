@@ -174,14 +174,14 @@ class ApplicationUsage(object):
         application = getApplicationForURI(uri)
         ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
         try:
-            parent = xml_doc.xpath(node_selector.element_selector, ns_dict)
+            parent = xml_doc.xpath(node_selector.element_selector, namespaces = ns_dict)
         except:
             raise NoParentError
             #raise Exception # TODO ce exceptie intoarcem daca selectorul nu e valid ?
         if len(parent) != 1:
             raise NoParentError
         parent = parent[0]
-        target = parent.xpath(node_selector.terminal_selector, ns_dict)
+        target = parent.xpath(node_selector.terminal_selector, namespaces = ns_dict)
         if target:
             self._replace_element(parent, target[0], xml_elem)
         else:
@@ -209,7 +209,7 @@ class ApplicationUsage(object):
         ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
         try:
             selector = node_selector.element_selector + '/' + node_selector.terminal_selector
-            elem = xml_doc.xpath(selector, ns_dict)
+            elem = xml_doc.xpath(selector, namespaces = ns_dict)
         except:
             raise ResourceNotFound
         if not elem:
@@ -233,7 +233,7 @@ class ApplicationUsage(object):
         ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
         try:
             selector = node_selector.element_selector + '/' + node_selector.terminal_selector
-            elem = xml_doc.xpath(selector, ns_dict)
+            elem = xml_doc.xpath(selector, namespaces = ns_dict)
         except:
             raise ResourceNotFound
         if len(elem) != 1:
@@ -260,7 +260,7 @@ class ApplicationUsage(object):
         ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
         try:
             selector = node_selector.element_selector + '/' + node_selector.terminal_selector
-            attribute = xml_doc.xpath(selector, ns_dict)
+            attribute = xml_doc.xpath(selector, namespaces = ns_dict)
         except:
             raise ResourceNotFound
         if len(attribute) != 1:
@@ -283,7 +283,7 @@ class ApplicationUsage(object):
         application = getApplicationForURI(uri)
         ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
         try:
-            elem = xml_doc.xpath(node_selector.element_selector, ns_dict)
+            elem = xml_doc.xpath(node_selector.element_selector, namespaces = ns_dict)
         except:
             raise ResourceNotFound
         if len(elem) != 1:
@@ -311,7 +311,7 @@ class ApplicationUsage(object):
         application = getApplicationForURI(uri)
         ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
         try:
-            elem = xml_doc.xpath(node_selector.element_selector, ns_dict)
+            elem = xml_doc.xpath(node_selector.element_selector, namespaces = ns_dict)
         except:
             raise NoParentError
         if len(elem) != 1:
@@ -341,7 +341,7 @@ class ApplicationUsage(object):
         try:
             #selector = node_selector.element_selector + '/' + node_selector.terminal_selector
             selector = node_selector.element_selector
-            elem = xml_doc.xpath(selector, ns_dict)
+            elem = xml_doc.xpath(selector, namespaces = ns_dict)
         except:
             raise ResourceNotFound
         if not elem:
