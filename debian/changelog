@@ -1,3 +1,9 @@
+openxcap (0.9.9.5) unstable; urgency=low
+
+  * Fixed a wrongly named positional argument
+
+ -- Ruud Klaver <ruud@ag-projects.com>  Thu, 12 Jun 2008 10:58:11 +0200
+
 openxcap (0.9.9.4) unstable; urgency=low
 
   * Fixed one keyword argument too many
