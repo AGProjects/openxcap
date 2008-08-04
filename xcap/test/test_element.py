@@ -19,7 +19,7 @@ resource_list_xml = """<?xml version="1.0" encoding="UTF-8"?>
      </list>
    </resource-lists>"""
 
-list_element_xml = """<list name="friends">
+list_element_xml = """<list xmlns="urn:ietf:params:xml:ns:resource-lists" name="friends">
       <entry uri="sip:joe@example.com">
         <display-name>Joe Smith</display-name>
       </entry>
@@ -31,11 +31,11 @@ list_element_xml = """<list name="friends">
       </entry>
      </list>"""
 
-second_element_xml = """<entry uri="sip:nancy@example.com">
+second_element_xml = """<entry xmlns="urn:ietf:params:xml:ns:resource-lists" uri="sip:nancy@example.com">
         <display-name>Nancy Gross</display-name>
       </entry>"""
 
-broken_element_xml = """<entry uri="sip:nancy@example.com">
+broken_element_xml = """<entry xmlns="urn:ietf:params:xml:ns:resource-lists" uri="sip:nancy@example.com">
         <display-name>Nancy Gross</display-name>
       """
 
