@@ -2,7 +2,6 @@
 #
 
 import unittest
-import common
 
 class TestHarness(object):
     """A test harness for OpenXCAP."""
