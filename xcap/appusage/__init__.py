@@ -186,7 +186,7 @@ class ApplicationUsage(object):
             self._replace_element(parent, target[0], xml_elem)
         else:
             self._create_element(parent, node_selector.terminal_selector, xml_elem)
-        new_document = etree.tostring(xml_doc, 'UTF-8', xml_declaration=True)
+        new_document = etree.tostring(xml_doc, encoding='UTF-8', xml_declaration=True)
         return self.put_document(uri, new_document, check_etag)
 
     def put_element(self, uri, element, check_etag):
@@ -240,7 +240,7 @@ class ApplicationUsage(object):
             raise ResourceNotFound
         elem = elem[0]
         elem.getparent().remove(elem)
-        new_document = etree.tostring(xml_doc, 'UTF-8', xml_declaration=True)
+        new_document = etree.tostring(xml_doc, encoding='UTF-8', xml_declaration=True)
         return self.put_document(uri, new_document, check_etag)
 
     def delete_element(self, uri, check_etag):
@@ -294,7 +294,7 @@ class ApplicationUsage(object):
             del elem.attrib[attribute]
         else:
             raise ResourceNotFound
-        new_document = etree.tostring(xml_doc, 'UTF-8', xml_declaration=True)
+        new_document = etree.tostring(xml_doc, encoding='UTF-8', xml_declaration=True)
         return self.put_document(uri, new_document, check_etag)
 
     def delete_attribute(self, uri, check_etag):
@@ -319,7 +319,7 @@ class ApplicationUsage(object):
         elem = elem[0]
         attr_name = node_selector.terminal_selector[1:]
         elem.set(attr_name, attribute)
-        new_document = etree.tostring(xml_doc, 'UTF-8', xml_declaration=True)
+        new_document = etree.tostring(xml_doc, encoding='UTF-8', xml_declaration=True)
         return self.put_document(uri, new_document, check_etag)
 
     def put_attribute(self, uri, attribute, check_etag):
