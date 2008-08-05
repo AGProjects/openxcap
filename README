@@ -75,7 +75,7 @@ Supported XCAP applications
     to which watchers, and when.
 
     - Watchers (auid = watchers). This this a custom application that queries
-    the OpenSER database for a list of presence watchers and their status.
+    the sip proxy database for a list of presence watchers and their status.
     The XML schema for this application can be found in
     xcap/xml-schemas/watchers.xsd. This application is read-only.
 
@@ -83,7 +83,7 @@ Supported XCAP applications
 Data storage
 
 OpenXCAP server supports multiple back-end storage systems and works out of
-the box with OpenSER Proxy/Registrar/Presence server from http://openser.org
+the box with OpenSER/Kamailio/OpenSIPs Proxy/Registrar/Presence server
 
 
 XCAP clients
@@ -93,6 +93,8 @@ No server is useful without clients supporting their features. Here is list
 with XCAP clients known to be working with OpenXCAP:
 
     - OpenSER from http://openser.org
+    - Kamailio from http://kamailio.org
+    - OpenSIPs from http://opensips.org
     
     - simple-soap-proxy (under development by AG Projects). This client
       allows publication of arbitrary information and policy management using
@@ -114,9 +116,6 @@ http://openxcap.org by AG Projects.
       available only for registered users. Please beware that the support is
       provided by the community on a best-effort basis.
 
-    - For interaction between OpenXCAP and OpenSER you may consult the OpenSER
-      users mailing list at http://openser.org/pipermail/users/
-
-    - For commercial support or other licensing options please contact AG Projects
-      at http://ag-projects.com
+Commercial support or other licensing options are available from AG Projects
+http://ag-projects.com
 

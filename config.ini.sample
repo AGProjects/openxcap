@@ -8,28 +8,37 @@
 ; 0.0.0.0 means any address of this host
 address = 0.0.0.0
 port = 8000
+
 ; The XCAP Root URI; must not contain any port number. If it has the 'https' scheme,
 ; the server will listen for requests in TLS mode.
 root = http://xcap.example.com/
+
 ; The backend to be used for storage and authentication. Current supported
-; values are Database and OpenSER.
+; values are Database for generic support and OpenSER for integration with
+; OpenSER >=1.3, Kamailio or OpenSIPs solutions
 backend = Database
+
 ; Validate XCAP documents against XML schemas, default is Yes
 document_validation = Yes
+
 
 [Authentication]
 
 ; The HTTP authentication type, this can be either 'basic' or 'digest'.
 ; If you're using TLS, it's better to choose 'basic' because the data is encrypted anyway.
 type = basic
+
 ; Specify if the passwords are stored as plain text - Yes
 ; or in a hashed format MD5('username:domain:password') - No
 cleartext_passwords = Yes
+
 ; The default authentication realm
 default_realm = example.com
+
 ; A list of trusted peers from where XCAP requests are accepted without HTTP authentication
 ; e.g. trusted_peers = 10.0.0.0/24, 192.168.0.1
 trusted_peers =
+
 
 [TLS]
 
@@ -37,8 +46,10 @@ trusted_peers =
 ; relative to /etc/openxcap, or it can be given as an absolute path.
 ; Server X509 certificate
 certificate = tls/server.crt
+
 ; Server X509 private key
 private_key = tls/server.key
+
 
 [Database]
 
@@ -46,11 +57,14 @@ private_key = tls/server.key
 ; in the [Server] section
 ; The database connection URI for the datase with subscriber accounts
 authentication_db_uri = mysql://username:password@db-host/openser
+
 ; The database connection URI for the database that stores the XCAP documents
 storage_db_uri = mysql://username:password@db-host/openser
+
 ; Authentication and storage tables
 subscriber_table = subscriber
 xcap_table = xcap
+
 
 [OpenSER]
 
@@ -58,10 +72,14 @@ xcap_table = xcap
 ; in the [Server] section
 ; The database connection URI for the datase with subscriber accounts
 authentication_db_uri = mysql://username:password@db-host/openser
+
 ; The database connection URI for the database that stores the XCAP documents
 storage_db_uri = mysql://username:password@db-host/openser
+
 ; Authentication and storage tables
 subscriber_table = subscriber
 xcap_table = xcap
+
 ; The address and port where the XMLRPC Management Interface of OpenSER is listening
 xmlrpc_url = http://localhost:8080
+
