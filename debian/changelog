@@ -1,3 +1,15 @@
+openxcap (1.0.0) unstable; urgency=low
+
+  * Added RLS services (RFC 4662 and RFC 4826)
+  * Added xcap-diff (draft-ietf-simple-xcap-diff-02)
+  * Update maintainer and uploaders
+  * Added test for rls-services
+  * Added test for resource-lists
+  * fixed TypeError: function takes at most 1 positional arguments (2 given)
+  * don't write 'etree.tostring(x, y)', write 'etree.tostring(x, encoding=y,...)'
+
+ -- Adrian Georgescu <ag@ag-projects.com>  Tue, 05 Aug 2008 11:21:08 +0200
+
 openxcap (0.9.9.5) unstable; urgency=low
 
   * Fixed a wrongly named positional argument
