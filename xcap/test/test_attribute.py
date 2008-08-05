@@ -64,6 +64,9 @@ class AttributeTest(XCAPTest):
         self.delete_resource('resource-lists', '/resource-lists/list[@name="friends"]/@name')
         self.assertStatus(200)
 
+        self.delete_resource('resource-lists', '/resource-lists/list[@name="friends"]/@name')
+        self.assertStatus(404)
+
     def test_put(self):
         self.put_resource('resource-lists', resource_list_xml)
         self.assertStatus([200, 201])
