@@ -57,7 +57,12 @@ Supported XCAP applications
     - RLS Services (auid = rls-services). A Resource List Server (RLS)
     services application is Session Initiation Protocol (SIP) application
     whereby a server receives SIP SUBSCRIBE requests for resource, and
-    generates subscriptions towards the resource list.
+    generates subscriptions towards the resource list. Contrary to RFC4826,
+    uri attributes in <service> do not have global scope, i.e. several
+    users may have services defined with the same uris. Requesting
+    rls-services/global/index as described in the RFC is also not possible.
+
+    is not possible
 
     - PIDF Manipulation (auid = pidf-manipulation). Pidf-manipulation
     application usage defines how XCAP is used to manipulate the contents of
