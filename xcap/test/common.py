@@ -66,6 +66,7 @@ class XCAPTest(unittest.TestCase):
             uri += '~~' + node
         r = self._execute_request("GET", uri, username, domain, self.password, headers)
         self.status, self.headers, self.body = r.code, r.headers, r.body
+        return r
 
     def put_resource(self, application, resource, node=None, headers={}):
         username, domain = self.account.split('@', 1)
@@ -74,6 +75,7 @@ class XCAPTest(unittest.TestCase):
             uri += '~~' + node
         r = self._execute_request("PUT", uri, username, domain, self.password, headers, resource)
         self.status, self.headers, self.body = r.code, r.headers, r.body
+        return r
 
     def delete_resource(self, application, node=None, headers={}):
         username, domain = self.account.split('@', 1)
@@ -82,6 +84,7 @@ class XCAPTest(unittest.TestCase):
             uri += '~~' + node
         r = self._execute_request("DELETE", uri, username, domain, self.password, headers)
         self.status, self.headers, self.body = r.code, r.headers, r.body
+        return r
 
     def assertStatus(self, status, msg=None):
         if isinstance(status, int):
@@ -146,3 +149,41 @@ class XCAPTest(unittest.TestCase):
             if msg is None:
                 msg = 'No match for %s in body' % pattern
             raise self.failureException(msg)
+
+    def put_rejected(self, application, resource):
+        self.delete_resource(application)
+        self.assertStatus([200, 404])
+
+        r = self.put_resource(application, resource)
+        self.assertStatus(409)
+
+        # the document shouldn't be there
+        self.get_resource(application)
+        self.assertStatus(404)
+
+        self.status, self.headers, self.body = r.code, r.headers, r.body
+        return r
+
+    def getputdelete_successful(self, application, document, content_type):
+        self.delete_resource(application)
+        self.assertStatus([200, 404])
+
+        self.get_resource(application)
+        self.assertStatus(404)
+
+        self.put_resource(application, document)
+        self.assertStatus(201)
+
+        self.get_resource(application)
+        self.assertStatus(200)
+        self.assertBody(document)
+        self.assertHeader('Content-Type', content_type)
+
+        self.put_resource(application, document)
+        self.assertStatus(200)
+
+        self.delete_resource(application)
+        self.assertStatus(200)
+
+        self.delete_resource(application)
+        self.assertStatus(404)
