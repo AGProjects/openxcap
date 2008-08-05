@@ -20,7 +20,7 @@ from xcap.errors import *
 from xcap.interfaces.backend import StatusResponse
 
 supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pres-rules',
-                          'resource-lists', 'pidf-manipulation', 'watchers')
+                          'resource-lists', 'rls-services', 'pidf-manipulation', 'watchers')
 
 class EnabledApplications(StringList):
     def __new__(typ, value):
@@ -51,18 +51,22 @@ class ServerConfig(ConfigSection):
 configuration = ConfigFile('config.ini')
 configuration.read_settings('Server', ServerConfig)
 
+schemas_directory = os.path.join(os.path.dirname(globals()["__file__"]), "../", "xml-schemas")
 
 class ApplicationUsage(object):
     """Base class defining an XCAP application"""
     id = None                ## the Application Unique ID (AUID)
     default_ns = None        ## the default XML namespace
     mime_type = None         ## the MIME type
+    schema_file = None       ## filename of the schema for the application
     
-    def __init__(self, xml_schema_buff, storage):
+    def __init__(self, storage):
         ## the XML schema that defines valid documents for this application
-        xml_schema_doc = etree.parse(StringIO(xml_schema_buff))
-        self.xml_schema = etree.XMLSchema(xml_schema_doc)
-        self.storage = storage
+        if self.schema_file:
+            xml_schema_doc = etree.parse(open(os.path.join(schemas_directory, self.schema_file), 'r'))
+            self.xml_schema = etree.XMLSchema(xml_schema_doc)
+        if storage is not None:
+            self.storage = storage
 
     ## Validation
 
@@ -363,6 +367,7 @@ class PresenceRulesApplication(ApplicationUsage):
     id = "pres-rules"
     default_ns = "urn:ietf:params:xml:ns:pres-rules"
     mime_type = "application/auth-policy+xml"
+    schema_file = 'common-policy.xsd'
 
 
 class ResourceListsApplication(ApplicationUsage):
@@ -370,45 +375,55 @@ class ResourceListsApplication(ApplicationUsage):
     id = "resource-lists"
     default_ns = "urn:ietf:params:xml:ns:resource-lists"
     mime_type= "application/resource-lists+xml"
-    
+    schema_file = 'resourcelists.xsd'
+
+    @classmethod
+    def check_lists(cls, elem, list_tag):
+        """Check additional constraints (see section 3.4.5 of RFC 4826).
+
+        elem is xml Element that containts <list>s
+        list_tag is provided as argument since its namespace changes from resource-lists
+        to rls-services namespace
+        """
+        entry_tag = "{%s}entry" % cls.default_ns
+        entry_ref_tag = "{%s}entry-ref" % cls.default_ns
+        external_tag ="{%s}tag" % cls.default_ns
+        name_attrs = set()
+        uri_attrs = set()
+        ref_attrs = set()
+        anchor_attrs = set()
+        for child in elem.getchildren():
+            if child.tag == list_tag:
+                name = child.get("name")
+                if name in name_attrs:
+                    raise UniquenessFailureError()
+                else:
+                    name_attrs.add(name)
+            elif child.tag == entry_tag:
+                uri = child.get("uri")
+                if uri in uri_attrs:
+                    raise UniquenessFailureError()
+                else:
+                    uri_attrs.add(uri)
+            elif child.tag == entry_ref_tag:
+                ref = child.get("ref")
+                if ref in ref_attrs:
+                    raise UniquenessFailureError()
+                else:
+                    # TODO check if it's a relative URI, else raise ConstraintFailure
+                    ref_attrs.add(ref)
+            elif child.tag == external_tag:
+                anchor = child.get("anchor")
+                if anchor in anchor_attrs:
+                    raise UniquenessFailureError()
+                else:
+                    # TODO check if it's a HTTP URL, else raise ConstraintFailure
+                    anchor_attrs.add(anchor)
+
     def _check_additional_constraints(self, xml_doc):
         """Check additional constraints (see section 3.4.5 of RFC 4826)."""
-        list_tag = "{%s}list" % self.default_ns
-        entry_tag = "{%s}entry" % self.default_ns
-        entry_ref_tag = "{%s}entry-ref" % self.default_ns
-        external_tag ="{%s}tag" % self.default_ns
         for elem in xml_doc.getiterator():
-            name_attrs = set()
-            uri_attrs = set()
-            ref_attrs = set()
-            anchor_attrs = set()
-            for child in elem.getchildren():
-                if child.tag == list_tag:
-                    name = child.get("name")
-                    if name in name_attrs:
-                        raise UniquenessFailureError()
-                    else:
-                        name_attrs.add(name)
-                elif child.tag == entry_tag:
-                    uri = child.get("uri")
-                    if uri in uri_attrs:
-                        raise UniquenessFailureError()
-                    else:
-                        uri_attrs.add(uri)
-                elif child.tag == entry_ref_tag:
-                    ref = child.get("ref")
-                    if ref in ref_attrs:
-                        raise UniquenessFailureError()
-                    else:
-                        # TODO check if it's a relative URI, else raise ConstraintFailure
-                        ref_attrs.add(ref)
-                elif child.tag == external_tag:
-                    anchor = child.get("anchor")
-                    if anchor in anchor_attrs:
-                        raise UniquenessFailureError()
-                    else:
-                        # TODO check if it's a HTTP URL, else raise ConstraintFailure
-                        anchor_attrs.add(anchor)
+            self.check_lists(elem, "{%s}list" % self.default_ns)
 
 
 class RLSServicesApplication(ApplicationUsage):
@@ -416,6 +431,12 @@ class RLSServicesApplication(ApplicationUsage):
     id = "rls-services"
     default_ns = "urn:ietf:params:xml:ns:rls-services"
     mime_type= "application/rls-services+xml"
+    schema_file = 'rlsservices.xsd'
+
+    def _check_additional_constraints(self, xml_doc):
+        """Check additional constraints (see section 3.4.5 of RFC 4826)."""
+        for elem in xml_doc.getiterator():
+            ResourceListsApplication.check_lists(elem, "{%s}list" % self.default_ns)
 
 
 class PIDFManipulationApplication(ApplicationUsage):
@@ -423,6 +444,7 @@ class PIDFManipulationApplication(ApplicationUsage):
     id = "pidf-manipulation"
     default_ns = "urn:ietf:params:xml:ns:pidf"
     mime_type= "application/pidf+xml"
+    schema_file = 'pidf.xsd'
 
 
 class XCAPCapabilitiesApplication(ApplicationUsage):
@@ -464,6 +486,7 @@ class WatchersApplication(ResourceListsApplication):
     id = "watchers"
     default_ns = "http://openxcap.org/ns/watchers"
     mime_type= "application/xml"
+    schema_file = 'watchers.xsd'
 
     def _watchers_to_xml(self, watchers):
         root = etree.Element("watchers", nsmap={None: self.default_ns})
@@ -485,15 +508,16 @@ class WatchersApplication(ResourceListsApplication):
         raise ResourceNotFound("This application is read-only") # TODO: test and add better error
 
 
-schemas_directory = os.path.join(os.path.dirname(globals()["__file__"]), "../", "xml-schemas")
 Storage = ServerConfig.backend.Storage
 
-applications = {'xcap-caps':      XCAPCapabilitiesApplication(),
-                'pres-rules':     PresenceRulesApplication(open(os.path.join(schemas_directory, 'common-policy.xsd'), 'r').read(), Storage()),
-                'org.openmobilealliance.pres-rules': PresenceRulesApplication(open(os.path.join(schemas_directory, 'common-policy.xsd'), 'r').read(), Storage()),
-                'resource-lists': ResourceListsApplication(open(os.path.join(schemas_directory, 'resource-lists.xsd'), 'r').read(), Storage()),
-                'pidf-manipulation': PIDFManipulationApplication(open(os.path.join(schemas_directory, 'pidf.xsd'), 'r').read(), Storage()),
-                'watchers': WatchersApplication(open(os.path.join(schemas_directory, 'watchers.xsd'), 'r').read(), Storage())}
+applications = {'xcap-caps': XCAPCapabilitiesApplication(),
+                'pres-rules': PresenceRulesApplication(Storage()),
+                'org.openmobilealliance.pres-rules': PresenceRulesApplication(Storage()),
+                'resource-lists': ResourceListsApplication(Storage()),
+                'pidf-manipulation': PIDFManipulationApplication(Storage()),
+                'watchers': WatchersApplication(Storage()),
+                'rls-services': RLSServicesApplication(Storage())}
+                
 
 
 def getApplicationForURI(xcap_uri):
