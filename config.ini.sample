@@ -1,6 +1,8 @@
 ;
 ; Configuration file for OpenXCAP
 ;
+; Copyright (c) 2007-2008 AG Projects
+; http://ag-projects.com
 
 [Server]
 
@@ -80,6 +82,6 @@ storage_db_uri = mysql://username:password@db-host/openser
 subscriber_table = subscriber
 xcap_table = xcap
 
-; The address and port where the XMLRPC Management Interface of OpenSER is listening
+; The address and port of the xml-rpc management interface 
 xmlrpc_url = http://localhost:8080
 
