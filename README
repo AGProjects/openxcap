@@ -84,7 +84,7 @@ Supported XCAP applications
 Data storage
 
 OpenXCAP server supports multiple back-end storage systems and works out of
-the box with OpenSIPs Proxy/Registrar/Presence server
+the box with OpenSER Proxy/Registrar/Presence server
 
 
 Publishing xcap-diff events
@@ -113,10 +113,11 @@ XCAP clients
 No server is useful without clients supporting their features. Here is list
 with XCAP clients known to be working with OpenXCAP:
 
-    - OpenSIPs from http://opensips.org
-    - simple-soap-proxy (under development by AG Projects). This client
-      allows publication of arbitrary information and policy management using
-      an easy to use SOAP/XML interface
+    - OpenSER from http://openser.org
+
+    - simple-soap-proxy. This client allows publication of arbitrary
+      information and policy management using an easy to use SOAP/XML
+      interface
     
     - Eyebeam from http://www.counterpath.com
 
