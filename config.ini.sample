@@ -85,3 +85,7 @@ xcap_table = xcap
 ; The address and port of the xml-rpc management interface 
 xmlrpc_url = http://localhost:8080
 
+; Uncomment to make openxcap work with presence_xcapdiff module, i.e. notify 
+; publish xcap-diff event via OpenSER management interface 
+; These features are only enabled in OpenSER backend.
+;enable_publish_xcapdiff = yes
