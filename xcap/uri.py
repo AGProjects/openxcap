@@ -23,7 +23,7 @@ class XCAPRootURIs(tuple):
             scheme, host, path, params, query, fragment = urlparse.urlparse(uri)
             if not scheme or not host or scheme not in ("http", "https"):
                 log.warn("XCAP Root URI not valid: %s" % uri)
-                uris.remove(uri)
+                uris.remove(uri) # XXX changing list while iterating
         if not uris:
             raise ResourceNotFound("At least one XCAP Root URI must be defined")
         return tuple(uris)
