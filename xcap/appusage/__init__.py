@@ -508,16 +508,15 @@ class WatchersApplication(ResourceListsApplication):
         raise ResourceNotFound("This application is read-only") # TODO: test and add better error
 
 
-Storage = ServerConfig.backend.Storage
+theStorage = ServerConfig.backend.Storage()
 
 applications = {'xcap-caps': XCAPCapabilitiesApplication(),
-                'pres-rules': PresenceRulesApplication(Storage()),
-                'org.openmobilealliance.pres-rules': PresenceRulesApplication(Storage()),
-                'resource-lists': ResourceListsApplication(Storage()),
-                'pidf-manipulation': PIDFManipulationApplication(Storage()),
-                'watchers': WatchersApplication(Storage()),
-                'rls-services': RLSServicesApplication(Storage())}
-                
+                'pres-rules': PresenceRulesApplication(theStorage),
+                'org.openmobilealliance.pres-rules': PresenceRulesApplication(theStorage),
+                'resource-lists': ResourceListsApplication(theStorage),
+                'pidf-manipulation': PIDFManipulationApplication(theStorage),
+                'watchers': WatchersApplication(theStorage),
+                'rls-services': RLSServicesApplication(theStorage)}
 
 
 def getApplicationForURI(xcap_uri):
