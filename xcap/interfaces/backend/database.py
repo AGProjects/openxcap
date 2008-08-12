@@ -228,7 +228,7 @@ class Storage(object):
                            "document_path": quote(document_path, "char")}
             trans.execute(query)
             ## verifica daca update a modificat vreo coloana, daca nu arunca eroare
-            return StatusResponse(200, etag)
+            return StatusResponse(200, etag, old_etag=old_etag)
 
     def _delete_document(self, trans, uri, check_etag):
         username, domain = uri.user.username, uri.user.domain
@@ -258,7 +258,7 @@ class Storage(object):
                            "doc_type": quote(doc_type, "int"),
                            "document_path": quote(document_path, "char")}
             trans.execute(query)
-            return StatusResponse(200)
+            return StatusResponse(200, old_etag=etag)
         else:
             return StatusResponse(404)
 

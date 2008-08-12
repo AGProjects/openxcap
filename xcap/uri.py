@@ -51,6 +51,7 @@ class XCAPUser(object):
             self.domain = _split[1]
         else:
             self.domain = None
+        self.uri = 'sip:%s@%s' % (self.username, self.domain)
 
     def __eq__(self, other):
         return isinstance(other, XCAPUser) and self.username == other.username and self.domain == other.domain

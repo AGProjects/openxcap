@@ -14,6 +14,8 @@ from application import log
 from xcap.interfaces.backend import database
 from xcap.interfaces.openser import ManagementInterface
 from xcap.errors import ResourceNotFound
+from xcap.xcapdiff import Notifier
+from xcap import uri
 
 class Config(ConfigSection):
     authentication_db_uri = 'mysql://user:pass@db/openser'
@@ -25,6 +27,7 @@ class Config(ConfigSection):
     ha1_col = 'ha1'
     xcap_table = 'xcap'
     xmlrpc_url = 'http://localhost:8080'
+    enable_publish_xcapdiff = False
 
 ## We use this to overwrite some of the settings above on a local basis if needed
 configuration = ConfigFile('config.ini')
@@ -33,7 +36,7 @@ configuration.read_settings('OpenSER', Config)
 class PlainPasswordChecker(database.PlainPasswordChecker): pass
 class HashPasswordChecker(database.HashPasswordChecker): pass
 
-class Storage(database.Storage):
+class BaseStorage(database.Storage):
 
     def __init__(self):
         database.Storage.__init__(self)
@@ -50,7 +53,7 @@ class Storage(database.Storage):
 
     def put_document(self, uri, document, check_etag):
         application_id = uri.application_id
-        d = self.conn.runInteraction(super(Storage, self)._put_document, uri, document, check_etag)        
+        d = self.conn.runInteraction(super(BaseStorage, self)._put_document, uri, document, check_etag)
         if application_id in ('pres-rules', 'org.openmobilealliance.pres-rules', 'pidf-manipulation'):
             ## signal OpenSER of the modification through the management interface
             if application_id == 'pidf-manipulation':
@@ -59,5 +62,37 @@ class Storage(database.Storage):
                 type = 0
             d.addCallback(self._notify_watchers, uri.user, type)
         return d
+
+class NotifyingStorage(BaseStorage):
+
+    def __init__(self):
+        BaseStorage.__init__(self)
+        self.notifier = Notifier(uri.root_uris[0], ManagementInterface().publish_xcapdiff)
+
+    def put_document(self, uri, document, check_etag):
+        d = super(NotifyingStorage, self).put_document(uri, document, check_etag)
+        d.addCallback(lambda result: self._on_put(result, uri))
+        return d
+
+    def delete_document(self, uri, check_etag):
+        d = super(NotifyingStorage, self).delete_document(uri, check_etag)
+        d.addCallback(lambda result: self._on_delete(result, uri))
+        return d
+        
+    def _on_put(self, result, uri):
+        if result.succeed:
+            self.notifier.on_change(uri, result.old_etag, result.etag)
+        return result
+
+    def _on_delete(self, result, uri):
+        if result.succeed:
+            self.notifier.on_change(uri, result.old_etag, None)
+        return result
+
+
+if Config.enable_publish_xcapdiff:
+    Storage = NotifyingStorage
+else:
+    Storage = BaseStorage
 
 installSignalHandlers = database.installSignalHandlers

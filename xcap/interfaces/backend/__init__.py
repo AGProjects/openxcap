@@ -9,10 +9,15 @@ from zope.interface import Interface
 
 
 class StatusResponse(object):
-    def __init__(self, code, etag=None, data=None):
+    def __init__(self, code, etag=None, data=None, old_etag=None):
         self.code = code
         self.etag = etag
         self.data = data
+        self.old_etag = old_etag
+
+    @property
+    def succeed(self):
+        return 200 <= self.code <= 299
 
 class StorageError(Exception): pass
 
