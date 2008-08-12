@@ -375,7 +375,7 @@ class ResourceListsApplication(ApplicationUsage):
     id = "resource-lists"
     default_ns = "urn:ietf:params:xml:ns:resource-lists"
     mime_type= "application/resource-lists+xml"
-    schema_file = 'resourcelists.xsd'
+    schema_file = 'resource-lists.xsd'
 
     @classmethod
     def check_lists(cls, elem, list_tag):
@@ -431,7 +431,7 @@ class RLSServicesApplication(ApplicationUsage):
     id = "rls-services"
     default_ns = "urn:ietf:params:xml:ns:rls-services"
     mime_type= "application/rls-services+xml"
-    schema_file = 'rlsservices.xsd'
+    schema_file = 'rls-services.xsd'
 
     def _check_additional_constraints(self, xml_doc):
         """Check additional constraints (see section 3.4.5 of RFC 4826)."""
