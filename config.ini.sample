@@ -17,7 +17,7 @@ root = http://xcap.example.com/
 
 ; The backend to be used for storage and authentication. Current supported
 ; values are Database for generic support and OpenSER for integration with
-; OpenSER >=1.3, Kamailio or OpenSIPs solutions
+; OpenSIPs
 backend = Database
 
 ; Validate XCAP documents against XML schemas, default is Yes
@@ -58,10 +58,10 @@ private_key = tls/server.key
 ; Configuration settings for Database backend, active if this backend was selected
 ; in the [Server] section
 ; The database connection URI for the datase with subscriber accounts
-authentication_db_uri = mysql://username:password@db-host/openser
+authentication_db_uri = mysql://username:password@db-host/opensips
 
 ; The database connection URI for the database that stores the XCAP documents
-storage_db_uri = mysql://username:password@db-host/openser
+storage_db_uri = mysql://username:password@db-host/opensips
 
 ; Authentication and storage tables
 subscriber_table = subscriber
@@ -73,10 +73,10 @@ xcap_table = xcap
 ; Configuration settings for OpenSER backend, active if this backend was selected
 ; in the [Server] section
 ; The database connection URI for the datase with subscriber accounts
-authentication_db_uri = mysql://username:password@db-host/openser
+authentication_db_uri = mysql://username:password@db-host/opensips
 
 ; The database connection URI for the database that stores the XCAP documents
-storage_db_uri = mysql://username:password@db-host/openser
+storage_db_uri = mysql://username:password@db-host/opensips
 
 ; Authentication and storage tables
 subscriber_table = subscriber

@@ -84,7 +84,7 @@ Supported XCAP applications
 Data storage
 
 OpenXCAP server supports multiple back-end storage systems and works out of
-the box with OpenSER/Kamailio/OpenSIPs Proxy/Registrar/Presence server
+the box with OpenSIPs Proxy/Registrar/Presence server
 
 
 XCAP clients
@@ -93,10 +93,7 @@ XCAP clients
 No server is useful without clients supporting their features. Here is list
 with XCAP clients known to be working with OpenXCAP:
 
-    - OpenSER from http://openser.org
-    - Kamailio from http://kamailio.org
     - OpenSIPs from http://opensips.org
-    
     - simple-soap-proxy (under development by AG Projects). This client
       allows publication of arbitrary information and policy management using
       an easy to use SOAP/XML interface
