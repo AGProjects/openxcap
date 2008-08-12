@@ -5,6 +5,7 @@ import sys
 import os
 import getopt
 import unittest
+import traceback
 
 class TestHarness(object):
     """A test harness for OpenXCAP."""
@@ -17,14 +18,22 @@ class TestHarness(object):
         self.tests = tests
         module_names = self.tests
         self.test_suites = []
+        self.import_errors = 0
         for testmod in module_names:
-            m = __import__(testmod, globals(), locals())
-            suite = m.suite()
-            suite.modname = testmod
-            self.test_suites.append(suite)
+            try:
+                m = __import__(testmod, globals(), locals())
+                get_suite = getattr(m, 'suite', None)
+                suite = m.suite()
+                suite.modname = testmod
+                self.test_suites.append(suite)
+            except Exception, ex:
+                traceback.print_exc()
+                self.import_errors = 1
     
     def run(self):
         self.run_test_suite(unittest.TestSuite(self.test_suites))
+        if self.import_errors:
+            sys.exit('there were import errors!')
 
     def run_test_suite(self, suite):
         unittest.TextTestRunner(verbosity=2).run(suite)
