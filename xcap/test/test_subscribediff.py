@@ -137,7 +137,7 @@ class Test(XCAPTest):
             if opts.outbound_proxy is None:
                 route = None
             else:
-                route = Route(opts.proxy_ip, opts.proxy_port or 5060)
+                route = Route(opts.proxy_ip, opts.proxy_port)
             sub = Subscription(Credentials(SIPURI(user=username, host=domain), opts.password),
                                SIPURI(user=username, host=domain), event, route=route, expires=expires)
             sub.subscribe()
@@ -197,9 +197,8 @@ def parse_proxy(value, parser):
     match = re_ip_port.match(value)
     if match is None:
         raise OptionValueError("Could not parse supplied outbound proxy address")
-    for key, val in match.groupdict().iteritems():
-        if val is not None:
-            setattr(parser.values, key, val)
+    parser.values.proxy_ip = match.group('proxy_ip')
+    parser.values.proxy_port = int(match.group('proxy_port') or '5060')
 
 def parse_proxy_cb(_option, _opt_str, value, parser):
     return parse_proxy(value, parser)
