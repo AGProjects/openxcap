@@ -1,14 +1,10 @@
-
-import unittest
-from common import XCAPTest
-
+from common import *
 
 resource_list_xml = """<?xml version="1.0" encoding="UTF-8"?>
    <resource-lists xmlns="urn:ietf:params:xml:ns:resource-lists">
      <list name="friends">
      </list>
    </resource-lists>"""
-
 
 class DocumentTest(XCAPTest):
     
@@ -36,10 +32,5 @@ class DocumentTest(XCAPTest):
         self.delete_resource('resource-lists')
         self.assertStatus(404)
 
-
-def suite():
-    suite = unittest.TestLoader().loadTestsFromTestCase(DocumentTest)
-    return suite
-
 if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(suite())
+    runSuiteFromModule(__name__)

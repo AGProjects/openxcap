@@ -1,7 +1,4 @@
-import unittest
-
-from common import XCAPTest
-
+from common import *
 
 pres_rules_xml = """<?xml version="1.0" encoding="UTF-8"?>
     <ruleset xmlns="urn:ietf:params:xml:ns:common-policy" xmlns:pr="urn:ietf:params:xml:ns:pres-rules" xmlns:cp="www.counterpath.com/privacy-lists">
@@ -45,9 +42,5 @@ class PresenceRulesTest(XCAPTest):
         self.assertBody(pres_rules_xml)
         self.assertHeader('Content-type', 'application/auth-policy+xml')
 
-def suite():
-    suite = unittest.TestLoader().loadTestsFromTestCase(PresenceRulesTest)
-    return suite
-
 if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(suite())
+    runSuiteFromModule(__name__)

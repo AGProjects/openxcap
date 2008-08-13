@@ -1,7 +1,4 @@
-import unittest
-
-from common import XCAPTest
-
+from common import *
 
 pidf_xml = """<?xml version='1.0' encoding='UTF-8'?>
         <presence xmlns='urn:ietf:params:xml:ns:pidf' 
@@ -46,10 +43,5 @@ class PIDFTest(XCAPTest):
         self.delete_resource('pidf-manipulation')
         self.assertStatus(404)
 
-
-def suite():
-    suite = unittest.TestLoader().loadTestsFromTestCase(PIDFTest)
-    return suite
-
 if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(suite())
+    runSuiteFromModule(__name__)

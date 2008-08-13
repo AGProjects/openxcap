@@ -1,6 +1,4 @@
-
-import unittest
-from common import XCAPTest
+from common import *
 
 resource_lists_xml = """<?xml version="1.0" encoding="UTF-8"?>
    <resource-lists xmlns="urn:ietf:params:xml:ns:resource-lists"
@@ -113,9 +111,5 @@ class DocumentTest(XCAPTest):
 #        # check body for <contstraint-failure>
 
 
-def suite():
-    suite = unittest.TestLoader().loadTestsFromTestCase(DocumentTest)
-    return suite
-
 if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(suite())
+    runSuiteFromModule(__name__)

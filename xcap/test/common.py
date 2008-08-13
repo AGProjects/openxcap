@@ -1,10 +1,10 @@
-# Copyright (C) 2007 AG Projects.
-#
-
+import sys
 import unittest
 import urllib2
 import re
+import types
 from optparse import OptionParser
+
 
 class HTTPRequest(urllib2.Request):
     """Hack urllib2.Request to support PUT and DELETE methods."""
@@ -38,44 +38,25 @@ class HTTPResponse(object):
         return "<%s.%s code=%d, datalen=%s>" % (self.__module__, self.__class__.__name__, self.code, bodylen)
 
 
-class XCAPSettings:
-    
+class XCAPClient(object):
+
     xcap_root = 'http://127.0.0.1:8000'
     auth = 'basic'
     username = 'test@localhost'
     password = 'test'
 
-    def __init__(self, parser=None):
-        self.options, self.args = self.parse_args(parser)
-        self.__dict__.update(self.options.__dict__)
-
     @classmethod
-    def add_options(cls, parser):
+    def setupOptionParser(cls, parser):
         parser.add_option("--xcap-root", default=cls.xcap_root)
         parser.add_option("--auth", default=cls.auth)
         parser.add_option("--username", default=cls.username)
         parser.add_option("--password", default=cls.password)
-        return parser
 
-    @classmethod
-    def parse_args(cls, parser=None):
-        if parser is None:
-            parser = OptionParser()
-        cls.add_options(parser)
-        return parser.parse_args()
-
-
-class XCAPClient(object):
-
-    settings = XCAPSettings()
-
-    def __init__(self, settings = None):
-        if settings is None:
-            settings = self.settings
-        self.xcap_root = settings.xcap_root
-        self.auth = settings.auth
-        self.username = settings.username
-        self.password = settings.password
+    def initialize(self, options, _args = []):
+        self.xcap_root = options.xcap_root
+        self.auth = options.auth
+        self.username = options.username
+        self.password = options.password
 
     def _execute_request(self, method, url, user, realm, password, headers={}, data=None):
         if self.auth == "basic":
@@ -128,10 +109,6 @@ class XCAPClient(object):
 
 
 class XCAPTest(unittest.TestCase, XCAPClient):
-
-    def __init__(self, *args, **kwargs):
-        XCAPClient.__init__(self, kwargs.pop('settings', None))
-        unittest.TestCase.__init__(self, *args, **kwargs)
 
     def assertStatus(self, status, msg=None):
         if isinstance(status, int):
@@ -234,3 +211,55 @@ class XCAPTest(unittest.TestCase, XCAPClient):
 
         self.delete_resource(application)
         self.assertStatus(404)
+
+
+class TestSuite(unittest.TestSuite):
+    
+    def initialize(self, options, args):
+        for test in self._tests:
+            test.options = options
+            test.args = args
+            if hasattr(test, 'initialize'):
+                test.initialize(options, args)
+
+
+class TestLoader(unittest.TestLoader):
+
+    suiteClass = TestSuite
+
+    def loadTestsFromModule_wparser(self, module, option_parser):
+        """Return a suite of all tests cases contained in the given module"""
+        tests = []
+        for name in dir(module):
+            obj = getattr(module, name)
+            if (isinstance(obj, (type, types.ClassType)) and
+                issubclass(obj, unittest.TestCase)):
+                tests.append(self.loadTestsFromTestCase(obj))
+                if hasattr(obj, 'setupOptionParser'):
+                    obj.setupOptionParser(option_parser)
+        return self.suiteClass(tests)
+
+
+class TextTestRunner(unittest.TextTestRunner):
+
+    def run_woptions(self, test, options, args):
+        test.options = options
+        test.args = args
+        if hasattr(test, 'initialize'):
+            test.initialize(options, args)
+        return unittest.TextTestRunner.run(self, test)
+
+
+def loadSuiteFromModule(module, option_parser):
+    if isinstance(module, basestring):
+        module = sys.modules[module]
+    suite = TestLoader().loadTestsFromModule_wparser(module, option_parser)
+    return suite
+
+
+def runSuiteFromModule(module, settings=None):
+    option_parser = OptionParser(conflict_handler='resolve')
+    suite = loadSuiteFromModule(module, option_parser)
+    options, args = option_parser.parse_args()
+    TextTestRunner(verbosity=2).run_woptions(suite, options, args)
+

@@ -1,6 +1,4 @@
-
-import unittest
-from common import XCAPTest
+from common import *
 
 rls_services_xml = """<?xml version="1.0" encoding="UTF-8"?>
    <rls-services xmlns="urn:ietf:params:xml:ns:rls-services"
@@ -112,10 +110,5 @@ class DocumentTest(XCAPTest):
         ## rejected because the other user has the services with the same name
         ##self.put_rejected('rls-services', rls_services_xml)
 
-
-def suite():
-    suite = unittest.TestLoader().loadTestsFromTestCase(DocumentTest)
-    return suite
-
 if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(suite())
+    runSuiteFromModule(__name__)

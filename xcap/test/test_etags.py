@@ -1,7 +1,4 @@
-
-import unittest
-from common import XCAPTest
-
+from common import *
 
 resource_list_xml = """<?xml version="1.0" encoding="UTF-8"?>
    <resource-lists xmlns="urn:ietf:params:xml:ns:resource-lists">
@@ -10,7 +7,6 @@ resource_list_xml = """<?xml version="1.0" encoding="UTF-8"?>
    </resource-lists>"""
 
 class ETagTest(XCAPTest):
-    
 
     def test_conditional_GET(self):
         self.put_resource('resource-lists', resource_list_xml)
@@ -58,9 +54,5 @@ class ETagTest(XCAPTest):
         self.put_resource('resource-lists', resource_list_xml, headers={'If-Match': alice_etag})
         self.assertStatus([200, 201])
 
-def suite():
-    suite = unittest.TestLoader().loadTestsFromTestCase(ETagTest)
-    return suite
-
 if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(suite())
+    runSuiteFromModule(__name__)

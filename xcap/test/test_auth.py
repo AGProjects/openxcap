@@ -1,7 +1,4 @@
-
-import unittest
-from common import XCAPTest
-
+from common import *
 
 resource_list_xml = """<?xml version="1.0" encoding="UTF-8"?>
    <resource-lists xmlns="urn:ietf:params:xml:ns:resource-lists">
@@ -35,10 +32,5 @@ class AuthTest(XCAPTest):
         #self.assertStatus(401)
         #self.account = account
 
-
-def suite():
-    suite = unittest.TestLoader().loadTestsFromTestCase(AuthTest)
-    return suite
-
 if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(suite())
+    runSuiteFromModule(__name__)

@@ -18,7 +18,8 @@ from Queue import Queue, Empty
 from optparse import OptionParser, OptionValueError
 from pypjua import *
 
-from common import XCAPSettings, XCAPClient, XCAPTest
+from common import *
+
 from xcap.xcapdiff import xml_document, xml_xcapdiff
 
 
@@ -101,39 +102,41 @@ class Test(XCAPTest):
         if element not in list:
             raise self.failureException("%s not in %s" % (element, list))
 
-    def test(self):
-        parser = OptionParser()
+    @classmethod
+    def setupOptionParser(_cls, parser):
         parser.set_defaults(outbound_proxy='127.0.0.1', proxy_ip='127.0.0.1', proxy_port=5060)
         parser.add_option("-p", "--outbound-proxy", type="string", action="callback",
                           callback=parse_proxy_cb,
                           help="Outbound SIP proxy to use. By default a lookup is performed based on SRV and A records.",
                           metavar="IP[:PORT]")
-        parser.add_option("-t", "--siptrace", default=False)
+        parser.add_option("-t", "--siptrace", default=False, action='store_true')
+        XCAPClient.setupOptionParser(parser)
 
-        settings = XCAPSettings(parser)
-        client = XCAPClient(settings=settings)
+    def test(self):
+        opts = self.options
+
+        client = XCAPClient()
+        client.initialize(opts)
 
         client.delete_resource(resource)
         self.assertContains(client.status, [200, 404])
 
-        username, domain = settings.username.split('@')
-        password = settings.password
-        options = settings.options
+        username, domain = opts.username.split('@')
 
         initial_events = Engine.init_options_defaults["initial_events"]
         if content_type is not None:
             initial_events[event] = [content_type]
 
-        e = Engine(event_handler, do_siptrace=settings.siptrace, auto_sound=False, initial_events=initial_events)
+        e = Engine(event_handler, do_siptrace=opts.siptrace, auto_sound=False, initial_events=initial_events)
         e.start()
        
         try:
            
-            if options.outbound_proxy is None:
+            if opts.outbound_proxy is None:
                 route = None
             else:
-                route = Route(options.proxy_ip, options.proxy_port or 5060)
-            sub = Subscription(Credentials(SIPURI(user=username, host=domain), settings.password),
+                route = Route(opts.proxy_ip, opts.proxy_port or 5060)
+            sub = Subscription(Credentials(SIPURI(user=username, host=domain), opts.password),
                                SIPURI(user=username, host=domain), event, route=route, expires=expires)
             sub.subscribe()
 
@@ -165,19 +168,19 @@ class Test(XCAPTest):
                 etag = r.headers['ETag'].strip('"')
                 X = get_notify('after put')
 
-                xcap_root = settings.xcap_root.replace(':8000', '')
-                self.assertEqual(X['body'], get_xcapdiff(xcap_root, resource, settings.username, None, etag))
+                xcap_root = opts.xcap_root.replace(':8000', '')
+                self.assertEqual(X['body'], get_xcapdiff(xcap_root, resource, opts.username, None, etag))
                 #print etag
 
                 r = self.put_resource(resource, body.replace('Close', 'Intimate'))
                 new_etag = r.headers['ETag'].strip('"')
                 X = get_notify()
-                self.assertEqual(X['body'], get_xcapdiff(xcap_root, resource, settings.username, etag, new_etag))
+                self.assertEqual(X['body'], get_xcapdiff(xcap_root, resource, opts.username, etag, new_etag))
                 #print etag, new_etag
 
                 r = self.delete_resource(resource)
                 X = get_notify()
-                self.assertEqual(X['body'], get_xcapdiff(xcap_root, resource, settings.username, new_etag, None))
+                self.assertEqual(X['body'], get_xcapdiff(xcap_root, resource, opts.username, new_etag, None))
                 #print new_etag, None
 
             finally:
@@ -199,9 +202,5 @@ def parse_proxy(value, parser):
 def parse_proxy_cb(_option, _opt_str, value, parser):
     return parse_proxy(value, parser)
 
-def suite():
-    suite = unittest.TestLoader().loadTestsFromTestCase(Test)
-    return suite
-
 if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(suite())
+    runSuiteFromModule(__name__)

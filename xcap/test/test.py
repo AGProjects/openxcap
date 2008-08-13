@@ -1,60 +1,53 @@
-# Copyright (C) 2007 AG Projects.
-#
-
+#!/usr/bin/env python
 import sys
 import os
-import getopt
-import unittest
 import traceback
+from optparse import OptionParser
+
+from common import *
+
+def run_test_suite(suite, options, args):
+    TextTestRunner(verbosity=2).run_woptions(suite, options, args)
 
 class TestHarness(object):
     """A test harness for OpenXCAP."""
 
-    def __init__(self, tests=[]):
+    def __init__(self, tests, option_parser):
         """Constructor to populate the TestHarness instance.
 
         tests should be a list of module names (strings).
         """
         self.tests = tests
-        module_names = self.tests
+        self.option_parser = option_parser
         self.test_suites = []
         self.import_errors = 0
-        for testmod in module_names:
+        for testmod in self.tests:
             try:
                 m = __import__(testmod, globals(), locals())
-                get_suite = getattr(m, 'suite', None)
-                suite = m.suite()
+                suite = loadSuiteFromModule(m, option_parser)
                 suite.modname = testmod
                 self.test_suites.append(suite)
-            except Exception, ex:
+            except Exception:
                 traceback.print_exc()
                 self.import_errors = 1
     
-    def run(self):
-        self.run_test_suite(unittest.TestSuite(self.test_suites))
+    def run(self, options, args):
+        run_test_suite(TestSuite(self.test_suites), options, args)
         if self.import_errors:
             sys.exit('there were import errors!')
 
-    def run_test_suite(self, suite):
-        unittest.TextTestRunner(verbosity=2).run(suite)
-
-def all_tests(patterns = []):
+def all_tests():
     lst = [x.strip('.py') for x in os.listdir('.') if x.startswith('test_') and x.endswith('.py')]
-    if patterns:
-        return [x for x in lst if is_test_selected(x, patterns)]
     return lst
 
-def is_test_selected(filename, patterns):
-    for x in patterns:
-        if x in filename:
-            return True
-
 def run():
-    opts, args = getopt.getopt(sys.argv[1:], '', ['list'])
+    parser = OptionParser(conflict_handler='resolve')
+    parser.add_option("-l", "--list", action="store_true", help="Print list of all tests")
+    
+    t = TestHarness(all_tests(), parser)
+    options, args = parser.parse_args()
 
-    t = TestHarness(all_tests(args))
-
-    if '--list' in dict(opts):
+    if options.list:
         for x in t.test_suites:
             print x.modname
             for i in x:
@@ -62,7 +55,7 @@ def run():
             print 
         return
 
-    t.run()
+    t.run(options, args)
 
 if __name__ == '__main__':
     run()
