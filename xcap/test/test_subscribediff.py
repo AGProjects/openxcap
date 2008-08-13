@@ -16,11 +16,13 @@ import time
 import unittest
 from Queue import Queue, Empty
 from optparse import OptionParser, OptionValueError
-from pypjua import *
 
 from common import *
 
+import simport; simport.setup()
+from pypjua import *
 from xcap.xcapdiff import xml_document, xml_xcapdiff
+simport.restore()
 
 
 expires=20
