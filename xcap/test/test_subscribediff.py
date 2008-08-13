@@ -12,6 +12,7 @@
 """
 
 import re
+import time
 import unittest
 from Queue import Queue, Empty
 from optparse import OptionParser, OptionValueError
@@ -138,7 +139,10 @@ class Test(XCAPTest):
 
             try:
 
-                for _ in range(5):
+                # wait for SUBSCRIBE to succeed AND absorb out-of-date NOTIFYs
+                end = time.time() + 1.5
+
+                while time.time() < end:
                     get(queue, timeout=0.1)
                 self.failUnless(is_subscribed, 'SUBSCRIBE failed')
 
@@ -178,7 +182,6 @@ class Test(XCAPTest):
 
             finally:
                 sub.unsubscribe()
-                import time
                 time.sleep(2)
 
         finally:
