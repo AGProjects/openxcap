@@ -2,7 +2,7 @@
 
 Create a Notifier object:
 
-  >>> n = Notifier(publish_fun)
+  >>> n = Notifier(publish_xcapdiff)
 
 When a change occurs, call on_change
 
@@ -11,7 +11,7 @@ When a change occurs, call on_change
 (old_etag being None means the document was just created, new_etag being
 None means the document was deleted)
 
-Notifier will call publish_fun with 2 args: user's uri and xcap-diff document.
+Notifier will call publish_xcapdiff with 2 args: user's uri and xcap-diff document.
 Number of calls is limited to no more than 1 call per MIN_WAIT seconds for
 a given user uri.
 
@@ -39,18 +39,18 @@ class UserChanges:
 
     MIN_WAIT = 5
 
-    def __init__(self, publish_fun):
+    def __init__(self, publish_xcapdiff):
         self.changes = {}
         self.rate_limit = RateLimit(self.MIN_WAIT)
-        self.publish_fun = publish_fun
+        self.publish_xcapdiff = publish_xcapdiff
 
     def add_change(self, uri, old_etag, etag, xcap_root):
         self.changes.setdefault(uri, [old_etag, etag])[1] = etag
-        self.rate_limit.callAtLimitedRate(self.publish, uri.user, xcap_root)
+        self.rate_limit.callAtLimitedRate(self.publish, uri.user.uri, xcap_root)
 
     def publish(self, user_uri, xcap_root):
         if self.changes:
-            self.publish_fun(user_uri, self.unload_changes(xcap_root))
+            self.publish_xcapdiff(user_uri, self.unload_changes(xcap_root))
     
     def unload_changes(self, xcap_root):
         docs = []
@@ -66,15 +66,15 @@ class UserChanges:
 
 class Notifier:
 
-    def __init__(self, xcap_root, publish_fun):
-        self.publish_fun = publish_fun
+    def __init__(self, xcap_root, publish_xcapdiff):
+        self.publish_xcapdiff = publish_xcapdiff
         self.xcap_root = xcap_root
 
         # maps user_uri to UserChanges
         self.users_changes = {}
 
     def on_change(self, uri, old_etag, new_etag):
-        changes = self.users_changes.setdefault(uri.user, UserChanges(self.publish_fun))
+        changes = self.users_changes.setdefault(uri.user, UserChanges(self.publish_xcapdiff))
         changes.add_change(uri, old_etag, new_etag, self.xcap_root)
 
 

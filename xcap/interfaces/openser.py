@@ -28,6 +28,17 @@ class Result(str):
         self.data = data
         lines = data.split('\n')
         self.first = lines[0]
+        try:
+            code, self.message = self.first.split(' ', 1)
+        except ValueError:
+            self.code = None
+            self.message = None
+        else:
+            try:
+                self.code = int(code)
+            except ValueError:
+                self.code = None
+                self.message = self.first
         self.attrib = {}
         for (key, val) in (x.split(':: ') for x in lines[1:] if x.strip()):
             self.attrib[key] = val
@@ -53,7 +64,6 @@ class ManagementInterface(object):
 
     def publish_xcapdiff(self, user_uri, xcap_diff_body, supply_etag = True):
         """Issue PUBLISH with event=xcap-diff using"""
-        user_uri = user_uri.uri
         if supply_etag:
             etag = self._etags.get(user_uri, '.')
         else:
@@ -69,30 +79,34 @@ class ManagementInterface(object):
                                   '.',
                                   xcap_diff_body)
 
+        def update_etag(x):
+            x = Result(x)
+            try:
+                if 200 <= x.code <= 299:
+                    self._etags[user_uri] = x.attrib['ETag']
+            except KeyError:
+                pass
+            return x
+
+        def repeat_publish_if_wrong_etag(x):
+            if x.value[0] == '418' and etag != '.':
+                # we used some etag which was not recognised by pua - repeat
+                # request with no etag at all
+                return self.publish_xcapdiff(user_uri, xcap_diff_body, False)
+            return x
+
         # remember ETag returned by the function, so it can be used next time
-        d.addCallback(lambda x: self._update_etag(x, user_uri, xcap_diff_body, etag))
+        d.addCallbacks(update_etag, repeat_publish_if_wrong_etag)
 
         return d
 
-    def _update_etag(self, x, user_uri, xcap_diff_body, used_etag):
-        x = Result(x)
-        if x.code == 418 and used_etag != '.':
-            # we used some etag which was not recognised by pua - repeat
-            # request with no etag at all
-            return self.publish_xcapdiff(user_uri, xcap_diff_body, False)
-        try:
-            if 200 <= x.code <= 299:
-                self._etags[user_uri] = x.attrib['ETag']
-        except KeyError:
-            pass
-        return x
 
 if __name__=='__main__':
     import doctest
     doctest.testmod()
 
     from twisted.internet import reactor
-    MI = ManagementInterface('http://10.1.1.3:8080')
+    MI = ManagementInterface('http://127.0.0.1:8080')
     print MI
     d = MI.publish_xcapdiff('sip:alice@localhost', 'XXXBODY')
 
