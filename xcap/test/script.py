@@ -11,23 +11,26 @@
 
 import sys
 from optparse import OptionParser
-from common import XCAPSettings, XCAPClient
+from common import *
 
 def main():
-    settings = XCAPSettings()
-    script = XCAPClient(settings)
+    parser = OptionParser(conflict_handler='resolve')
+    XCAPClient.setupOptionParser(parser)
+    client = XCAPClient()
+    options, args = parser.parse_args()
+    client.initialize(options, args)
 
     try:
-        assert len(settings.args)==2, len(settings.args)
-        cmd = getattr(script, settings.args[0].lower())
+        assert len(args)==2, len(args)
+        cmd = getattr(client, args[0].lower())
     except (AttributeError, IndexError, AssertionError):
         sys.exit(__doc__)
 
-    if cmd == script.put:
+    if cmd == client.put:
         resource = sys.stdin.read()
-        settings.args.append(resource)
+        args.append(resource)
 
-    result = cmd(*settings.args[1:])
+    result = cmd(*args[1:])
     sys.stderr.write('%s\n' % result.url)
     sys.stderr.write('%s %s\n' % (result.code, result.msg))
     sys.stderr.write('%s\n' % result.headers)
