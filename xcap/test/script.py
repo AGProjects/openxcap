@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Test script for web access
 
   Usage:
