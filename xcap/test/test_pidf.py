@@ -44,4 +44,4 @@ class PIDFTest(XCAPTest):
         self.assertStatus(404)
 
 if __name__ == '__main__':
-    runSuiteFromModule(__name__)
+    runSuiteFromModule()

@@ -33,4 +33,4 @@ class AuthTest(XCAPTest):
         #self.account = account
 
 if __name__ == '__main__':
-    runSuiteFromModule(__name__)
+    runSuiteFromModule()

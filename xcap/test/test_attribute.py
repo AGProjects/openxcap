@@ -76,4 +76,4 @@ class AttributeTest(XCAPTest):
         self.assertStatus(200)
 
 if __name__ == '__main__':
-    runSuiteFromModule(__name__)
+    runSuiteFromModule()

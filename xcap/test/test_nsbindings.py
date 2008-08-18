@@ -27,4 +27,4 @@ class NSBindingsTest(XCAPTest):
         self.assertHeader('Content-type', 'application/xcap-ns+xml')
 
 if __name__ == '__main__':
-    runSuiteFromModule(__name__)
+    runSuiteFromModule()

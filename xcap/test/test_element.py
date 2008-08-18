@@ -105,4 +105,4 @@ class ElementTest(XCAPTest):
         self.assertStatus(409)        ## <uniqueness-failure>
 
 if __name__ == '__main__':
-    runSuiteFromModule(__name__)
+    runSuiteFromModule()

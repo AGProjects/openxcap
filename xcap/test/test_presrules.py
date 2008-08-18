@@ -43,4 +43,4 @@ class PresenceRulesTest(XCAPTest):
         self.assertHeader('Content-type', 'application/auth-policy+xml')
 
 if __name__ == '__main__':
-    runSuiteFromModule(__name__)
+    runSuiteFromModule()

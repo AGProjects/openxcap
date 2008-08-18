@@ -55,4 +55,4 @@ class ETagTest(XCAPTest):
         self.assertStatus([200, 201])
 
 if __name__ == '__main__':
-    runSuiteFromModule(__name__)
+    runSuiteFromModule()

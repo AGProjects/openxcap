@@ -112,4 +112,4 @@ class DocumentTest(XCAPTest):
 
 
 if __name__ == '__main__':
-    runSuiteFromModule(__name__)
+    runSuiteFromModule()

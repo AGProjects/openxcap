@@ -111,4 +111,4 @@ class DocumentTest(XCAPTest):
         ##self.put_rejected('rls-services', rls_services_xml)
 
 if __name__ == '__main__':
-    runSuiteFromModule(__name__)
+    runSuiteFromModule()

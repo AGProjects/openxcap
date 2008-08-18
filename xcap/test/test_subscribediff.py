@@ -204,4 +204,4 @@ def parse_proxy_cb(_option, _opt_str, value, parser):
     return parse_proxy(value, parser)
 
 if __name__ == '__main__':
-    runSuiteFromModule(__name__)
+    runSuiteFromModule()

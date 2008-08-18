@@ -339,7 +339,7 @@ def loadSuiteFromModule(module, option_parser):
     return suite
 
 
-def runSuiteFromModule(module, settings=None):
+def runSuiteFromModule(module='__main__'):
     option_parser = OptionParser(conflict_handler='resolve')
     suite = loadSuiteFromModule(module, option_parser)
     options, args = option_parser.parse_args()
