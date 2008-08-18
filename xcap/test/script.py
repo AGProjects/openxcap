@@ -13,6 +13,33 @@ import sys
 from optparse import OptionParser
 from common import *
 
+class MyDebugOutput(DebugOutput):
+    def log_trans(self, req, result):
+        if self.level==0:
+            if not result.succeed:
+                self.log_result_code(result)
+                self.log_result_body(result)
+            else:
+                self.log_etag(result)
+        if self.level==1:
+            self.log_method_url(req)
+            self.log_result_code(result)
+            self.log_etag(result)
+        elif self.level==2:
+            self.log_method_url(req)
+            self.log_req_headers(req)
+            self.log_result_code(result)           
+            self.log_result_headers(result)
+        elif self.level>=3:
+            self.log_method_url(req)
+            self.log_req_headers(req)
+            self.log_req_body(req)
+            self.log_result_code(result)           
+            self.log_result_headers(result)
+            # and body will be printed to stdout
+
+XCAPClient.DebugOutput = MyDebugOutput
+
 def main():
     parser = OptionParser(conflict_handler='resolve')
     XCAPClient.setupOptionParser(parser)
@@ -21,9 +48,10 @@ def main():
     client.initialize(options, args)
 
     try:
-        assert len(args)==2, len(args)
         cmd = getattr(client, args[0].lower())
-    except (AttributeError, IndexError, AssertionError):
+    except AttributeError:
+        sys.exit(__doc__ + '\nInvalid action\n')
+    except IndexError:
         sys.exit(__doc__)
 
     if cmd == client.put:
@@ -31,14 +59,10 @@ def main():
         args.append(resource)
 
     result = cmd(*args[1:])
-    sys.stderr.write('%s\n' % result.url)
-    sys.stderr.write('%s %s\n' % (result.code, result.msg))
-    sys.stderr.write('%s\n' % result.headers)
     if 200 <= result.code <= 200:
         if result.body:
             sys.stdout.write(result.body)
     else:
-        sys.stderr.write('%s\n' % result.body)
         sys.exit(1)
 
 if __name__=='__main__':
