@@ -39,13 +39,16 @@ Chapter 1. Admin Guide
 
 1.1. Overview
 
-   presence_xcapdiff is an OpenSIPS module that adds support for
+   Presence_XCAPDiff is an OpenSIPS module that adds support for
    "xcap-diff" event to presence and pua. At the moment, the
    module just registers the event but doesn't do any
    event-specific processing. Registering event with pua allows
-   OpenXCAP server to publish xcap-event when modification of a
-   document happenes. Registering event with presence allow
-   clients to subscribe for the event.
+   XCAP server to publish xcap-event when modification of a
+   document happens. Registering event with presence allow clients
+   to subscribe for the event. The module is intended to be used
+   with OpenXCAP (www.openxcap.org) server, although it doesn't
+   contain any OpenXCAP-specific code and potentially could be
+   used with any XCAP server.
 
 1.2. Dependencies
 
