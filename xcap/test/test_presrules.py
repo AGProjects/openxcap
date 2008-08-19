@@ -31,16 +31,7 @@ pres_rules_xml = """<?xml version="1.0" encoding="UTF-8"?>
 class PresenceRulesTest(XCAPTest):
 
     def test_pidf_manipulation(self):
-        self.delete_resource('pres-rules')
-        self.assertStatus([200, 404])
-
-        self.put_resource('pres-rules', pres_rules_xml)
-        self.assertStatus(201)
-
-        self.get_resource('pres-rules')
-        self.assertStatus(200)
-        self.assertBody(pres_rules_xml)
-        self.assertHeader('Content-type', 'application/auth-policy+xml')
+        self.getputdelete('pres-rules', pres_rules_xml, 'application/auth-policy+xml')
 
 if __name__ == '__main__':
     runSuiteFromModule()

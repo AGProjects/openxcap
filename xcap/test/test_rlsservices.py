@@ -96,15 +96,15 @@ rls_services_xml_non_unique_service = """<?xml version="1.0" encoding="UTF-8"?>
 class DocumentTest(XCAPTest):
     
     def test_operations(self):
-        self.getputdelete_successful('rls-services', rls_services_xml, 'application/rls-services+xml')
+        self.getputdelete('rls-services', rls_services_xml, 'application/rls-services+xml')
 
         self.put_rejected('rls-services', rls_services_xml_badformed)
         self.put_rejected('rls-services', rls_services_xml_non_unique_list)
         self.put_rejected('rls-services', rls_services_xml_non_unique_service)
 
-        self.account = 'test2@example.com'
-        self.delete_resource('rls-services')
-        self.assertStatus([200, 404])
+        #self.account = 'test2@example.com'
+        #self.delete_resource('rls-services')
+        #self.assertStatus([200, 404])
 
         ## we aint doing that
         ## rejected because the other user has the services with the same name

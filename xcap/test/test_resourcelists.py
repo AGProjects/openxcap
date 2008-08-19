@@ -98,7 +98,7 @@ resource_lists_xml_baduri = """<?xml version="1.0" encoding="UTF-8"?>
 class DocumentTest(XCAPTest):
   
     def test_operations(self):
-        self.getputdelete_successful('resource-lists', resource_lists_xml, 'application/resource-lists+xml')
+        self.getputdelete('resource-lists', resource_lists_xml, 'application/resource-lists+xml')
 
         self.put_rejected('resource-lists', resource_lists_xml_badformed)
         # check body for <schema-validation-error>

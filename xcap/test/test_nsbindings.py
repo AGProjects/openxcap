@@ -18,13 +18,10 @@ resource_list_xml = """<?xml version="1.0" encoding="UTF-8"?>
 class NSBindingsTest(XCAPTest):
 
     def test_ns_bindings(self):
-        self.put_resource('resource-lists', resource_list_xml)
-        self.assertStatus([200, 201])
-
-        self.get_resource('resource-lists', '/resource-lists/list[@name="friends"]/namespace::*')
-        self.assertStatus(200)
-        self.assertHeader('ETag')
-        self.assertHeader('Content-type', 'application/xcap-ns+xml')
+        self.put('resource-lists', resource_list_xml)
+        r = self.get('resource-lists', '/resource-lists/list[@name="friends"]/namespace::*')
+        self.assertHeader(r, 'ETag')
+        self.assertHeader(r, 'Content-type', 'application/xcap-ns+xml')
 
 if __name__ == '__main__':
     runSuiteFromModule()

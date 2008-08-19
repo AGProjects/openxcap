@@ -9,28 +9,20 @@ resource_list_xml = """<?xml version="1.0" encoding="UTF-8"?>
 class AuthTest(XCAPTest):
     
     def test_authorization(self):
-        self.put_resource('resource-lists', resource_list_xml)
-        self.assertStatus([200, 201])
-        
-        self.get_resource('resource-lists')
-        self.assertStatus(200)
-        
-        self.get_resource('dummy-application')
-        self.assertStatus(404)
+        self.put('resource-lists', resource_list_xml)
+        self.get('dummy-application', status=404)
         
         ### the request cannot be authenticated
         #password = self.account
-        #self.password += "dummy"
-        #self.get_resource('resource-lists')
-        #self.assertStatus(401)
-        #self.password = password
+        #self.client.password += "dummy"
+        #self.get('resource-lists', status=401)
+        #self.client.password = password
         
         ### the request cannot be authorized (we're trying to access someone else' resource)
         #account = self.account
         #self.account = "dummy" + self.account
-        #self.get_resource('resource-lists')
-        #self.assertStatus(401)
-        #self.account = account
+        #r = self.get('resource-lists', status=401)
+        #self.client.account = account
 
 if __name__ == '__main__':
     runSuiteFromModule()

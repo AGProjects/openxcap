@@ -20,28 +20,7 @@ pidf_xml = """<?xml version='1.0' encoding='UTF-8'?>
 class PIDFTest(XCAPTest):
 
     def test_pidf_manipulation(self):
-        self.delete_resource('pidf-manipulation')
-        self.assertStatus([200, 404])
-
-        self.get_resource('pidf-manipulation')
-        self.assertStatus(404)
-
-        self.put_resource('pidf-manipulation', pidf_xml)
-        self.assertStatus(201)
-
-        self.get_resource('pidf-manipulation')
-        self.assertStatus(200)
-        self.assertBody(pidf_xml)
-        self.assertHeader('Content-type', 'application/pidf+xml')
-
-        self.put_resource('pidf-manipulation', pidf_xml)
-        self.assertStatus(200)
-
-        self.delete_resource('pidf-manipulation')
-        self.assertStatus(200)
-
-        self.delete_resource('pidf-manipulation')
-        self.assertStatus(404)
+        self.getputdelete('pidf-manipulation', pidf_xml, 'application/pidf+xml')
 
 if __name__ == '__main__':
     runSuiteFromModule()

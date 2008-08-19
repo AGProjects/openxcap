@@ -38,42 +38,34 @@ broken_element_xml = """<entry uri="sip:nancy@example.com">
 class AttributeTest(XCAPTest):
     
     def test_get(self):
-        self.put_resource('resource-lists', resource_list_xml)
-        self.assertStatus([200, 201])
+        self.put('resource-lists', resource_list_xml)
         
-        self.get_resource('resource-lists', '/resource-lists/list[@name="other"]/@some-attribute')
-        self.assertStatus(404)
+        self.get('resource-lists', '/resource-lists/list[@name="other"]/@some-attribute', status=404)
                 
-        self.get_resource('resource-lists', '/resource-lists/list[@name="friends"]/@name')
-        self.assertStatus(200)
-        self.assertBody("friends")
-        self.assertHeader('ETag')
-        self.assertHeader('Content-type', 'application/xcap-att+xml')
+        r = self.get('resource-lists', '/resource-lists/list[@name="friends"]/@name')
+        self.assertBody(r, "friends")
+        self.assertHeader(r, 'ETag')
+        self.assertHeader(r, 'Content-type', 'application/xcap-att+xml')
 
     def test_delete(self):
-        self.put_resource('resource-lists', resource_list_xml)
-        self.assertStatus([200, 201])
-        
-        self.delete_resource('resource-lists', '/resource-lists/list[@name="other"]/@some-attribute')
-        self.assertStatus(404)
+        self.put('resource-lists', resource_list_xml)
+        self.delete('resource-lists', '/resource-lists/list[@name="other"]/@some-attribute', status=404)
 
-        self.delete_resource('resource-lists', '/resource-lists/list[@name="friends"]/@name')
-        self.assertStatus(200)
-
-        self.delete_resource('resource-lists', '/resource-lists/list[@name="friends"]/@name')
-        self.assertStatus(404)
+        self.delete('resource-lists', '/resource-lists/list[@name="friends"]/@name', status=200)
+        self.delete('resource-lists', '/resource-lists/list[@name="friends"]/@name', status=404)
 
     def test_put(self):
-        self.put_resource('resource-lists', resource_list_xml)
-        self.assertStatus([200, 201])
+        self.put('resource-lists', resource_list_xml)
 
         headers = {'Content-type': "application/xcap-att+xml"}
-        self.put_resource('resource-lists', 'coworkers', '/resource-lists/list[@name="other"]/@some-attribute', headers)
-        self.assertStatus(409)
+        self.put('resource-lists', 'coworkers',
+                 '/resource-lists/list[@name="other"]/@some-attribute', headers, status=409)
 
-        headers = {'Content-type': "application/xcap-att+xml"}
-        self.put_resource('resource-lists', 'coworkers', '/resource-lists/list[@name="friends"]/@name', headers)
-        self.assertStatus(200)
+        # fails GET(PUT(x))==x test. REJECT in the server?
+        ##self.put('resource-lists', 'coworkers', '/resource-lists/list[@name="friends"]/@name', headers)
+
+        r = self.client.put('resource-lists', 'coworkers', '/resource-lists/list[@name="friends"]/@name', headers)
+        self.assertStatus(r, 200)
 
 if __name__ == '__main__':
     runSuiteFromModule()

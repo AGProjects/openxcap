@@ -117,11 +117,7 @@ class Test(XCAPTest):
     def test(self):
         opts = self.options
 
-        client = XCAPClient()
-        client.initialize(opts)
-
-        client.delete_resource(resource)
-        self.assertContains(client.status, [200, 404])
+        self.delete(resource, status=[200,404])
 
         username, domain = opts.username.split('@')
 
@@ -166,7 +162,7 @@ class Test(XCAPTest):
                     self.assertEqual(X[0], 'NOTIFY')
                     return X[1]
 
-                r = self.put_resource(resource, body)
+                r = self.put(resource, body)
                 etag = r.headers['ETag'].strip('"')
                 X = get_notify('after put')
 
@@ -174,13 +170,13 @@ class Test(XCAPTest):
                 self.assertEqual(X['body'], get_xcapdiff(xcap_root, resource, opts.username, None, etag))
                 #print etag
 
-                r = self.put_resource(resource, body.replace('Close', 'Intimate'))
+                r = self.put(resource, body.replace('Close', 'Intimate'))
                 new_etag = r.headers['ETag'].strip('"')
                 X = get_notify()
                 self.assertEqual(X['body'], get_xcapdiff(xcap_root, resource, opts.username, etag, new_etag))
                 #print etag, new_etag
 
-                r = self.delete_resource(resource)
+                r = self.delete(resource)
                 X = get_notify()
                 self.assertEqual(X['body'], get_xcapdiff(xcap_root, resource, opts.username, new_etag, None))
                 #print new_etag, None

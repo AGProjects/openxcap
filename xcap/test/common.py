@@ -156,59 +156,67 @@ class XCAPClient(object):
         self.debug.log_trans(req, result)
         return result
 
-    def get_resource(self, application, node=None, headers={}):
+    def get(self, application, node=None, headers={}):
         username, domain = self.username.split('@', 1)
         uri = "%s/%s/users/%s/index.xml" % (self.xcap_root, application, self.username)
         if node:
             uri += '~~' + node
-        r = self._execute_request("GET", uri, username, domain, self.password, headers)
-        self.status, self.headers, self.body = r.code, r.headers, r.body
-        return r
+        return self._execute_request("GET", uri, username, domain, self.password, headers)
 
-    get=get_resource
-
-    def put_resource(self, application, resource, node=None, headers={}):
+    def put(self, application, resource, node=None, headers={}):
         username, domain = self.username.split('@', 1)
         uri = "%s/%s/users/%s/index.xml" % (self.xcap_root, application, self.username)
         if node:
             uri += '~~' + node
-        r = self._execute_request("PUT", uri, username, domain, self.password, headers, resource)
-        self.status, self.headers, self.body = r.code, r.headers, r.body
-        return r
+        return self._execute_request("PUT", uri, username, domain, self.password, headers, resource)
 
-    put = put_resource
-
-    def delete_resource(self, application, node=None, headers={}):
+    def delete(self, application, node=None, headers={}):
         username, domain = self.username.split('@', 1)
         uri = "%s/%s/users/%s/index.xml" % (self.xcap_root, application, self.username)
         if node:
             uri += '~~' + node
-        r = self._execute_request("DELETE", uri, username, domain, self.password, headers)
-        self.status, self.headers, self.body = r.code, r.headers, r.body
-        return r
-
-    delete = delete_resource
+        return self._execute_request("DELETE", uri, username, domain, self.password, headers)
 
 
-class XCAPTest(unittest.TestCase, XCAPClient):
+class XCAPTest(unittest.TestCase):
 
-    def assertStatus(self, status, msg=None):
-        if isinstance(status, int):
-            if self.status != status:
+    XCAPClient = XCAPClient
+
+    @classmethod
+    def setupOptionParser(cls, parser):
+        cls.XCAPClient.setupOptionParser(parser)
+
+    def initialize(self, options, args = []):
+        self.options = options
+        self.args = args
+
+    def new_client(self):
+        client = self.XCAPClient()
+        client.initialize(self.options, self.args)
+        return client
+
+    def setUp(self):
+        self.client = self.new_client()
+
+    def assertStatus(self, r, status, msg=None):
+        if status is None:
+            return
+        elif isinstance(status, int):
+            if r.code != status:
                 if msg is None:
-                    msg = 'Status (%s) != %s' % (self.status, status)
+                    msg = 'Status (%s) != %s' % (r.code, status)
                 raise self.failureException(msg)
         else:
             ## status is a tuple or a list
-            if self.status not in status:
+            if r.code not in status:
                 if msg is None:
-                    msg = 'Status (%s) not in %s' % (self.status, str(status))
+                    msg = 'Status (%s) not in %s' % (r.code, str(status))
                 raise self.failureException(msg)
 
-    def assertHeader(self, key, value=None, msg=None):
-        """Fail if (key, [value]) not in self.headers."""
+    def assertHeader(self, r, key, value=None, msg=None):
+        """Fail if (key, [value]) not in r.headers."""
         lowkey = key.lower()
-        for k, v in self.headers.items():
+        for k, v in r.headers.items():
             if k.lower() == lowkey:
                 if value is None or str(value) == v:
                     return v
@@ -219,80 +227,98 @@ class XCAPTest(unittest.TestCase, XCAPClient):
                 msg = '%s:%s not in headers' % (key, value)
         raise self.failureException(msg)
 
-    def assertNoHeader(self, key, msg=None):
-        """Fail if key in self.headers."""
+    def assertNoHeader(self, r, key, msg=None):
+        """Fail if key in r.headers."""
         lowkey = key.lower()
-        matches = [k for k, v in self.headers if k.lower() == lowkey]
+        matches = [k for k, v in r.headers if k.lower() == lowkey]
         if matches:
             if msg is None:
                 msg = '%s in headers' % key
             raise self.failureException(msg)
     
-    def assertBody(self, value, msg=None):
-        """Fail if value != self.body."""
-        if value != self.body:
+    def assertBody(self, r, value, msg=None):
+        """Fail if value != r.body."""
+        if value.strip() != r.body.strip():
             if msg is None:
-                msg = 'expected body:\n"%s"\n\nactual body:\n"%s"' % (value, self.body)
+                msg = 'expected body:\n"%s"\n\nactual body:\n"%s"' % (value, r.body)
             raise self.failureException(msg)
 
-    def assertInBody(self, value, msg=None):
-        """Fail if value not in self.body."""
-        if value not in self.body:
+    def assertInBody(self, r, value, msg=None):
+        """Fail if value not in r.body."""
+        if value not in r.body:
             if msg is None:
                 msg = '%s not in body' % value
             raise self.failureException(msg)
 
-    def assertNotInBody(self, value, msg=None):
-        """Fail if value in self.body."""
-        if value in self.body:
+    def assertNotInBody(self, r, value, msg=None):
+        """Fail if value in r.body."""
+        if value in r.body:
             if msg is None:
                 msg = '%s found in body' % value
             raise self.failureException(msg)
     
-    def assertMatchesBody(self, pattern, msg=None, flags=0):
-        """Fail if value (a regex pattern) is not in self.body."""
-        if re.search(pattern, self.body, flags) is None:
+    def assertMatchesBody(self, r, pattern, msg=None, flags=0):
+        """Fail if value (a regex pattern) is not in r.body."""
+        if re.search(pattern, r.body, flags) is None:
             if msg is None:
                 msg = 'No match for %s in body' % pattern
             raise self.failureException(msg)
 
-    def put_rejected(self, application, resource):
-        self.delete_resource(application)
-        self.assertStatus([200, 404])
-
-        r = self.put_resource(application, resource)
-        self.assertStatus(409)
-
-        # the document shouldn't be there
-        self.get_resource(application)
-        self.assertStatus(404)
-
-        self.status, self.headers, self.body = r.code, r.headers, r.body
+    def get(self, application, node=None, headers={}, status=200, client=None):
+        client = client or self.client
+        r = client.get(application, node, headers)
+        self.assertStatus(r, status)
         return r
 
-    def getputdelete_successful(self, application, document, content_type):
-        self.delete_resource(application)
-        self.assertStatus([200, 404])
+    def put(self, application, resource, node=None, headers={},
+            status=[200,201], content_type_in_GET=None, client=None):
+        client = client or self.client
+        r_put = client.put(application, resource, node, headers)
+        self.assertStatus(r_put, status)
 
-        self.get_resource(application)
-        self.assertStatus(404)
+        # if PUTting succeed, check that document is there and equals to resource
+        if r_put.succeed:
+            r_get = client.get(application, node)
+            self.assertStatus(r_get, 200,
+                              'although PUT succeed, following GET on the same URI did not: %s %s' % \
+                              (r_get.code, r_get.msg))
+            self.assertEqual(resource, r_get.body) # is body put equals to body got?
+            if content_type_in_GET is not None:
+                self.assertHeader(r_get, 'content-type', content_type_in_GET)
 
-        self.put_resource(application, document)
-        self.assertStatus(201)
+        return r_put
 
-        self.get_resource(application)
-        self.assertStatus(200)
-        self.assertBody(document)
-        self.assertHeader('Content-Type', content_type)
+    def delete(self, application, node=None, headers={}, status=200, client=None):
+        client = client or self.client
+        r = client.delete(application, node, headers)
+        self.assertStatus(r, status)
 
-        self.put_resource(application, document)
-        self.assertStatus(200)
+        # if deleting succeed, GET should return 404
+        if r.succeed or r.code == 404:
+            r_get = client.get(application, node, headers)
+            self.assertStatus(r_get, 404,
+                              'although DELETE succeed, following GET on the same URI did not return 404: %s %s' % \
+                              (r_get.code, r_get.msg))
 
-        self.delete_resource(application)
-        self.assertStatus(200)
+        return r
 
-        self.delete_resource(application)
-        self.assertStatus(404)
+    def put_rejected(self, application, resource, status=409, client=None):
+        """DELETE the document, then PUT it and expect 409 error. Return PUT result.
+        If PUT has indeed failed, also check that GET returns 404
+        """
+        self.delete(application, status=[200,404], client=client)
+        put_result = self.put(application, resource, status=status, client=client)
+        self.get(application, status=404, client=client)
+        return put_result
+
+    def getputdelete(self, application, document, content_type, client=None):
+        self.delete(application, status=[200,404], client=client)
+        self.get(application, status=404, client=client)
+        self.put(application, document, status=201, content_type_in_GET=content_type, client=client)
+        self.put(application, document, status=200, content_type_in_GET=content_type, client=client)
+        self.put(application, document, status=200, content_type_in_GET=content_type, client=client)
+        self.delete(application, status=200, client=client)
+        self.delete(application, status=404, client=client)
 
 
 class TestSuite(unittest.TestSuite):
