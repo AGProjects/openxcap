@@ -65,6 +65,11 @@ class ApplicationUsage(object):
         if self.schema_file:
             xml_schema_doc = etree.parse(open(os.path.join(schemas_directory, self.schema_file), 'r'))
             self.xml_schema = etree.XMLSchema(xml_schema_doc)
+        else:
+            class EverythingIsValid:
+                def validate(self, *args, **kw):
+                    return True
+            self.xml_schema = EverythingIsValid()
         if storage is not None:
             self.storage = storage
 
