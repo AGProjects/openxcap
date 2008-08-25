@@ -9,18 +9,17 @@
 ; IP address and port to listen for requests
 ; 0.0.0.0 means any address of this host
 address = 0.0.0.0
-port = 8000
+port = 443
 
 ; The XCAP Root URI; must not contain any port number. If it has the 'https' scheme,
 ; the server will listen for requests in TLS mode.
-root = http://xcap.example.com/
+root = https://xcap.example.com/xcap-root
 
 ; The backend to be used for storage and authentication. Current supported
-; values are Database for generic support and OpenSER for integration with
-; OpenSIPs
-backend = Database
+; values are Database for generic support and OpenSER
+backend = OpenSER
 
-; Validate XCAP documents against XML schemas, default is Yes
+; Validate XCAP documents against XML schemas
 document_validation = Yes
 
 
@@ -58,10 +57,10 @@ private_key = tls/server.key
 ; Configuration settings for Database backend, active if this backend was selected
 ; in the [Server] section
 ; The database connection URI for the datase with subscriber accounts
-authentication_db_uri = mysql://username:password@db-host/opensips
+authentication_db_uri = mysql://username:password@db/database
 
 ; The database connection URI for the database that stores the XCAP documents
-storage_db_uri = mysql://username:password@db-host/opensips
+storage_db_uri = mysql://username:password@db/database
 
 ; Authentication and storage tables
 subscriber_table = subscriber
@@ -73,19 +72,18 @@ xcap_table = xcap
 ; Configuration settings for OpenSER backend, active if this backend was selected
 ; in the [Server] section
 ; The database connection URI for the datase with subscriber accounts
-authentication_db_uri = mysql://username:password@db-host/opensips
+authentication_db_uri = mysql://username:password@db/opensips
 
 ; The database connection URI for the database that stores the XCAP documents
-storage_db_uri = mysql://username:password@db-host/opensips
+storage_db_uri = mysql://username:password@db/opensips
 
 ; Authentication and storage tables
 subscriber_table = subscriber
 xcap_table = xcap
 
-; The address and port of the xml-rpc management interface 
-xmlrpc_url = http://localhost:8080
+; The address and port of the xml-rpc management interface
+xmlrpc_url = http://sip.example.com:8080
 
-; Uncomment to make openxcap work with presence_xcapdiff module, i.e. notify 
-; publish xcap-diff event via OpenSER management interface 
-; These features are only enabled in OpenSER backend.
-;enable_publish_xcapdiff = yes
+; Publish xcap-diff event via OpenSER management interface 
+; enable_publish_xcapdiff = yes
+
