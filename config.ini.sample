@@ -72,10 +72,10 @@ xcap_table = xcap
 ; Configuration settings for OpenSER backend, active if this backend was selected
 ; in the [Server] section
 ; The database connection URI for the datase with subscriber accounts
-authentication_db_uri = mysql://username:password@db/opensips
+authentication_db_uri = mysql://opensips:password@db/opensips
 
 ; The database connection URI for the database that stores the XCAP documents
-storage_db_uri = mysql://username:password@db/opensips
+storage_db_uri = mysql://opensips:password@db/opensips
 
 ; Authentication and storage tables
 subscriber_table = subscriber
