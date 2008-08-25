@@ -10,6 +10,7 @@ Prerequisites:
    (get them from the SVN trunk)
  - lxml (http://codespeak.net/lxml)
  - python-application
+ - python-xml
 
  To enable TLS support, you need:
  - GnuTLS library (http://www.gnu.org/software/gnutls)

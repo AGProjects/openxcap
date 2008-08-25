@@ -54,6 +54,9 @@ class DebugOutput:
         sys.stderr.write('%s %s\nRAISED %s %s\n' % (req.method, req.url, ex.__class__.__name__, ex))
 
     def log_trans(self, req, result):
+        if self.level<1:
+            return
+        self.file.write('\n')
         if self.level==1:
             self.log_method_url(req)
             self.log_result_code(result)
@@ -238,7 +241,7 @@ class XCAPTest(unittest.TestCase):
     
     def assertBody(self, r, value, msg=None):
         """Fail if value != r.body."""
-        if value.strip() != r.body.strip():
+        if value != r.body:
             if msg is None:
                 msg = 'expected body:\n"%s"\n\nactual body:\n"%s"' % (value, r.body)
             raise self.failureException(msg)
@@ -264,6 +267,10 @@ class XCAPTest(unittest.TestCase):
                 msg = 'No match for %s in body' % pattern
             raise self.failureException(msg)
 
+    def assertDocument(self, application, body, headers={}, client=None):
+        r = self.get(application, headers=headers, client=client)
+        self.assertBody(r, body)
+
     def get(self, application, node=None, headers={}, status=200, client=None):
         client = client or self.client
         r = client.get(application, node, headers)
@@ -277,6 +284,7 @@ class XCAPTest(unittest.TestCase):
         self.assertStatus(r_put, status)
 
         # if PUTting succeed, check that document is there and equals to resource
+
         if r_put.succeed:
             r_get = client.get(application, node)
             self.assertStatus(r_get, 200,
@@ -287,6 +295,11 @@ class XCAPTest(unittest.TestCase):
                 self.assertHeader(r_get, 'content-type', content_type_in_GET)
 
         return r_put
+
+    def put_new(self, application, resource, node=None, headers=None,
+                status=201, content_type_in_GET=None, client=None):
+        self.get(application, node=node, status=404, client=client)
+        return self.put(application, resource, node, headers, status, content_type_in_GET, client)
 
     def delete(self, application, node=None, headers={}, status=200, client=None):
         client = client or self.client

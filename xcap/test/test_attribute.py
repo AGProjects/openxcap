@@ -61,7 +61,7 @@ class AttributeTest(XCAPTest):
         self.put('resource-lists', 'coworkers',
                  '/resource-lists/list[@name="other"]/@some-attribute', headers, status=409)
 
-        # fails GET(PUT(x))==x test. REJECT in the server?
+        # fails GET(PUT(x))==x test. must be rejected in the server
         ##self.put('resource-lists', 'coworkers', '/resource-lists/list[@name="friends"]/@name', headers)
 
         r = self.client.put('resource-lists', 'coworkers', '/resource-lists/list[@name="friends"]/@name', headers)

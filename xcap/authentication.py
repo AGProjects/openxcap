@@ -5,6 +5,7 @@
 
 from xcap import tweaks
 
+import urlparse
 from zope.interface import Interface, implements
 
 from twisted.internet import defer
@@ -18,21 +19,57 @@ from application.configuration import *
 from application.configuration.datatypes import StringList, NetworkRangeList
 from application import log
 
-from xcap.appusage import getApplicationForURI
+from xcap.appusage import getApplicationForURI, namespaces
 from xcap.dbutil import connectionForURI
 from xcap.errors import ResourceNotFound
-from xcap.uri import XCAPUser, parseNodeURI
+from xcap.uri import XCAPUser, XCAPUri
 
 class AuthenticationConfig(ConfigSection):
     _datatypes = {'trusted_peers': StringList}
     default_realm = 'example.com'
     trusted_peers = []
 
-## We use this to overwrite some of the settings above on a local basis if needed
 configuration = ConfigFile('config.ini')
-configuration.read_settings('Authentication', AuthenticationConfig)
 
-## Trusted Peer credentials
+class XCAPRootURIs(tuple):
+    """Configuration data type. A tuple of defined XCAP Root URIs is extracted from
+       the configuration file."""
+    def __new__(typ):
+        uris = [value for name, value in configuration.get_section("Server") or [] if name == "root"]
+        for uri in uris:
+            scheme, host, path, params, query, fragment = urlparse.urlparse(uri)
+            if not scheme or not host or scheme not in ("http", "https"):
+                log.warn("XCAP Root URI not valid: %s" % uri)
+                uris.remove(uri) # XXX changing list while iterating
+        if not uris:
+            raise ResourceNotFound("At least one XCAP Root URI must be defined")
+        return tuple(uris)
+
+root_uris = XCAPRootURIs()
+
+class ServerConfig(ConfigSection):
+    _datatypes = {'root_uris': XCAPRootURIs} # WTF is that, how does it relates to root?
+    root_uris = ()
+
+configuration.read_settings('Authentication', AuthenticationConfig)
+configuration.read_settings('Server', ServerConfig)
+
+print 'Supported Root URIs: %s' % ','.join(root_uris)
+
+def parseNodeURI(node_uri, default_realm='example.com'):
+    """Parses the given Node URI, containing the XCAP root, document selector,
+       and node selector, and returns an XCAPUri instance if succesful."""
+    xcap_root = None
+    for uri in root_uris:
+        if node_uri.startswith(uri):
+            xcap_root = uri
+            break
+    if xcap_root is None:
+        log.error("XCAP root not found for request URI: %s" % node_uri)
+        raise ResourceNotFound("XCAP root not found for uri: %s" % node_uri)
+    resource_selector = node_uri[len(xcap_root):]
+    return XCAPUri(xcap_root, resource_selector, default_realm, namespaces)
+
 
 class ITrustedPeerCredentials(credentials.ICredentials):
 

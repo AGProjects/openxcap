@@ -1,6 +1,3 @@
-# Copyright (C) 2007 AG Projects.
-#
-
 """XCAP application usage module"""
 
 import os
@@ -18,6 +15,7 @@ from twisted.python import failure
 
 from xcap.errors import *
 from xcap.interfaces.backend import StatusResponse
+from xcap.element import XCAPElement
 
 supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pres-rules',
                           'resource-lists', 'rls-services', 'pidf-manipulation', 'watchers')
@@ -131,102 +129,54 @@ class ApplicationUsage(object):
 
     ## Element management
 
-    def _create_element(self, parent, terminal_selector, elem):
-        left = target.find('[')
-        if left == -1:
-            name = target
-            position = None
-        else:
-            name = target[:left]
-            right = target.find(']')
-            content = target[left+1:right]
-            if content[0] != '@':
-                position = int(content)
-            else:
-                position = None
-        if position is None: ## there is no positional constraint
-            i = 0
-            sibling_found = False
-            for child in parent:
-                if child.tag == name:
-                    sibling_found = True
-                if child.tag != name and sibling_found:
-                    parent.insert(i, elem)
-                    break
-                i += 1
-            if len(parent) == i: ## we've reached the end without inserting the new element
-                parent.append(elem)
-        else: ## a positional insertion
-            wildcard = name == "*"
-            i = 0
-            j = 1
-            for child in parent:
-                if position == j:
-                    parent.insert(i, elem)
-                    break
-                if (wildcard and type(child) is etree._Element) or (not wildcard and child.tag == name):
-                    j += 1
-                i += 1
-            if wildcard and position == j:
-                parent.insert(i, elem)
-
-    def _replace_element(self, parent, target, elem):
-        parent.replace(target, elem)
-
-    def _cb_put_element(self, response, uri, xml_elem, check_etag):
+    def _cb_put_element(self, response, uri, element, check_etag):
         """This is called when the document that relates to the element is retreived."""
         if response.code == 404:
             raise NoParentError
-        document = response.data
-        xml_doc = etree.parse(StringIO(document))
-        node_selector = uri.node_selector
-        application = getApplicationForURI(uri)
-        ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
-        try:
-            parent = xml_doc.xpath(node_selector.element_selector, namespaces = ns_dict)
-        except:
-            raise NoParentError
-            #raise Exception # TODO ce exceptie intoarcem daca selectorul nu e valid ?
-        if len(parent) != 1:
-            raise NoParentError
-        parent = parent[0]
-        target = parent.xpath(node_selector.terminal_selector, namespaces = ns_dict)
-        if target:
-            self._replace_element(parent, target[0], xml_elem)
-        else:
-            self._create_element(parent, node_selector.terminal_selector, xml_elem)
-        new_document = etree.tostring(xml_doc, encoding='UTF-8', xml_declaration=True)
-        return self.put_document(uri, new_document, check_etag)
+
+        result = XCAPElement.put(response.data, uri.node_selector.element_selector, element)
+        if result is None:
+            raise NoParentError # vs. ResourceNotFound?
+
+        new_document, created = result
+        get_result = XCAPElement.get(new_document, uri.node_selector.element_selector)
+
+        if get_result != element:
+            # GET request on the same URI must return just put document. This PUT doesn't comply.
+            raise CannotInsertError
+
+        d = self.put_document(uri, new_document, check_etag)
+
+        def set_201_code(response):
+            try:
+                if response.code==200:
+                    response.code = 201
+            except AttributeError:
+                pass
+            return response
+
+        if created:
+            d.addCallback(set_201_code)
+        
+        return d
 
     def put_element(self, uri, element, check_etag):
         try:
-            xml_elem = etree.parse(StringIO(element)).getroot()
-            # verifica daca are un singur element, daca nu arunca aceeasi exceptie ? TODO
+            etree.parse(StringIO(element)).getroot()
+            # verify if it has one element, if not should we throw the same exception?
         except:
             raise NotXMLFragmentError
         d = self.get_document(uri, check_etag)
-        return d.addCallbacks(self._cb_put_element, callbackArgs=(uri, xml_elem, check_etag))
+        return d.addCallbacks(self._cb_put_element, callbackArgs=(uri, element, check_etag))
 
     def _cb_get_element(self, response, uri):
         """This is called when the document that relates to the element is retreived."""
         if response.code == 404:
             raise ResourceNotFound
-        document = response.data
-        xml_doc = etree.parse(StringIO(document))
-        node_selector = uri.node_selector
-        application = getApplicationForURI(uri)
-        ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
-        try:
-            selector = node_selector.element_selector + '/' + node_selector.terminal_selector
-            elem = xml_doc.xpath(selector, namespaces = ns_dict)
-        except:
+        result = XCAPElement.get(response.data, uri.node_selector.element_selector)
+        if not result:
             raise ResourceNotFound
-        if not elem:
-            raise ResourceNotFound
-        # TODO
-        # The server MUST NOT add namespace bindings representing namespaces 
-        # used by the element or its children, but declared in ancestor elements
-        return StatusResponse(200, response.etag, etree.tostring(elem[0]))
+        return StatusResponse(200, response.etag, result)
 
     def get_element(self, uri, check_etag):
         d = self.get_document(uri, check_etag)
@@ -235,21 +185,13 @@ class ApplicationUsage(object):
     def _cb_delete_element(self, response, uri, check_etag):
         if response.code == 404:
             raise ResourceNotFound
-        document = response.data
-        xml_doc = etree.parse(StringIO(document))        
-        node_selector = uri.node_selector
-        application = getApplicationForURI(uri)
-        ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
-        try:
-            selector = node_selector.element_selector + '/' + node_selector.terminal_selector
-            elem = xml_doc.xpath(selector, namespaces = ns_dict)
-        except:
+        new_document = XCAPElement.delete(response.data, uri.node_selector.element_selector)
+        if not new_document:
             raise ResourceNotFound
-        if len(elem) != 1:
-            raise ResourceNotFound
-        elem = elem[0]
-        elem.getparent().remove(elem)
-        new_document = etree.tostring(xml_doc, encoding='UTF-8', xml_declaration=True)
+        get_result = XCAPElement.find(new_document, uri.node_selector.element_selector)
+        if get_result:
+            # GET request on the same URI must return 404. This DELETE doesn't comply.
+            raise CannotDeleteError
         return self.put_document(uri, new_document, check_etag)
 
     def delete_element(self, uri, check_etag):
@@ -264,12 +206,11 @@ class ApplicationUsage(object):
             raise ResourceNotFound
         document = response.data
         xml_doc = etree.parse(StringIO(document))
-        node_selector = uri.node_selector
         application = getApplicationForURI(uri)
-        ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
+        ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
-            selector = node_selector.element_selector + '/' + node_selector.terminal_selector
-            attribute = xml_doc.xpath(selector, namespaces = ns_dict)
+            xpath = uri.node_selector.replace_default_prefix()
+            attribute = xml_doc.xpath(xpath, namespaces = ns_dict)
         except:
             raise ResourceNotFound
         if len(attribute) != 1:
@@ -288,18 +229,17 @@ class ApplicationUsage(object):
             raise ResourceNotFound
         document = response.data
         xml_doc = etree.parse(StringIO(document))        
-        node_selector = uri.node_selector
         application = getApplicationForURI(uri)
-        ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
+        ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
-            elem = xml_doc.xpath(node_selector.element_selector, namespaces = ns_dict)
+            elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
         except:
             raise ResourceNotFound
         if len(elem) != 1:
             raise ResourceNotFound
         elem = elem[0]
-        attribute = node_selector.terminal_selector[1:]
-        if elem.get(attribute):  ## check if the attribute exists
+        attribute = uri.node_selector.terminal_selector.attribute
+        if elem.get(attribute):  ## check if the attribute exists XXX use KeyError instead
             del elem.attrib[attribute]
         else:
             raise ResourceNotFound
@@ -316,17 +256,16 @@ class ApplicationUsage(object):
             raise NoParentError
         document = response.data
         xml_doc = etree.parse(StringIO(document))
-        node_selector = uri.node_selector
         application = getApplicationForURI(uri)
-        ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
+        ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
-            elem = xml_doc.xpath(node_selector.element_selector, namespaces = ns_dict)
+            elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
         except:
             raise NoParentError
         if len(elem) != 1:
             raise NoParentError
         elem = elem[0]
-        attr_name = node_selector.terminal_selector[1:]
+        attr_name = uri.node_selector.terminal_selector.attribute
         elem.set(attr_name, attribute)
         new_document = etree.tostring(xml_doc, encoding='UTF-8', xml_declaration=True)
         return self.put_document(uri, new_document, check_etag)
@@ -344,13 +283,10 @@ class ApplicationUsage(object):
             raise ResourceNotFound
         document = response.data
         xml_doc = etree.parse(StringIO(document))
-        node_selector = uri.node_selector
         application = getApplicationForURI(uri)
-        ns_dict = node_selector.get_xpath_ns_bindings(application.default_ns)
+        ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
-            #selector = node_selector.element_selector + '/' + node_selector.terminal_selector
-            selector = node_selector.element_selector
-            elem = xml_doc.xpath(selector, namespaces = ns_dict)
+            elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
         except:
             raise ResourceNotFound
         if not elem:
@@ -512,7 +448,6 @@ class WatchersApplication(ResourceListsApplication):
     def put_document(self, uri, document, check_etag):
         raise ResourceNotFound("This application is read-only") # TODO: test and add better error
 
-
 theStorage = ServerConfig.backend.Storage()
 
 class TestApplication(ApplicationUsage):
@@ -533,6 +468,7 @@ applications = {'xcap-caps': XCAPCapabilitiesApplication(),
                 'rls-services': RLSServicesApplication(theStorage),
                 'test-app': TestApplication(theStorage)}
 
+namespaces = dict((k, v.default_ns) for (k, v) in applications.items())
 
 def getApplicationForURI(xcap_uri):
     return applications.get(xcap_uri.application_id, None)

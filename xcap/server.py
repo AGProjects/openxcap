@@ -22,7 +22,7 @@ from xcap import authentication
 from xcap.appusage import getApplicationForURI
 from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute, XCAPNamespaceBinding
 from xcap.tls import Certificate, PrivateKey
-from xcap.uri import XCAPUri, AttributeSelector, NamespaceSelector, ExtensionSelector
+from xcap.uri import XCAPUri, AttributeSelector, NamespaceSelector
 from xcap import __version__ as version
 
 server.VERSION = "OpenXCAP/%s" % version
