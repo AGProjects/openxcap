@@ -515,13 +515,23 @@ class WatchersApplication(ResourceListsApplication):
 
 theStorage = ServerConfig.backend.Storage()
 
+class TestApplication(ApplicationUsage):
+    "Application for tests described in Section 8.2.3. Creation of RFC 4825"
+    id = "test-app"
+    default_ns = 'test-app'
+    mime_type= "application/test-app+xml"
+    schema_file = None
+
+    theStorage.app_mapping['test-app'] = 0
+
 applications = {'xcap-caps': XCAPCapabilitiesApplication(),
                 'pres-rules': PresenceRulesApplication(theStorage),
                 'org.openmobilealliance.pres-rules': PresenceRulesApplication(theStorage),
                 'resource-lists': ResourceListsApplication(theStorage),
                 'pidf-manipulation': PIDFManipulationApplication(theStorage),
                 'watchers': WatchersApplication(theStorage),
-                'rls-services': RLSServicesApplication(theStorage)}
+                'rls-services': RLSServicesApplication(theStorage),
+                'test-app': TestApplication(theStorage)}
 
 
 def getApplicationForURI(xcap_uri):
