@@ -62,8 +62,9 @@ def main():
         resource = None
         headers = {}
 
-    if len(args)==1:
+    if len(args)==2:
         application = args[1]
+        node = None
     else:
         application, node = args[1:]
 
