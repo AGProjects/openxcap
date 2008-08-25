@@ -1,16 +1,3 @@
-Functionality
--------------
-
-- Support for RLS
-- XML element/attribute management functions
-
-Configuration
--------------
-
-- Normalize default document name per application
-- Support multiple XCAP root URIs
-- Define authentication database URI per Realm
-
 Logging
 -------
 
