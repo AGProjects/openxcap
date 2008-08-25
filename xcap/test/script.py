@@ -79,6 +79,7 @@ def main():
         if result.body:
             sys.stdout.write(result.body)
     else:
+        sys.stderr.write(result.body)
         sys.exit(1)
 
 if __name__=='__main__':
