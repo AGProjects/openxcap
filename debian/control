@@ -5,11 +5,11 @@ Maintainer: Adrian Georgescu <ag@ag-projects.com>
 Uploaders: Dan Pascu <dan@ag-projects.com>, Ruud Klaver <ruud@ag-projects.com>, Denis Bilenko <denis@ag-projects.com>
 Build-Depends: cdbs (>= 0.4.47), debhelper (>= 5.0.42), python-all-dev (>= 2.4.4), python-central (>= 0.5.6)
 XS-Python-Version: all
-Standards-Version: 3.7.2
+Standards-Version: 3.7.3
 
 Package: openxcap
 Architecture: all
-Depends: ${python:Depends}, python-lxml, python-zopeinterface, python-twisted-core, python-twisted-web, python-twisted-web2, python-application (>= 1.0.9), python-gnutls (>= 1.1.4)
+Depends: ${python:Depends}, python-lxml, python-zopeinterface, python-twisted-core, python-twisted-web, python-twisted-web2, python-application (>= 1.0.9), python-gnutls (>= 1.1.4), python-sqlobject
 XB-Python-Version: ${python:Versions}
 Description: An Open Source XCAP server implementation
  XCAP protocol allows a client to read, write and modify application
