@@ -3,7 +3,7 @@
 
   Usage:
 
-    script.py OPTIONS ACTION APPLICATION
+    script.py OPTIONS ACTION APPLICATION NODE
 
   ACTION is one of GET/PUT/DELETE
   when action is PUT, resource is expected on stdin
@@ -57,9 +57,23 @@ def main():
 
     if cmd == client.put:
         resource = sys.stdin.read()
-        args.append(resource)
+        headers = {'Content-type' : 'application/xcap-el+xml'}
+    else:
+        resource = None
+        headers = {}
 
-    result = cmd(*args[1:])
+    if len(args)==1:
+        application = args[1]
+    else:
+        application, node = args[1:]
+
+    if cmd in [client.get, client.delete]:
+        result = cmd(application, node)
+    elif cmd == client.put:
+        result = client.put(application, resource, node, headers)
+    else:
+        wtf
+
     if 200 <= result.code <= 200:
         if result.body:
             sys.stdout.write(result.body)
