@@ -82,15 +82,37 @@ Supported XCAP applications
 
 
 Data storage
+------------
 
 OpenXCAP server supports multiple back-end storage systems and works out of
 the box with OpenSER Proxy/Registrar/Presence server
 
 
+OpenSER integration issues
+--------------------------
+
+- The rpc management interface exposed by OpenSER needs to be protected by
+  iptables or other methods otherwise is reachable from the network 
+- The mi_xmlrpc seem to freeze with no reason after awhile, a restart of the
+  proxy is necessary, next version will use the datagram interface which
+  seem to be more stable
+
+Avoid using mi_xmlrpc and use openser-mi-proxy package available at:
+
+http://download.ag-projects.com/OpenXCAP/
+
+openser-mi-proxy provides both and access list and a stable control interface
+between OpenXCAP and OpenXCAP..
+
+
 Publishing xcap-diff events
+---------------------------
 
 OpenXCAP server can publish xcap-diff when a change occurs as described
 in http://tools.ietf.org/html/draft-ietf-simple-xcap-diff-09
+
+Xcap-diff allows multiple clients working on behalf of the same presentity
+to be notified by the server about changes of the XCAP documents.
 
 Generated event is published via OpenSER's management interface (function
 'publish' from pua_mi module). Checkout out sample openser.cfg in openser dir.
@@ -115,11 +137,20 @@ with XCAP clients known to be working with OpenXCAP:
 
     - OpenSER from http://openser.org
 
-    - simple-soap-proxy. This client allows publication of arbitrary
+    - soap-simple-proxy. This client allows publication of arbitrary
       information and policy management using an easy to use SOAP/XML
       interface
     
     - Eyebeam from http://www.counterpath.com
+
+
+Caveats
+-------
+
+Beware that OpenXCAP server needs to run on a host that has Internet
+connectivity. This is due to a constraint imposed by the underlying libxml
+library that will try to connect to w3c website on startup to retrieve the
+xml schemas used for validating xcap documents
 
 
 Support
@@ -132,6 +163,10 @@ http://openxcap.org
     - To open ticket please Register first. The ticketing support system is
       available only for registered users. Please beware that the support is
       provided by the community on a best-effort basis.
+
+You may also receive support from OpenSER community mailing lists:
+
+http://openser.org/pipermail/users/
 
 Commercial support or other licensing options are available from:
 AG Projects http://ag-projects.com
