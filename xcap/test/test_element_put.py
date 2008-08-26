@@ -107,10 +107,47 @@ class PutElementTest(XCAPTest):
 </root>''')
         self.reverse('root/el2[1][@att="2"]')
 
-        # QQQ check this as well?: The XCAP server MUST NOT remove
-        # redundant namespace declarations or otherwise change the namespace
-        # declarations that were present in the element being inserted.
+    def test_creation_starattr(self):
+        """Testing PUT requests of form '*[@att="some"]' which require looking into body of PUT"""
+        self.put(app, start)
 
+        for selector in ['root/*[@att="2"]',
+                         'root/el1[@att="2"]']:
+            self.put_new(app, '<el1 att="2"/>', selector, headers=headers)
+            self.assertDocument(app, '''<?xml version='1.0' encoding='UTF-8'?>
+<root xmlns="test-app">
+<el1 att="first"/>
+<el1 att="second"/><el1 att="2"/>
+<!-- comment -->
+<el2 att="first"/>
+</root>''')
+            self.reverse(selector)
+
+        # the same request - different body
+        for selector in ['root/*[@att="2"]',
+                         'root/el2[@att="2"]']:
+            self.put_new(app, '<el2 att="2"/>', selector, headers=headers)
+            self.assertDocument(app, '''<?xml version='1.0' encoding='UTF-8'?>
+<root xmlns="test-app">
+<el1 att="first"/>
+<el1 att="second"/>
+<!-- comment -->
+<el2 att="first"/><el2 att="2"/>
+</root>''')
+            self.reverse(selector)
+
+        # the same request - different body
+        for selector in ['root/*[@att="2"]',
+                         'root/el3[@att="2"]']:
+            self.put_new(app, '<el3 att="2"/>', selector, headers=headers)
+            self.assertDocument(app, '''<?xml version='1.0' encoding='UTF-8'?>
+<root xmlns="test-app">
+<el1 att="first"/>
+<el1 att="second"/>
+<!-- comment -->
+<el2 att="first"/>
+<el3 att="2"/></root>''')
+            self.reverse(selector)
 
     def test_replacement(self):
 

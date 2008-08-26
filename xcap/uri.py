@@ -166,6 +166,7 @@ class Step(Str):
         else:
             self.att_name  = None
             self.att_value = None
+    # XXX Step __repr__/__str__ bug: change an attribute, but repr/str are not changed.
 
 
 def step2str(step, namespace2prefix = {}):
@@ -202,13 +203,13 @@ class ElementSelector(list):
 
     >>> print x
     /watcherinfo/watcher-list/watcher[@id="8ajksjda7s"]
-
     """
 
     def __init__(self, s, namespace=None, namespaces={}):
         steps = [Step(x, namespace, namespaces) for x in s.strip('/').split('/')]
         list.__init__(self, steps)
         self.namespace = namespace
+        self.namespaces = namespaces
 
     def __str__(self):
         return '/' + '/'.join(str(x) for x in self)
@@ -224,6 +225,23 @@ class ElementSelector(list):
             else:
                 steps.append(step2str(step, namespace2prefix))
         return '/' + '/'.join(steps)
+
+    xml_tag = re.compile('\s*<([^ >/]+)')
+
+    def fix_star(self, element_body):
+        """
+        >>> x = ElementSelector('watcherinfo/watcher-list/*[@id="8ajksjda7s"]')
+        >>> x.fix_star('<watcher/>')[-1].name[1]
+        'watcher'
+        """
+        if self and self[-1].name == '*' and self[-1].position is None:
+            m = self.xml_tag.match(element_body)
+            if m:
+                (name, ) = m.groups()
+                result = copy(self)
+                result[-1].name = parse_qname(name, self.namespace, self.namespaces)
+                return result
+        return self
 
 
 class NodeSelector(Str):

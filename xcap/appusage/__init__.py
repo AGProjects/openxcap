@@ -134,7 +134,9 @@ class ApplicationUsage(object):
         if response.code == 404:
             raise NoParentError
 
-        result = XCAPElement.put(response.data, uri.node_selector.element_selector, element)
+        fixed_element_selector = uri.node_selector.element_selector.fix_star(element)
+
+        result = XCAPElement.put(response.data, fixed_element_selector, element)
         if result is None:
             raise NoParentError # vs. ResourceNotFound?
 
