@@ -143,7 +143,7 @@ class ApplicationUsage(object):
         new_document, created = result
         get_result = XCAPElement.get(new_document, uri.node_selector.element_selector)
 
-        if get_result != element:
+        if get_result != element.strip():
             # GET request on the same URI must return just put document. This PUT doesn't comply.
             raise CannotInsertError
 

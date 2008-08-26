@@ -444,6 +444,7 @@ class _test:
     @classmethod
     def lxml_xpath_get(cls, xpath_expr, source=source1, namespace=None, namespaces={}):
         "First, use xpath from lxml, which should produce the same results for existing nodes"
+        assert '/'.startswith(xpath_expr[:1]), xpath_expr
         doc = etree.parse(StringIO(source))
         try:
             # where to put namespace?
@@ -595,10 +596,10 @@ class _test:
 
         if not cls.simplify_check:
             retrieved = cls.xcap_get2(insert_pos, result)
-            if retrieved != what:
+            if retrieved != what.strip():
                 print 'GET(PUT(x))!=x'
-                print 'PUT: %s' % what
-                print 'GOT: %s' % retrieved
+                print 'PUT: %r' % what
+                print 'GOT: %r' % retrieved
 
     @classmethod
     def test_put0(cls):
@@ -613,10 +614,10 @@ class _test:
                               namespaces=namespaces)
 
         retrieved = cls.xcap_get(pos, result, namespace, namespaces)
-        if retrieved != what:
+        if retrieved != what.strip():
             print 'GET(PUT(x))!=x'
-            print 'PUT: %s' % what
-            print 'GOT: %s' % retrieved
+            print 'PUT: %r' % what
+            print 'GOT: %r' % retrieved
         
 
     @classmethod
@@ -688,6 +689,15 @@ class _test:
      <!-- comment -->
      <el2 att="first"/>
     <el2 att="2"/></root>""")
+
+        # spaces can be inserted along with element (but not comments)
+        check('/root/el2[1][@att="2"]', ' <el2 att="2"/> ', '''<?xml version="1.0"?>
+    <root>
+     <el1 att="first"/>
+     <el1 att="second"/>
+     <!-- comment -->
+      <el2 att="2"/> <el2 att="first"/>
+    </root>''')
 
     source3 = """<?xml version="1.0"?>
     <root>

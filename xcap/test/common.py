@@ -290,7 +290,7 @@ class XCAPTest(unittest.TestCase):
             self.assertStatus(r_get, 200,
                               'although PUT succeed, following GET on the same URI did not: %s %s' % \
                               (r_get.code, r_get.msg))
-            self.assertEqual(resource, r_get.body) # is body put equals to body got?
+            self.assertEqual(resource.strip(), r_get.body) # is body put equals to body got?
             if content_type_in_GET is not None:
                 self.assertHeader(r_get, 'content-type', content_type_in_GET)
 
