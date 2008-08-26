@@ -30,8 +30,14 @@ def xml_xcapdiff(xcap_root, content):
 """ % (xcap_root, content)
 
 def xml_document(sel, old_etag, new_etag):
-    old_etag = ( ' previous-etag="%s"' % old_etag ) if old_etag else ''
-    new_etag = ( ' new-etag="%s"' % new_etag ) if new_etag else ''
+    if old_etag:
+        old_etag = ( ' previous-etag="%s"' % old_etag )
+    else:
+	old_etag = ''
+    if new_etag:
+        new_etag = ( ' new-etag="%s"' % new_etag )
+    else:
+	new_etag = ''
     return '<document%s sel="%s"%s/>' % (new_etag, sel, old_etag)
 
 
