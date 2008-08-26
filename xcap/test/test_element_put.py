@@ -24,25 +24,25 @@ class PutElementTest(XCAPTest):
         self.assertDocument(app, start)
 
     def test_creation(self):
-        """Tests different ways of inserting an element as described in examples from Section 8.2.3
+        """Testing different ways of inserting an element as described in examples from Section 8.2.3
         (http://tools.ietf.org/html/rfc4825#section-8.2.3)
 
         After each PUT, DELETE is executed on the same URI and the resulting document must
-        be the same as before insertion.
+        be the same as before the insertion.
         """
         self.put(app, start)
 
-        for node_selector in [#'/root/el1[@att="third"]',
+        for node_selector in ['/root/el1[@att="third"]',
                               '/root/el1[3][@att="third"]',
                               '/root/*[3][@att="third"]']:
             self.put_new(app, '<el1 att="third"/>', node_selector, headers=headers)
-#             self.assertDocument(app, '''<?xml version='1.0' encoding='UTF-8'?>
-# <root xmlns="test-app">
-# <el1 att="first"/>
-# <el1 att="second"/><el1 att="third"/>
-# <!-- comment -->
-# <el2 att="first"/>
-# </root>''')
+            self.assertDocument(app, '''<?xml version='1.0' encoding='UTF-8'?>
+<root xmlns="test-app">
+<el1 att="first"/>
+<el1 att="second"/><el1 att="third"/>
+<!-- comment -->
+<el2 att="first"/>
+</root>''')
             self.reverse(node_selector)
 
         # out-of-bound positional index in node selector results in 409 (XXX or 404?)
