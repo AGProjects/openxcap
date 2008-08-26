@@ -106,7 +106,6 @@ class Test(XCAPTest):
 
     @classmethod
     def setupOptionParser(_cls, parser):
-        parser.set_defaults(outbound_proxy='127.0.0.1', proxy_ip='127.0.0.1', proxy_port=5060)
         parser.add_option("-p", "--outbound-proxy", type="string", action="callback",
                           callback=parse_proxy_cb,
                           help="Outbound SIP proxy to use. By default a lookup is performed based on SRV and A records.",
