@@ -1,9 +1,12 @@
-openxcap (1.0.0) unstable; urgency=low
+openxcap (1.0.0) unstable; urgency=high
 
   * Added RLS services (RFC 4662 and RFC 4826)
-  * Added xcap-diff (draft-ietf-simple-xcap-diff-09)
-  * Added tests for rls-services and resource-lists
-  * Changed license from to GPL
+  * Added support for xcap-diff based on draft-ietf-simple-xcap-diff-09
+  * Added test suite for rls-services, resource-lists and partial updates
+  * Switched to Python 2.5
+  * Better documentation
+  * Changed license to GPL
+  * Many bug fixes
   * Changed development status from beta to production
 
  -- Adrian Georgescu <ag@ag-projects.com>  Mon, 25 Aug 2008 14:05:34 +0200
