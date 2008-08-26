@@ -1,3 +1,20 @@
+"""Element handling as described in RFC 4825.
+
+This module implements
+ * location of an element in xml document
+ * location of insertion point for a new element in xml document
+
+This allows to implement GET/PUT/DELETE for elements in XCAP server.
+
+Syntax for element selectors is a subset of xpath, but a xpath implementation
+was not used. One reason is that xpath only implements locating an element but not
+an insertion point for element selectors which do not point to an existing
+element, but will point to the inserted element after PUT.
+
+For element selectors of type *[@att="value"] insertion point depends on
+the content of a new element. For RFC compliant behavior, fix such requests
+by replacing '*' with root tag of new element's body.
+"""
 from xml import sax
 from StringIO import StringIO
 from xcap import uri
@@ -139,7 +156,6 @@ class ElementLocator(ContentHandlerBase):
             # 2. <name/>*end_pos*...*end_pos_2*<...
 
         element = self.path.pop()
-        #assert element.name == name, (element, name)
         self.curstep -= 1
 
 
@@ -324,8 +340,8 @@ class XCAPElement:
     @classmethod
     def put(cls, document, element_selector, element_str):
         """Return a 2-items tuple: (new_document, created).
-        new_document is a copy document with element_str inside.
-        created is True if insertion was preformed as opposed to replacement.
+        new_document is a copy of document with element_str inside.
+        created is True if insertion was performed as opposed to replacement.
 
         If element_selector matches an existing element, it is replaced with element_str.
         If not, it is inserted at appropriate place.
@@ -572,6 +588,7 @@ class _test:
             result_check = lambda s: s == expected
 
         if not result_check(result):
+            print 'insert_pos: %s' % insert_pos
             print 'result: %s' % result
             print 'expected: %s' % expected
             return
@@ -682,7 +699,7 @@ class _test:
 
     @classmethod
     def test_put2(cls):
-        "now something xpath alone cannot do: locate position for insertion of a new node"
+        "the same as before, with <tag/> replaced by <tag></tag>"
 
         def check(insert_pos, what, expected, source=cls.source3):
             return cls.check(insert_pos, what, expected, source)
