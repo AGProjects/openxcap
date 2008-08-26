@@ -137,7 +137,8 @@ class Storage(object):
                    "org.openmobilealliance.pres-rules": 1<<1,
                    "resource-lists"   : 1<<2,
                    "rls-services"     : 1<<3,
-                   "pidf-manipulation": 1<<4}
+                   "pidf-manipulation": 1<<4,
+                   "test-app"         : 0}
 
     def __init__(self):
         self.__db_connect()

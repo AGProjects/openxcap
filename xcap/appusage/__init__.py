@@ -457,8 +457,6 @@ class TestApplication(ApplicationUsage):
     mime_type= "application/test-app+xml"
     schema_file = None
 
-    theStorage.app_mapping['test-app'] = 0
-
 applications = {'xcap-caps': XCAPCapabilitiesApplication(),
                 'pres-rules': PresenceRulesApplication(theStorage),
                 'org.openmobilealliance.pres-rules': PresenceRulesApplication(theStorage),
