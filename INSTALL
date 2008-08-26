@@ -5,10 +5,9 @@ Installation
 Prerequisites:
 
  - LibXML (http://xmlsoft.org/downloads.html)
- - Python 2.4 or newer (www.python.org)
+ - Python 2.5 or newer (www.python.org)
  - Twisted framework (http://twistedmatrix.com) - Twisted Core, Twisted Web and Twisted Web 2
-   (get them from the SVN trunk)
- - lxml (http://codespeak.net/lxml)
+ - python-lxml (http://codespeak.net/lxml)
  - python-application
  - python-xml
 
@@ -18,9 +17,27 @@ Prerequisites:
 
 The software has been tested on debian unstable using the following versions:
 
- - libxml2: 2.6.28.dfsg-1
- - python: 2.4.4-6
- - python-lxml: 1.1.2-1
- - twisted: 2.5.0
- - python-application: 1.0.9
- - python-gnutls: 1.1.1
+ - libxml2: 2.6.32.dfsg-2
+ - python: 2.5.2-1
+ - python-application: 1.0.9-4
+ - python-gnutls: 1.1.5-2
+ - python-lxml: 2.0.5-1
+ - python-sqlobject: 0.10.1-1
+ - python-twisted-core: 8.0.1-1
+ - python-twisted-web: 8.0.0-1
+ - python-twisted-web2: 8.0.1-1
+ - python-zopeinterface: 3.3.1-6
+
+
+Testing
+-------
+
+There's a test suite you can ran against a freshly installed server. It is
+located in xcap/test directory (look at /usr/lib/python2.5/site-packages/xcap/test
+if you have installed the server from debian package).
+To run the whole test suite run something like this:
+
+  python test.py --xcap-root https://xcap.example.com/xcap-root --username alice@example.com --password 123
+
+NOTE: This will result in destruction of xcap documents belonging to user alice@example.com.
+Replacing 'test.py' with 'test_something.py' will only run tests defined in test_something.py.
