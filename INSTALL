@@ -11,11 +11,12 @@ Prerequisites:
  - python-application
  - python-xml
 
- To enable TLS support, you need:
+To enable TLS support:
+
  - GnuTLS library (http://www.gnu.org/software/gnutls)
  - python-gnutls (http://pypi.python.org/pypi/python-gnutls)
 
-The software has been tested on debian unstable using the following versions:
+OepnXCAP has been tested on Debian unstable with the following versions:
 
  - libxml2: 2.6.32.dfsg-2
  - python: 2.5.2-1
@@ -32,12 +33,19 @@ The software has been tested on debian unstable using the following versions:
 Testing
 -------
 
-There's a test suite you can ran against a freshly installed server. It is
-located in xcap/test directory (look at /usr/lib/python2.5/site-packages/xcap/test
-if you have installed the server from debian package).
-To run the whole test suite run something like this:
+A test suite for testing the functionality the server is located in
+/xcap/test directory. If the software has been installed as a Debian
+package, the test suite is found in /usr/lib/python2.5/site-packages/xcap/test
 
-  python test.py --xcap-root https://xcap.example.com/xcap-root --username alice@example.com --password 123
+To run the test suite add a user to the subscriber database
+(alice@exmaple.com in the following example) and execute:
 
-NOTE: This will result in destruction of xcap documents belonging to user alice@example.com.
-Replacing 'test.py' with 'test_something.py' will only run tests defined in test_something.py.
+python test.py --xcap-root https://xcap.example.com/xcap-root --username alice@example.com --password 123
+
+Notes
+
+- Running the test suite for a give user will result in the destruction of
+all xcap documents belonging to that user
+- Replacing 'test.py' with 'test_something.py' will run only the tests
+defined in test_something.py
+
