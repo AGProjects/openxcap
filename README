@@ -115,18 +115,22 @@ Xcap-diff allows multiple clients working on behalf of the same presentity
 to be notified by the server about changes of the XCAP documents.
 
 Generated event is published via OpenSER's management interface (function
-'publish' from pua_mi module). Checkout out sample openser.cfg in openser dir.
-OpenSER module presence_xcapdiff registers 'xcap-diff' event with presence in pua.
+'publish' from pua_mi module). Checkout out sample openser.cfg in openser
+dir. OpenSER module presence_xcapdiff registers 'xcap-diff' event with
+presence agent in pua.
 
 To enable this feature in OpenXCAP backend 'OpenSER' must be used and
 enable_publish_xcapdiff parameter must be set to 'yes'.
 
-OpenXCAP doesn't put diff information into events, only uris and etags of
-affected documents. Client must use then external document retrieval.
-(This corresponds to rows 2, 4 and 5 in Figure 1 of the draft)
+OpenSER doesn't put the full diff information into event notications, only
+the XCAP uris and etags of the affected documents. This is to avoid using
+unreliable SIP transports like UDP for carrying large xcaps documents.
+Clients must then use external document retrieval for the XCAP uris received
+in the notifications from the presence agent. This corresponds to rows 2, 4
+and 5 in Figure 1 of the draft.
 
-There's no way to indicate what uris client has interest in, all changes
-to the documents belonging to given user are published.
+There's no way to indicate what uris client has interest in, all changes to
+the documents belonging to given user are published.
 
 
 XCAP clients
