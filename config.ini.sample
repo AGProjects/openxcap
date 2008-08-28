@@ -16,7 +16,11 @@ port = 443
 root = https://xcap.example.com/xcap-root
 
 ; The backend to be used for storage and authentication. Current supported
-; values are Database for generic support and OpenSER
+; values are Database and OpenSER. OpenSER backend inherits all the settings
+; from the Database backend but performs extra actions related to the
+; integration with OpenSER for which it read the settings from [OpenSER]
+; section
+
 backend = OpenSER
 
 ; Validate XCAP documents against XML schemas
