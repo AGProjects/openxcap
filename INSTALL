@@ -44,7 +44,7 @@ python test.py --xcap-root https://xcap.example.com/xcap-root --username alice@e
 
 Notes
 
-- Running the test suite for a give user will result in the destruction of
+- Running the test suite for a given user will result in the destruction of
 all xcap documents belonging to that user
 - Replacing 'test.py' with 'test_something.py' will run only the tests
 defined in test_something.py
