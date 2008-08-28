@@ -18,14 +18,6 @@ from xcap.xcapdiff import Notifier
 from xcap import uri
 
 class Config(ConfigSection):
-    authentication_db_uri = 'mysql://user:pass@db/openser'
-    storage_db_uri = 'mysql://user:pass@db/openser'
-    subscriber_table = 'subscriber'
-    user_col = 'username'
-    domain_col = 'domain'
-    password_col = 'password'
-    ha1_col = 'ha1'
-    xcap_table = 'xcap'
     xmlrpc_url = 'http://localhost:8080'
     enable_publish_xcapdiff = False
 

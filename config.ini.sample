@@ -54,8 +54,6 @@ private_key = tls/server.key
 
 [Database]
 
-; Configuration settings for Database backend, active if this backend was selected
-; in the [Server] section
 ; The database connection URI for the datase with subscriber accounts
 authentication_db_uri = mysql://username:password@db/database
 
@@ -68,18 +66,6 @@ xcap_table = xcap
 
 
 [OpenSER]
-
-; Configuration settings for OpenSER backend, active if this backend was selected
-; in the [Server] section
-; The database connection URI for the datase with subscriber accounts
-authentication_db_uri = mysql://opensips:password@db/opensips
-
-; The database connection URI for the database that stores the XCAP documents
-storage_db_uri = mysql://opensips:password@db/opensips
-
-; Authentication and storage tables
-subscriber_table = subscriber
-xcap_table = xcap
 
 ; The address and port of the xml-rpc management interface
 xmlrpc_url = http://sip.example.com:8080
