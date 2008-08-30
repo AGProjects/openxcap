@@ -157,8 +157,8 @@ library that will try to connect to w3c website on startup to retrieve the
 xml schemas used for validating xcap documents
 
 
-Support
--------
+Free support
+------------
 
 The project is supported via this wiki collaboration system provided at:
 
@@ -168,10 +168,19 @@ http://openxcap.org
       available only for registered users. Please beware that the support is
       provided by the community on a best-effort basis.
 
-You may also receive support from OpenSER community mailing lists:
+You may also report bugs or feature request to:
 
-http://openser.org/pipermail/users/
+users@lists.opensips.org
 
-Commercial support or other licensing options are available from:
-AG Projects http://ag-projects.com
+A mailing list archive is available at:
+http://lists.opensips.org/cgi-bin/mailman/listinfo/users
+
+
+Commercial support
+------------------
+
+Commercial support options are available by purchasing:   
+
+1. Multimedia Service Platform: http://ag-projects.com/Products or
+2. OpenXCAP and support from: https://secure.dns-hosting.info/buyer_guide.phtml
 
