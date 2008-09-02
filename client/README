@@ -1,0 +1,81 @@
+
+XCAP Client
+===========
+
+
+Installation
+------------
+
+1. For argument and node-selector completion:
+   sudo cp bash_completion.d/xcapclient /etc/bash_completion.d/
+
+2. Copy .xcapclient.sample to ~/.xcapclient and change accordingly to
+   your XCAP servers configuration. You may skip this step, but you'd
+   have to provide --xcap-root and --user options for each command
+   invocation which is annoying.
+
+3. install xcapclient.py 
+   copy xcapclientapp.py to /usr/bin/xcapclient
+
+
+Usage
+-----
+
+The XCAP client allows you to manage documents on XCAP server,
+like OpenXCAP (www.openxcap.org). ... XXX write intro
+
+1. Operating on documents
+
+  a. put
+
+    $ ./xcapclient --user 'denis:passwd@mvoip.nl' --root 'http://cdr.mvoip.nl:8000/xcap-root' --app resource-lists -i resource-lists.xml put
+
+  On success, this command prints '201 Created' if a new document was created on the
+  server or '200 OK' if an existing document was replaced. You should something like this:
+
+    url: http://cdr.mvoip.nl:8000/xcap-root/resource-lists/users/denis@mvoip.nl/index.xml
+    201 Created
+    etag: "856bdac9012ee28e46cebb81e51ac2a0"
+
+  b. get
+
+    $ ./xcapclient --user 'denis:passwd@mvoip.nl' --root 'http://cdr.mvoip.nl:8000/xcap-root' --app resource-lists get
+
+  This will print the document you've just put, along with its tag.
+
+  c. delete
+
+    $ ./xcapclient --user 'denis:passwd@mvoip.nl' --root 'http://cdr.mvoip.nl:8000/xcap-root' --app resource-lists delete
+
+
+2. Operating elements
+
+  It is possible to retrieve a single element in an XCAP document, to replace it,
+  to insert a new one or to remove one. To address an element, node selector is
+  required, which is an XPATH-like expression, defined in http://tools.ietf.org/html/rfc4825#section-6.3.
+
+  Let's put the document in section 1 again to server, so we can fetch some elements from it.
+
+    $ ./xcapclient get '/resource-lists/list[@name="friends"]/entry[1]/display-name'
+
+    etag: "856bdac9012ee28e46cebb81e51ac2a0"
+    <display-name>Bill Doe</display-name>
+
+  Note, that although I have skipped --user and --root options you still have to provide them.
+  Specifying application with --app, on the other hand,  is no longer necessary, as it may be guessed
+  from the node selector.
+
+  To replacing an element use the node selector you would have used for retrieving
+  the element but do PUT instead. Let's say I want to fix Bill's display name:
+
+    $ ./xcapclient -i bill_display_name_fixed.xml put '/resource-lists/list[@name="friends"]/entry[1]/display-name'
+
+  To insert a new element one must construct a node selector that doesn't point to an
+  existing element.
+
+    $ ./xcapclient -i alice.xml put '/resource-lists/list[@name="friends"]/entry[1][@uri="sip:alice@example.com"]'
+
+    201 Created
+    etag: "bfbd38bed7163dd19e6e110d0dfa0876"
+
+  This will shift bill's entry to the second position.
