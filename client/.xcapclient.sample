@@ -1,0 +1,16 @@
+# rename this file to '.xcapclient' and copy it to your homedir
+
+[Server]
+
+# Default XCAP Root URI. Maybe a space separated list of uris. In that case
+# the first one is the default one and others appear in completion.
+root = http://xcap.example.com:8000/xcap-root https://xcap.example.com/xcap-root
+
+[Client]
+
+# Default credentials in format user[:password]@example.com
+# Maybe a space-separated list.
+user = alice:apassword@example.com bob:bpassword@example.com
+
+# Default authentication type. Either basic or digest
+auth = basic
