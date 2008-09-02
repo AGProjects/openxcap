@@ -290,12 +290,15 @@ class SelectorError(LocatorError):
 
 class XCAPElement:
 
-    parser = sax.make_parser()
-    parser.setFeature(sax.handler.feature_namespaces, 1)
+    @classmethod
+    def make_parser(cls):
+        parser = sax.make_parser()
+        parser.setFeature(sax.handler.feature_namespaces, 1)
 
-    # Q: SAXNotSupportedException: expat does not report namespace prefixes
-    # A: sudo aptitude install python-xml
-    parser.setFeature(sax.handler.feature_namespaces, 1) # need python-xml
+        # Q: SAXNotSupportedException: expat does not report namespace prefixes
+        # A: sudo aptitude install python-xml
+        parser.setFeature(sax.handler.feature_namespaces, 1) # need python-xml
+        return parser
 
     @classmethod
     def find(cls, document, element_selector):
@@ -304,9 +307,10 @@ class XCAPElement:
         If it couldn't be found, return None.
         If there're several matches, raise SelectorError.
         """
+        parser = cls.make_parser()
         el = ElementLocator(element_selector)
-        cls.parser.setContentHandler(el)
-        cls.parser.parse(StringIO(document))
+        parser.setContentHandler(el)
+        parser.parse(StringIO(document))
         if el.state == 'DONE':
             el.fix_end_pos(document)
             return (el.start_pos, el.end_pos)
@@ -354,8 +358,9 @@ class XCAPElement:
         location = cls.find(document, element_selector)
         if location is None:
             ipl = InsertPointLocator(element_selector)
-            cls.parser.setContentHandler(ipl)
-            cls.parser.parse(StringIO(document))
+            parser = cls.make_parser()
+            parser.setContentHandler(ipl)
+            parser.parse(StringIO(document))
             if ipl.state == 'DONE':
                 ipl.fix_end_pos(document)
                 start, end = ipl.end_pos, ipl.end_pos
@@ -367,6 +372,23 @@ class XCAPElement:
             created = False
         return (document[:start] + element_str + document[end:], created)
 
+# Q: why create a new parser for every parsing?
+# A: when sax.make_parser() was called once, I've occasionaly encountered an exception like this:
+#
+#   File "/usr/lib/python2.5/site-packages/xcap/appusage/__init__.py", line 178, in _cb_get_element
+#     result = XCAPElement.get(response.data, uri.node_selector.element_selector)
+#   File "/usr/lib/python2.5/site-packages/xcap/element.py", line 323, in get
+#     location = cls.find(document, element_selector)
+#   File "/usr/lib/python2.5/site-packages/xcap/element.py", line 308, in find
+#     cls.parser.setContentHandler(el)
+#   File "/usr/lib/python2.5/site-packages/_xmlplus/sax/expatreader.py", line 128, in setContentHandler
+#     self._reset_cont_handler()
+#   File "/usr/lib/python2.5/site-packages/_xmlplus/sax/expatreader.py", line 234, in _reset_cont_handler
+#     self._cont_handler.processingInstruction
+# exceptions.AttributeError: 'NoneType' object has no attribute 'ProcessingInstructionHandler'
+#
+# I have no idea what does that mean, but probably something to do with parser's state becoming invalid
+# under some circumstances.
 
 
 class _test:
