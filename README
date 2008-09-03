@@ -104,7 +104,7 @@ Avoid using mi_xmlrpc and use openser-mi-proxy package available at:
 http://download.ag-projects.com/OpenXCAP/
 
 openser-mi-proxy provides both and access list and a stable control interface
-between OpenXCAP and OpenXCAP..
+between OpenXCAP and OpenXCAP.
 
 
 Publishing xcap-diff events
