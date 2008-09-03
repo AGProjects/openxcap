@@ -150,7 +150,8 @@ def make_xcapclient(options, XCAPClient=XCAPClient):
 
 def setup_parser(parser):
     help="Application Unique ID. There's no default value; however, it will be " + \
-         "guessed from NODE-SELECTOR (when present) or from the input file (when action is PUT)" 
+         "guessed from NODE-SELECTOR (when present) or from the input file (when action is PUT). " + \
+         "Known apps: %s." % ', '.join(apps)
     parser.add_option("--app", dest='app', help=help)
 
     setup_parser_client(parser)
