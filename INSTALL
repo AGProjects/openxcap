@@ -38,7 +38,7 @@ A test suite for testing the functionality the server is located in
 package, the test suite is found in /usr/lib/python2.5/site-packages/xcap/test
 
 To run the test suite add a user to the subscriber database
-(alice@exmaple.com in the following example) and execute:
+(alice@example.com in the following example) and execute:
 
 python test.py --xcap-root https://xcap.example.com/xcap-root --username alice@example.com --password 123
 
@@ -48,4 +48,14 @@ Notes
 all xcap documents belonging to that user
 - Replacing 'test.py' with 'test_something.py' will run only the tests
 defined in test_something.py
+
+
+XCAP client
+-----------
+
+A command line client is available in the same download repository of
+OpenXCAP server. The client can be used to manipulate full or partial XML
+documents on XCAP servers (not limited to OpenXCAP) and has a bash shell
+command line completion facility that makes it very easy to browse through
+the structure of XML documents based on XPATH.
 
