@@ -45,6 +45,8 @@ Python programming language and is based on the following RFCs:
 
     - Presence Authorization Rules (draft-ietf-simple-presence-rules-10)
 
+    - XCAP-diff (draft-ietf-simple-xcap-diff-09.txt)
+
 
 Features
 --------
@@ -85,7 +87,7 @@ Data storage
 ------------
 
 OpenXCAP server supports multiple back-end storage systems and works out of
-the box with OpenSER Proxy/Registrar/Presence server
+the box with OpenSER Proxy/Registrar/Presence server.
 
 
 OpenSER integration issues
