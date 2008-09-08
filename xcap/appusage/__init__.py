@@ -95,7 +95,7 @@ class ApplicationUsage(object):
         """Check if a document is valid for this application."""
         try:
             xml_doc = etree.parse(StringIO(xcap_doc))
-        except: ## not a well formed XML document
+        except Exception: ## not a well formed XML document
             log.error("XML document is not well formed.")
             raise NotWellFormedError
         self._check_UTF8_encoding(xml_doc)
@@ -166,7 +166,7 @@ class ApplicationUsage(object):
         try:
             etree.parse(StringIO(element)).getroot()
             # verify if it has one element, if not should we throw the same exception?
-        except:
+        except Exception:
             raise NotXMLFragmentError
         d = self.get_document(uri, check_etag)
         return d.addCallbacks(self._cb_put_element, callbackArgs=(uri, element, check_etag))
@@ -213,7 +213,7 @@ class ApplicationUsage(object):
         try:
             xpath = uri.node_selector.replace_default_prefix()
             attribute = xml_doc.xpath(xpath, namespaces = ns_dict)
-        except:
+        except Exception:
             raise ResourceNotFound
         if len(attribute) != 1:
             raise ResourceNotFound
@@ -235,7 +235,7 @@ class ApplicationUsage(object):
         ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
             elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
-        except:
+        except Exception:
             raise ResourceNotFound
         if len(elem) != 1:
             raise ResourceNotFound
@@ -262,7 +262,7 @@ class ApplicationUsage(object):
         ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
             elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
-        except:
+        except Exception:
             raise NoParentError
         if len(elem) != 1:
             raise NoParentError
@@ -289,7 +289,7 @@ class ApplicationUsage(object):
         ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
             elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
-        except:
+        except Exception:
             raise ResourceNotFound
         if not elem:
             raise ResourceNotFound
