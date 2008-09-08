@@ -1,27 +1,3 @@
-* 500 internal error for xcapclient --app xcap-caps get /xcap-caps/
-
-File "/usr/lib/python2.5/site-packages/twisted/internet/defer.py", line 185, in addCallbacks
-  self._runCallbacks()
-- <exception caught here> ---
-File "/usr/lib/python2.5/site-packages/twisted/internet/defer.py", line 323, in _runCallbacks
-  self.result = callback(self.result, *args, **kw)
-File "/usr/lib/python2.5/site-packages/xcap/appusage/__init__.py", line 178, in _cb_get_element
-  result = XCAPElement.get(response.data, uri.node_selector.element_selector)
-File "/usr/lib/python2.5/site-packages/xcap/element.py", line 327, in get
-  location = cls.find(document, element_selector)
-File "/usr/lib/python2.5/site-packages/xcap/element.py", line 313, in find
-  parser.parse(StringIO(document))
-File "/usr/lib/python2.5/site-packages/_xmlplus/sax/expatreader.py", line 109, in parse
-  xmlreader.IncrementalParser.parse(self, source)
-File "/usr/lib/python2.5/site-packages/_xmlplus/sax/xmlreader.py", line 123, in parse
-  self.feed(buffer)
-File "/usr/lib/python2.5/site-packages/_xmlplus/sax/expatreader.py", line 220, in feed
-  self._err_handler.fatalError(exc)
-File "/usr/lib/python2.5/site-packages/_xmlplus/sax/handler.py", line 38, in fatalError
-  raise exception
-xml.sax._exceptions.SAXParseException: <unknown>:12:2: mismatched tag
-
-
 * slash in node selector attribute value results in 500 internal server error
 because split('/')  is used instead of proper parser
 
@@ -49,20 +25,3 @@ lambda>
   File "/usr/lib/python2.5/site-packages/xcap/resource.py", line 32, in renderHTTP
     d.addCallback(self.sendResponse)
 exceptions.AttributeError: 'Response' object has no attribute 'addCallback'
-
-
-* _mysql_exceptions.OperationalError: (2006, 'MySQL server has gone away')
-
-Seem to happen after upgrading mysql package. Solved by restarting, but it would be nice if error is fixed automatically.
-
-agp@cdr1:~$ tail -f /var/log/syslog
-File "/usr/lib/python2.5/site-packages/twisted/python/context.py", line 37, in callWithContext
-  return func(*args,**kw)
-- <exception caught here> ---
-File "/usr/lib/python2.5/site-packages/twisted/internet/threads.py", line 24, in _putResultInDeferred
-  result = f(*args, **kwargs)
-File "/usr/lib/python2.5/site-packages/twisted/enterprise/adbapi.py", line 380, in _runInteraction
-  conn.rollback()
-File "/usr/lib/python2.5/site-packages/twisted/enterprise/adbapi.py", line 47, in rollback
-  self._connection.rollback()
-_mysql_exceptions.OperationalError: (2006, 'MySQL server has gone away')
