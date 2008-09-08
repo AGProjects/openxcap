@@ -5,6 +5,10 @@ from twisted.web2.auth.digest import IUsernameDigestHash
 
 from zope.interface import implements, Interface
 
+def makeHash(username, realm, password):
+    s = '%s:%s:%s' % (username, realm, password)
+    return md5.new(s).hexdigest()
+
 class BasicCredentials(credentials.UsernamePassword):
     """Custom Basic Credentials, which support both plain and hashed checks."""
 
@@ -16,8 +20,7 @@ class BasicCredentials(credentials.UsernamePassword):
         self.realm = realm
 
     def checkHash(self, digestHash):
-        s = '%s:%s:%s' % (self.username, self.realm, self.password)
-        return digestHash == md5.new(s).hexdigest()
+        return digestHash == self.makeHash(self.username, self.realm, self.password)
 
 
 def decode(self, response, request):
