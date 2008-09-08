@@ -247,12 +247,13 @@ class Storage(object):
             check_etag(etag)
             query = """DELETE FROM %(table)s
                        WHERE username = %%(username)s AND domain = %%(domain)s
-                       AND doc_type= %%(doc_type)s AND doc_uri = %%(document_path)s""" % {
-                "table":    Config.xcap_table}
+                       AND doc_type= %%(doc_type)s AND doc_uri = %%(document_path)s
+                       AND etag = %%(etag)s""" % {"table" : Config.xcap_table}
             params = {"username": username,
                       "domain"  : domain,
                       "doc_type": doc_type,
-                      "document_path": document_path}
+                      "document_path": document_path,
+                      "etag": etag}
             trans.execute(query, params)
             return StatusResponse(200, old_etag=etag)
         else:
