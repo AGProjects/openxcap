@@ -47,6 +47,8 @@ Python programming language and is based on the following RFCs:
 
     - XCAP-diff (draft-ietf-simple-xcap-diff-09.txt)
 
+    - xcap-caps (displays capabilities of the xcap server)
+
 
 Features
 --------
@@ -81,6 +83,9 @@ Supported XCAP applications
     the sip proxy database for a list of presence watchers and their status.
     The XML schema for this application can be found in
     xcap/xml-schemas/watchers.xsd. This application is read-only.
+
+    - XCAP caps (auid = xcap-caps). This application returns and xml
+    document with the current capabilities of the server
 
 
 Data storage
@@ -143,13 +148,15 @@ with XCAP clients known to be working with OpenXCAP:
 
     - XCAP client from http://download.ag-projects.com/OpenXCAP/clients/
 
-    - OpenSER from http://openser.org
+    - XCAP client
+      http://download.ag-projects.com/OpenXCAP/clients
 
     - soap-simple-proxy. This client allows publication of arbitrary
       information and policy management using an easy to use SOAP/XML
       interface
-    
-    - Eyebeam from http://www.counterpath.com
+      http://download.ag-projects.com/OpenXCAP/clients
+
+    - OpenSER from http://openser.org
 
 
 Caveats
@@ -168,9 +175,9 @@ The project is supported via this wiki collaboration system provided at:
 
 http://openxcap.org
 
-    - To open ticket please Register first. The ticketing support system is
-      available only for registered users. Please beware that the support is
-      provided by the community on a best-effort basis.
+To open ticket please Register first. The ticketing support system is
+available only for registered users. Please beware that the support is
+provided by the community on a best-effort basis.
 
 You may also report bugs or feature request to:
 

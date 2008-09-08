@@ -2,10 +2,14 @@ Changes in version 1.0.0
 ------------------------
 
   * Added RLS services (RFC 4662 and RFC 4826)
-  * Added xcap-diff (draft-ietf-simple-xcap-diff-09)
-  * Added tests for rls-services and resource-lists
-  * Changed license from to GPL
-  * Changed development status from beta to production
+  * Added support for xcap-diff based on draft-ietf-simple-xcap-diff-09
+  * Added partial get/put/delete of elements in the XCAP documents
+  * Added test suite for rls-services, resource-lists and partial updates
+  * Many bug fixes from field experiences
+  * Development status from beta to production
+  * Switched to Python 2.5
+  * Improved documentation and testing suite
+  * Changed license to GPL
 
 Changes in version 0.9.9.5
 --------------------------
