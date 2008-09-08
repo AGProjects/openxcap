@@ -72,6 +72,33 @@ password = 123
 domain = example.com
 xcap_root = https://xcap.example.com/xcap-root
 
+If the setup is correct, the output of the test will read:
+
+adigeo@ag-imac3:~/work/openxcap/xcap/test$./test.py 
+test_delete (test_attribute.AttributeTest) ... ok
+test_get (test_attribute.AttributeTest) ... ok
+test_put (test_attribute.AttributeTest) ... ok
+test_authorization (test_auth.AuthTest) ... ok
+test_delete (test_element.ElementTest) ... ok
+test_get (test_element.ElementTest) ... ok
+test_put_error (test_element.ElementTest) ... ok
+Testing different ways of inserting an element as described in examples from Section 8.2.3 ... ok
+Testing PUT requests of form '*[@att="some"]' which require looking into body of PUT ... ok
+test_replacement (test_element_put.PutElementTest) ... ok
+test_conditional_GET (test_etags.ETagTest) ... ok
+test_conditional_PUT (test_etags.ETagTest) ... ok
+test_conditional_GET (test_etags.ETagTest2) ... ok
+test_conditional_PUT (test_etags.ETagTest2) ... ok
+test_etag_parsing (test_etags.ETagTest2) ... ok
+test_ns_bindings (test_nsbindings.NSBindingsTest) ... ok
+test_pidf_manipulation (test_pidf.PIDFTest) ... ok
+test_pidf_manipulation (test_presrules.PresenceRulesTest) ... ok
+test_operations (test_resourcelists.DocumentTest) ... ok
+test_operations (test_rlsservices.DocumentTest) ... ok
+----------------------------------------------------------------------
+Ran 20 tests in 72.235s
+OK
+
 
 Notes
 
