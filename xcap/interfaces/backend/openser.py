@@ -5,15 +5,11 @@
 
 import time
 
-from twisted.enterprise import adbapi, util as dbutil
-from twisted.internet import defer
-
 from application.configuration import *
 from application import log
 
 from xcap.interfaces.backend import database
 from xcap.interfaces.openser import ManagementInterface
-from xcap.errors import ResourceNotFound
 from xcap.xcapdiff import Notifier
 from xcap import uri
 
