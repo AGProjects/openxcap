@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from distutils.core import setup, Extension
+from distutils.core import setup
 from xcap import __version__
 
 setup(name         = "openxcap",
