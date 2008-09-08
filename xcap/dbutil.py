@@ -65,3 +65,54 @@ def connectionForURI(uri):
         raise AssertionError("Database scheme '%s' is not supported." % schema)
     return adbapi.ConnectionPool(module, db=path.strip('/'), user=user or '',
                                  passwd=password or '', host=host or 'localhost', cp_noisy=False)
+
+def repeat_on_error(N, errorinfo, func, *args, **kwargs):
+    #print 'repeat_on_error', N, func.__name__
+    d = func(*args, **kwargs)
+    counter = [N]
+    def try_again(error):
+        #print 'try_again!', func.__name__, counter[0], `error`
+        if isinstance(error.value, errorinfo) and counter[0]>0:
+            counter[0] -= 1
+            d = func(*args, **kwargs)
+            d.addErrback(try_again)
+            return d
+        return error
+    d.addErrback(try_again)
+    return d
+
+if __name__=='__main__':
+    from twisted.internet import defer
+
+    def s():
+        print 's()'
+        return defer.succeed(True)
+    def f():
+        print 'f()'
+        return defer.fail(ZeroDivisionError())
+
+    def getcb(msg):
+        def callback(x):
+            print '%s callback: %r' % (msg, x)
+        def errback(x):
+            print '%s errback: %r' % (msg, x)
+        return callback, errback
+
+    # calls s()'s callback
+    d = repeat_on_error(1, Exception, s)
+    d.addCallbacks(*getcb('s'))
+
+    # calls f() for 4 times (1+3), then gives up and calls last f()'s errback
+    d = repeat_on_error(3, Exception, f)
+    d.addCallbacks(*getcb('f'))
+
+    x = Exception()
+    x.lst = [f, f, s]
+
+    def bad_func():
+        f, x.lst = x.lst[0], x.lst[1:]
+        return f()
+
+    d = repeat_on_error(1, Exception, bad_func)
+    d.addCallbacks(*getcb('bad_func'))
+    
