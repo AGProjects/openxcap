@@ -18,7 +18,7 @@ def file_content(file):
         raise _FileError("File '%s' does not exist" % file)
     try:
         f = open(path, 'rt')
-    except:
+    except Exception:
         raise _FileError("File '%s' could not be open" % file)
     try:
         return f.read()

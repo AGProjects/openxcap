@@ -59,7 +59,7 @@ class JSONValidator(validators.Validator):
             return None
         try:
             return cjson.decode(value)
-        except:
+        except Exception:
             raise validators.Invalid("expected a decodable JSON object in the JSONCol '%s', got %s %r instead" % (self.name, type(value), value), value, state)
 
     def from_python(self, value, state):
@@ -67,7 +67,7 @@ class JSONValidator(validators.Validator):
             return None
         try:
             return cjson.encode(value)
-        except:
+        except Exception:
             raise validators.Invalid("expected an encodable JSON object in the JSONCol '%s', got %s %r instead" % (self.name, type(value), value), value, state)
 
 
@@ -169,7 +169,7 @@ class XCAPProvisioning(EventServiceClient):
             node = network.lookup_node(key)
         except LookupError:
             node = None
-        except:
+        except Exception:
             log.msg("Error doing Thor ID lookup")
             log.err()
             node = None

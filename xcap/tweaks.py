@@ -23,7 +23,7 @@ class BasicCredentials(credentials.UsernamePassword):
 def decode(self, response, request):
     try:
         creds = (response + '===').decode('base64')
-    except:
+    except Exception:
         raise error.LoginFailed('Invalid credentials')
 
     creds = creds.split(':', 1)
