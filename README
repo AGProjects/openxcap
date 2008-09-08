@@ -141,6 +141,8 @@ XCAP clients
 No server is useful without clients supporting their features. Here is list
 with XCAP clients known to be working with OpenXCAP:
 
+    - XCAP client from http://download.ag-projects.com/OpenXCAP/clients/
+
     - OpenSER from http://openser.org
 
     - soap-simple-proxy. This client allows publication of arbitrary
