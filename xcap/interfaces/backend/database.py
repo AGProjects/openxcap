@@ -12,7 +12,7 @@ from application.python.util import Singleton
 from zope.interface import implements
 from twisted.cred import credentials, portal, checkers, error as credError
 from twisted.internet import defer
-from twisted.enterprise import adbapi, util as dbutil
+from twisted.enterprise import adbapi
 
 from xcap.interfaces.backend import IStorage, StatusResponse
 from xcap.errors import ResourceNotFound
@@ -82,18 +82,17 @@ class PlainPasswordChecker(PasswordChecker):
 
     def _query_credentials(self, credentials):
         username, domain = credentials.username.split('@', 1)[0], credentials.realm
-        quote = dbutil.quote
         query = """SELECT %(password_col)s
                    FROM %(table)s
-                   WHERE %(user_col)s = %(username)s
-                   AND %(domain_col)s = %(domain)s""" % {
+                   WHERE %(user_col)s = %%(username)s
+                   AND %(domain_col)s = %%(domain)s""" % {
                     "password_col": Config.password_col,
                     "user_col": Config.user_col,
                     "domain_col": Config.domain_col,
-                    "table":    Config.subscriber_table,
-                    "username": quote(username, "char"),
-                    "domain":   quote(domain, "char")}
-        return self.conn.runQuery(query).addCallback(self._got_query_results, credentials)
+                    "table":    Config.subscriber_table }
+        params = {"username": username,
+                  "domain":   domain}
+        return self.conn.runQuery(query, params).addCallback(self._got_query_results, credentials)
 
     def _authenticate_credentials(self, hash, credentials):
         return defer.maybeDeferred(
@@ -109,18 +108,17 @@ class HashPasswordChecker(PasswordChecker):
 
     def _query_credentials(self, credentials):
         username, domain = credentials.username.split('@', 1)[0], credentials.realm
-        quote = dbutil.quote
         query = """SELECT %(ha1_col)s
                    FROM %(table)s
-                   WHERE %(user_col)s = %(username)s
-                   AND %(domain_col)s = %(domain)s""" % {
+                   WHERE %(user_col)s = %%(username)s
+                   AND %(domain_col)s = %%(domain)s""" % {
                     "ha1_col":  Config.ha1_col,
                     "user_col": Config.user_col,
                     "domain_col": Config.domain_col,
-                    "table":    Config.subscriber_table,
-                    "username": quote(username, "char"),
-                    "domain":   quote(domain, "char")}
-        return self.conn.runQuery(query).addCallback(self._got_query_results, credentials)
+                    "table":    Config.subscriber_table}
+        params = {"username": username,
+                  "domain":   domain}
+        return self.conn.runQuery(query, params).addCallback(self._got_query_results, credentials)
 
     def _authenticate_credentials(self, hash, credentials):
         return defer.maybeDeferred(
@@ -158,16 +156,15 @@ class Storage(object):
         username, domain = uri.user.username, uri.user.domain
         self._normalize_document_path(uri)
         doc_type = self.app_mapping[uri.application_id]
-        quote = dbutil.quote
         query = """SELECT doc, etag FROM %(table)s
-                   WHERE username = %(username)s AND domain = %(domain)s
-                   AND doc_type= %(doc_type)s AND doc_uri=%(document_path)s""" % {
-                       "table":    Config.xcap_table,
-                       "username": quote(username, "char"),
-                       "domain"  : quote(domain, "char"),
-                       "doc_type": quote(doc_type, "int"),
-                       "document_path": quote(uri.doc_selector.document_path, "char")}
-        trans.execute(query)
+                   WHERE username = %%(username)s AND domain = %%(domain)s
+                   AND doc_type= %%(doc_type)s AND doc_uri=%%(document_path)s""" % {
+                       "table":    Config.xcap_table}
+        params = {"username": username,
+                  "domain"  : domain,
+                  "doc_type": doc_type,
+                  "document_path": uri.doc_selector.document_path}
+        trans.execute(query, params)
         result = trans.fetchall()
         if result:
             doc, etag = result[0]
@@ -182,31 +179,30 @@ class Storage(object):
         self._normalize_document_path(uri)
         doc_type = self.app_mapping[uri.application_id]
         document_path = uri.doc_selector.document_path
-        quote = dbutil.quote
         query = """SELECT etag FROM %(table)s
-                   WHERE username = %(username)s AND domain = %(domain)s
-                   AND doc_type= %(doc_type)s AND doc_uri=%(document_path)s""" % {
-                       "table":    Config.xcap_table,
-                       "username": quote(username, "char"),
-                       "domain"  : quote(domain, "char"),
-                       "doc_type": quote(doc_type, "int"),
-                       "document_path": quote(document_path, "char")}
-        trans.execute(query)
+                   WHERE username = %%(username)s AND domain = %%(domain)s
+                   AND doc_type= %%(doc_type)s AND doc_uri=%%(document_path)s""" % {
+            "table":    Config.xcap_table}
+        params = {"username": username,
+                  "domain"  : domain,
+                  "doc_type": doc_type,
+                  "document_path": document_path}
+        trans.execute(query, params)
         result = trans.fetchall()
         if not result:
             ## the document doesn't exist, create it
             etag = self.generate_etag(uri, document)
             query = """INSERT INTO %(table)s
                        (username, domain, doc_type, etag, doc, doc_uri)
-                       VALUES (%(username)s, %(domain)s, %(doc_type)s, %(etag)s, %(document)s, %(document_path)s)""" % {
-                           "table":    Config.xcap_table,
-                           "username": quote(username, "char"),
-                           "domain"  : quote(domain, "char"),
-                           "doc_type": quote(doc_type, "int"),
-                           "etag":     quote(etag, "char"),
-                           "document": quote(document, "char"),
-                           "document_path": quote(document_path, "char")}
-            trans.execute(query)
+                       VALUES (%%(username)s, %%(domain)s, %%(doc_type)s, %%(etag)s, %%(document)s, %%(document_path)s)""" % {
+                "table":    Config.xcap_table }
+            params = {"username": username,
+                      "domain"  : domain,
+                      "doc_type": doc_type,
+                      "etag":     etag,
+                      "document": document,
+                      "document_path": document_path}
+            trans.execute(query, params)
             return StatusResponse(201, etag)
         else:
             old_etag = result[0][0]
@@ -215,19 +211,19 @@ class Storage(object):
             ## the document exists, replace it
             etag = self.generate_etag(uri, document)
             query = """UPDATE %(table)s
-                       SET doc = %(document)s, etag = %(etag)s
-                       WHERE username = %(username)s AND domain = %(domain)s
-                       AND doc_type = %(doc_type)s AND etag = %(old_etag)s
-                       AND doc_uri = %(document_path)s""" % {
-                           "table":    Config.xcap_table,
-                           "document": quote(document, "char"),
-                           "etag":     quote(etag, "char"),
-                           "username": quote(username, "char"),
-                           "domain"  : quote(domain, "char"),
-                           "doc_type": quote(doc_type, "int"),
-                           "old_etag": quote(old_etag, "char"),
-                           "document_path": quote(document_path, "char")}
-            trans.execute(query)
+                       SET doc = %%(document)s, etag = %%(etag)s
+                       WHERE username = %%(username)s AND domain = %%(domain)s
+                       AND doc_type = %%(doc_type)s AND etag = %%(old_etag)s
+                       AND doc_uri = %%(document_path)s""" % {
+                "table":    Config.xcap_table }
+            params = {"document": document,
+                      "etag":     etag,
+                      "username": username,
+                      "domain"  : domain,
+                      "doc_type": doc_type,
+                      "old_etag": old_etag,
+                      "document_path": document_path}
+            trans.execute(query, params)
             ## verifica daca update a modificat vreo coloana, daca nu arunca eroare
             return StatusResponse(200, etag, old_etag=old_etag)
 
@@ -236,29 +232,28 @@ class Storage(object):
         self._normalize_document_path(uri)
         doc_type = self.app_mapping[uri.application_id]
         document_path = uri.doc_selector.document_path
-        quote = dbutil.quote
         query = """SELECT etag FROM %(table)s
-                   WHERE username = %(username)s AND domain = %(domain)s
-                   AND doc_type= %(doc_type)s AND doc_uri = %(document_path)s""" % {
-                       "table":    Config.xcap_table,
-                       "username": quote(username, "char"),
-                       "domain"  : quote(domain, "char"),
-                       "doc_type": quote(doc_type, "int"),
-                       "document_path": quote(document_path, "char")}
-        trans.execute(query)
+                   WHERE username = %%(username)s AND domain = %%(domain)s
+                   AND doc_type= %%(doc_type)s AND doc_uri = %%(document_path)s""" % {
+            "table":    Config.xcap_table}
+        params = {"username": username,
+                  "domain"  : domain,
+                  "doc_type": doc_type,
+                  "document_path": document_path}
+        trans.execute(query, params)
         result = trans.fetchall()
         if result:
             etag = result[0][0]
             check_etag(etag)
             query = """DELETE FROM %(table)s
-                       WHERE username = %(username)s AND domain = %(domain)s
-                       AND doc_type= %(doc_type)s AND doc_uri = %(document_path)s""" % {
-                           "table":    Config.xcap_table,
-                           "username": quote(username, "char"),
-                           "domain"  : quote(domain, "char"),
-                           "doc_type": quote(doc_type, "int"),
-                           "document_path": quote(document_path, "char")}
-            trans.execute(query)
+                       WHERE username = %%(username)s AND domain = %%(domain)s
+                       AND doc_type= %%(doc_type)s AND doc_uri = %%(document_path)s""" % {
+                "table":    Config.xcap_table}
+            params = {"username": username,
+                      "domain"  : domain,
+                      "doc_type": doc_type,
+                      "document_path": document_path}
+            trans.execute(query, params)
             return StatusResponse(200, old_etag=etag)
         else:
             return StatusResponse(404)
@@ -280,17 +275,16 @@ class Storage(object):
                           2: "confirm",
                           3: "deny"}
         presentity_uri = "sip:%s@%s" % (uri.user.username, uri.user.domain)
-        quote = dbutil.quote
         query = """SELECT watcher_username, watcher_domain, status FROM watchers
-                   WHERE presentity_uri = %s""" % quote(presentity_uri, "char")
-        trans.execute(query)
+                   WHERE presentity_uri = %s"""
+        trans.execute(query, presentity_uri)
         result = trans.fetchall()
         watchers = [{"id": "%s@%s" % (w_user, w_domain),
                      "status": status_mapping.get(subs_status, "unknown"),
                      "online": "false"} for w_user, w_domain, subs_status in result]
         query = """SELECT watcher_username, watcher_domain FROM active_watchers
-                   WHERE presentity_uri = %s AND event = 'presence'""" % quote(presentity_uri, "char")
-        trans.execute(query)
+                   WHERE presentity_uri = %s AND event = 'presence'"""
+        trans.execute(query, presentity_uri)
         result = trans.fetchall()
         active_watchers = set("%s@%s" % pair for pair in result)
         for watcher in watchers:

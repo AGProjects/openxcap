@@ -2,7 +2,7 @@
 
 import os
 
-from twisted.enterprise import adbapi, util as dbutil
+from twisted.enterprise import adbapi
 
 db_modules = {"mysql": "MySQLdb"}
 

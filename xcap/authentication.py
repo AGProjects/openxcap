@@ -11,7 +11,6 @@ from zope.interface import Interface, implements
 from twisted.internet import defer
 from twisted.python import failure
 from twisted.cred import credentials, portal, checkers, error as credError
-from twisted.enterprise import adbapi, util as dbutil
 from twisted.web2 import http, server, stream
 from twisted.web2.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 
