@@ -32,7 +32,7 @@ class BaseStorage(database.Storage):
 
     def _notify_watchers(self, response, user_id, type):
         def _eb_mi(f):
-            log.error("Error while notifying OpenSER management interface for 'user' %s: %s" % (user_id, f.getErrorMessage()))
+            log.error("Error while notifying OpenSER management interface for user %s: %s" % (user_id, f.getErrorMessage()))
             return response
         d = self._mi.notify_watchers('%s@%s' % (user_id.username, user_id.domain), type)
         d.addCallback(lambda x: response)
