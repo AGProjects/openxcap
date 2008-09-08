@@ -14,9 +14,11 @@ from twisted.cred import credentials, portal, checkers, error as credError
 from twisted.internet import defer
 from twisted.enterprise import adbapi
 
+from _mysql_exceptions import IntegrityError
+
 from xcap.interfaces.backend import IStorage, StatusResponse
 from xcap.errors import ResourceNotFound
-from xcap.dbutil import connectionForURI
+from xcap.dbutil import connectionForURI, repeat_on_error
 
 
 class Config(ConfigSection):
@@ -125,6 +127,8 @@ class HashPasswordChecker(PasswordChecker):
                 credentials.checkHash, hash).addCallback(
                 self._checkedPassword, credentials.username, credentials.realm)
 
+class UpdateFailed(Exception):
+    pass
 
 class Storage(object):
     __metaclass__ = Singleton
@@ -192,9 +196,8 @@ class Storage(object):
         if not result:
             ## the document doesn't exist, create it
             etag = self.generate_etag(uri, document)
-            query = """INSERT INTO %(table)s
-                       (username, domain, doc_type, etag, doc, doc_uri)
-                       VALUES (%%(username)s, %%(domain)s, %%(doc_type)s, %%(etag)s, %%(document)s, %%(document_path)s)""" % {
+            query = """INSERT INTO %(table)s (username, domain, doc_type, etag, doc, doc_uri)
+ VALUES (%%(username)s, %%(domain)s, %%(doc_type)s, %%(etag)s, %%(document)s, %%(document_path)s)""" % {
                 "table":    Config.xcap_table }
             params = {"username": username,
                       "domain"  : domain,
@@ -202,6 +205,8 @@ class Storage(object):
                       "etag":     etag,
                       "document": document,
                       "document_path": document_path}
+            # may raise IntegrityError here, if the document was created in another connection
+            # will be catched by repeat_on_error
             trans.execute(query, params)
             return StatusResponse(201, etag)
         else:
@@ -224,7 +229,12 @@ class Storage(object):
                       "old_etag": old_etag,
                       "document_path": document_path}
             trans.execute(query, params)
-            ## verifica daca update a modificat vreo coloana, daca nu arunca eroare
+            # the request may not update anything (e.g. if etag was changed by another connection
+            # after we did SELECT); if so, we should retry
+            updated = trans._connection.affected_rows()
+            if not updated:
+                raise UpdateFailed
+            assert updated == 1, updated
             return StatusResponse(200, etag, old_etag=old_etag)
 
     def _delete_document(self, trans, uri, check_etag):
@@ -263,7 +273,8 @@ class Storage(object):
         return self.conn.runInteraction(self._get_document, uri, check_etag)
 
     def put_document(self, uri, document, check_etag):
-        return self.conn.runInteraction(self._put_document, uri, document, check_etag)
+        return repeat_on_error(10, (UpdateFailed, IntegrityError),
+                               self.conn.runInteraction, self._put_document, uri, document, check_etag)
 
     def delete_document(self, uri, check_etag):
         return self.conn.runInteraction(self._delete_document, uri, check_etag)
