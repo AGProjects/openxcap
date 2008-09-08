@@ -130,6 +130,10 @@ class HashPasswordChecker(PasswordChecker):
 class UpdateFailed(Exception):
     pass
 
+class DeleteFailed(Exception):
+    pass
+
+
 class Storage(object):
     __metaclass__ = Singleton
     
@@ -265,6 +269,11 @@ class Storage(object):
                       "document_path": document_path,
                       "etag": etag}
             trans.execute(query, params)
+            deleted = trans._connection.affected_rows()
+            if not deleted:
+                # the document was replaced/removed after the SELECT but before the DELETE
+                raise DeleteFailed
+            assert deleted == 1, deleted
             return StatusResponse(200, old_etag=etag)
         else:
             return StatusResponse(404)
@@ -277,7 +286,7 @@ class Storage(object):
                                self.conn.runInteraction, self._put_document, uri, document, check_etag)
 
     def delete_document(self, uri, check_etag):
-        return self.conn.runInteraction(self._delete_document, uri, check_etag)
+        return repeat_on_error(10, DeleteFailed, self.conn.runInteraction, self._delete_document, uri, check_etag)
 
     def generate_etag(self, uri, document):
         return md5.new(uri.xcap_root + str(uri.doc_selector) + str(time.time())).hexdigest()
