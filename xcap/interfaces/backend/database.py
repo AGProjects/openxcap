@@ -159,7 +159,7 @@ class Storage(object):
         query = """SELECT doc, etag FROM %(table)s
                    WHERE username = %%(username)s AND domain = %%(domain)s
                    AND doc_type= %%(doc_type)s AND doc_uri=%%(document_path)s""" % {
-                       "table":    Config.xcap_table}
+            "table":    Config.xcap_table}
         params = {"username": username,
                   "domain"  : domain,
                   "doc_type": doc_type,
@@ -271,6 +271,7 @@ class Storage(object):
     def generate_etag(self, uri, document):
         return md5.new(uri.xcap_root + str(uri.doc_selector) + str(time.time())).hexdigest()
 
+    # QQQ isn't it application-specific?
     def _get_watchers(self, trans, uri):
         status_mapping = {1: "allow",
                           2: "confirm",
