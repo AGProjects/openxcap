@@ -1,202 +1,48 @@
 import sys
 import unittest
-import urllib2
 import re
 import types
 from optparse import OptionParser
 
+sys.path.append('../../xcaplib')
+import xcaplib
+from xcaplib.client import Resource, HTTPError
+from xcaplib.xcapclient import setup_parser_client, make_xcapclient, read_xcapclient_cfg
+del sys.path[-1]
 
-class HTTPRequest(urllib2.Request):
-    """Hack urllib2.Request to support PUT and DELETE methods."""
-    
-    def __init__(self, url, method="GET", data=None, headers={},
-                 origin_req_host=None, unverifiable=False):
-        urllib2.Request.__init__(self,url,data,headers,origin_req_host,unverifiable)
-        self.url = url
-        self.method = method
-    
-    def get_method(self):
-        return self.method
-    
+# the tests expect to receive reply object with 'body' attribute
+class HTTPConnectionWrapper(xcaplib.client.HTTPConnectionWrapper):
 
-class HTTPResponse(object):
-    
-    def __init__(self, url, code, msg, headers, body=None):
-        self.url = url
-        self.code = code
-        self.msg = msg
-        self.headers = headers
-        self.body = body
-
-    @property
-    def succeed(self):
-        return 200 <= self.code <= 299
-    
-    def get_header(self, header):
-        return self.headers.get(header)
-
-    def __repr__(self):
-        if self.body is None:
-            bodylen = None
-        else:
-            bodylen = len(self.body)
-        return "<%s.%s code=%d, datalen=%s>" % (self.__module__, self.__class__.__name__, self.code, bodylen)
-
-
-class DebugOutput:
-
-    file = sys.stderr
-
-    def __init__(self, level):
-        self.level = level
-
-    def log_exception(self, req, ex):
-        sys.stderr.write('%s %s\nRAISED %s %s\n' % (req.method, req.url, ex.__class__.__name__, ex))
-
-    def log_trans(self, req, result):
-        if self.level<1:
-            return
-        self.file.write('\n')
-        if self.level==1:
-            self.log_method_url(req)
-            self.log_result_code(result)
-            self.log_etag(result)
-        elif self.level==2:
-            self.log_method_url(req)
-            self.log_req_headers(req)
-            self.log_result_code(result)
-            self.log_result_headers(result)
-        elif self.level>=3:
-            self.log_method_url(req)
-            self.log_req_headers(req)
-            self.log_req_body(req)
-            self.log_result_code(result)
-            self.log_result_headers(result)
-            self.log_result_body(result)
-
-    def log_method_url(self, req):
-        self.file.write('%s %s\n' % (req.method, req.url))
-
-    def _log_headers(self, headers):
-        for x in headers.items():
-            self.file.write('%s: %s\n' % x)
-
-    def log_etag(self, result):
-        etag = result.headers.get('etag')
-        if etag:
-            self.file.write('etag: %s\n' % etag)
-
-    def log_req_headers(self, req):
-        self._log_headers(req.headers)
-
-    def log_req_body(self, req):
-        if req.body:
-            self.file.write(req.body)
-            if not req.body.endswith('\n'):
-                self.file.write('\n')
-
-    def log_result_code(self, result):
-        self.file.write('%s %s\n' % (result.code, result.msg))
-
-    def log_result_headers(self, result):
-        self._log_headers(result.headers)
-
-    def log_result_body(self, result):
-        if result.body:
-            self.file.write(result.body)
-            if not result.body.endswith('\n'):
-                self.file.write('\n')
-
-
-class XCAPClient(object):
-
-    xcap_root = 'http://127.0.0.1:8000'
-    auth = 'basic'
-    username = 'test@localhost'
-    password = 'test'
-    DebugOutput = DebugOutput
-    debug_level = 0
-
-    @classmethod
-    def setupOptionParser(cls, parser):
-        parser.set_defaults(debug_level=cls.debug_level)
-        parser.add_option("--xcap-root", default=cls.xcap_root)
-        parser.add_option("--auth", default=cls.auth)
-        parser.add_option("--username", default=cls.username)
-        parser.add_option("--password", default=cls.password)
-        def increase_debug_level(_option, _opt_str, _value, parser):
-            parser.values.debug_level = 1 + getattr(parser.values, 'debug_level', 0)
-        parser.add_option("-d", action='callback', callback=increase_debug_level, nargs=0,
-                          help="increase debug output. may be repeated.\n" + \
-                          "-ddd means whole http bodies printed")
-
-    def initialize(self, options, _args = []):
-        self.xcap_root = options.xcap_root
-        self.auth = options.auth
-        self.username = options.username
-        self.password = options.password
-        self.debug = self.DebugOutput(getattr(options, 'debug_level', 0))
-
-    def _execute_request(self, method, url, user, realm, password, headers={}, data=None):
-        if self.auth == "basic":
-            authhandler = urllib2.HTTPBasicAuthHandler()
-        elif self.auth == "digest":
-            authhandler = urllib2.HTTPDigestAuthHandler()
-        authhandler.add_password(realm, url, user, password)
-        opener = urllib2.build_opener(authhandler)
-        urllib2.install_opener(opener)
-        req = HTTPRequest(url, method=method, headers=headers, data=data)
-        req.body = data
+    def request(self, *args, **kwargs):
+        if hasattr(self, 'debug') and self.debug:
+            print args, kwargs
         try:
-            r = urllib2.urlopen(req)
-            result = HTTPResponse(url, r.code, r.msg, r.headers, r.read())
-        except urllib2.HTTPError, e:
-            headers = getattr(e, 'headers', {})
-            result = HTTPResponse(url, e.code, e.msg, headers, e.read())
-        except Exception, ex:
-            self.debug.log_exception(req, ex)
-            raise
-        self.debug.log_trans(req, result)
-        return result
+            r = xcaplib.client.HTTPConnectionWrapper.request(self, *args, **kwargs)
+        except HTTPError, r:
+            pass
+        r.body = r.fp.read()
+        return r
 
-    def get(self, application, node=None, headers={}):
-        username, domain = self.username.split('@', 1)
-        uri = "%s/%s/users/%s/index.xml" % (self.xcap_root, application, self.username)
-        if node:
-            uri += '~~' + node
-        return self._execute_request("GET", uri, username, domain, self.password, headers)
+    def get(self, path, headers=None, etag=None):
+        return self.request('GET', path, headers, None, etag)
 
-    def put(self, application, resource, node=None, headers={}):
-        username, domain = self.username.split('@', 1)
-        uri = "%s/%s/users/%s/index.xml" % (self.xcap_root, application, self.username)
-        if node:
-            uri += '~~' + node
-        return self._execute_request("PUT", uri, username, domain, self.password, headers, resource)
+xcaplib.client.XCAPClient.HTTPConnectionWrapper = HTTPConnectionWrapper
 
-    def delete(self, application, node=None, headers={}):
-        username, domain = self.username.split('@', 1)
-        uri = "%s/%s/users/%s/index.xml" % (self.xcap_root, application, self.username)
-        if node:
-            uri += '~~' + node
-        return self._execute_request("DELETE", uri, username, domain, self.password, headers)
-
+def succeed(r):
+    return 200 <= r.code <= 299
 
 class XCAPTest(unittest.TestCase):
 
-    XCAPClient = XCAPClient
-
     @classmethod
     def setupOptionParser(cls, parser):
-        cls.XCAPClient.setupOptionParser(parser)
+        setup_parser_client(parser) # QQQ should it be there? it executes the same code multiple times
 
     def initialize(self, options, args = []):
         self.options = options
         self.args = args
 
     def new_client(self):
-        client = self.XCAPClient()
-        client.initialize(self.options, self.args)
-        return client
+        return make_xcapclient(self.options)
 
     def setUp(self):
         self.client = self.new_client()
@@ -229,6 +75,10 @@ class XCAPTest(unittest.TestCase):
             else:
                 msg = '%s:%s not in headers' % (key, value)
         raise self.failureException(msg)
+
+    def assertETag(self, r):
+        v = self.assertHeader(r, 'ETag')
+        return xcaplib.client.parse_etag_value(v)
 
     def assertNoHeader(self, r, key, msg=None):
         """Fail if key in r.headers."""
@@ -267,26 +117,26 @@ class XCAPTest(unittest.TestCase):
                 msg = 'No match for %s in body' % pattern
             raise self.failureException(msg)
 
-    def assertDocument(self, application, body, headers={}, client=None):
-        r = self.get(application, headers=headers, client=client)
+    def assertDocument(self, application, body, client=None):
+        r = self.get(application, client=client)
         self.assertBody(r, body)
 
-    def get(self, application, node=None, headers={}, status=200, client=None):
+    def get(self, application, node=None, status=200, client=None, **kwargs):
         client = client or self.client
-        r = client.get(application, node, headers)
+        r = client.get(application, node, **kwargs)
         self.assertStatus(r, status)
         return r
 
-    def put(self, application, resource, node=None, headers={},
-            status=[200,201], content_type_in_GET=None, client=None):
+    def put(self, application, resource, node=None,
+            status=[200,201], content_type_in_GET=None, client=None, **kwargs):
         client = client or self.client
-        r_put = client.put(application, resource, node, headers)
+        r_put = client.put(application, resource, node, **kwargs)
         self.assertStatus(r_put, status)
 
         # if PUTting succeed, check that document is there and equals to resource
 
-        if r_put.succeed:
-            r_get = client.get(application, node)
+        if succeed(r_put):
+            r_get = self.get(application, node, status=None, client=client)
             self.assertStatus(r_get, 200,
                               'although PUT succeed, following GET on the same URI did not: %s %s' % \
                               (r_get.code, r_get.msg))
@@ -296,23 +146,22 @@ class XCAPTest(unittest.TestCase):
 
         return r_put
 
-    def put_new(self, application, resource, node=None, headers=None,
+    def put_new(self, application, resource, node=None,
                 status=201, content_type_in_GET=None, client=None):
         self.get(application, node=node, status=404, client=client)
-        return self.put(application, resource, node, headers, status, content_type_in_GET, client)
+        return self.put(application, resource, node, status, content_type_in_GET, client)
 
-    def delete(self, application, node=None, headers={}, status=200, client=None):
+    def delete(self, application, node=None, status=200, client=None):
         client = client or self.client
-        r = client.delete(application, node, headers)
+        r = client.delete(application, node)
         self.assertStatus(r, status)
 
         # if deleting succeed, GET should return 404
-        if r.succeed or r.code == 404:
-            r_get = client.get(application, node, headers)
+        if succeed(r) or r.code == 404:
+            r_get = self.get(application, node, status=None)
             self.assertStatus(r_get, 404,
                               'although DELETE succeed, following GET on the same URI did not return 404: %s %s' % \
                               (r_get.code, r_get.msg))
-
         return r
 
     def put_rejected(self, application, resource, status=409, client=None):
@@ -361,26 +210,39 @@ class TestLoader(unittest.TestLoader):
         return self.suiteClass(tests)
 
 
-class TextTestRunner(unittest.TextTestRunner):
-
-    def run_woptions(self, test, options, args):
-        test.options = options
-        test.args = args
-        if hasattr(test, 'initialize'):
-            test.initialize(options, args)
-        return unittest.TextTestRunner.run(self, test)
-
-
 def loadSuiteFromModule(module, option_parser):
     if isinstance(module, basestring):
         module = sys.modules[module]
     suite = TestLoader().loadTestsFromModule_wparser(module, option_parser)
     return suite
 
+def run_suite(suite, options, args):
+    if hasattr(suite, 'initialize'):
+        suite.initialize(options, args)
+
+    if options.debug:
+        try:
+            suite.debug()
+        except Exception, ex:
+            print '%s: %s' % (ex.__class__.__name__, ex)
+            for x in dir(ex):
+                attr = getattr(ex, x)
+                if x[:1]!='_' and not callable(attr):
+                    print '%s: %r' % (x, attr)
+            raise
+    else:
+        unittest.TextTestRunner(verbosity=2).run(suite)
+
+def check_options(options):
+    xcaplib.xcapclient.check_options(options)
+    if hasattr(options, 'debug') and options.debug:
+        HTTPConnectionWrapper.debug = True        
 
 def runSuiteFromModule(module='__main__'):
+    read_xcapclient_cfg()
     option_parser = OptionParser(conflict_handler='resolve')
     suite = loadSuiteFromModule(module, option_parser)
+    option_parser.add_option('-d', '--debug', action='store_true', default=False)
     options, args = option_parser.parse_args()
-    TextTestRunner(verbosity=2).run_woptions(suite, options, args)
-
+    check_options(options)
+    run_suite(suite, options, args)

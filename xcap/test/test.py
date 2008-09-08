@@ -6,9 +6,6 @@ from optparse import OptionParser
 
 from common import *
 
-def run_test_suite(suite, options, args):
-    TextTestRunner(verbosity=2).run_woptions(suite, options, args)
-
 class TestHarness(object):
     """A test harness for OpenXCAP."""
 
@@ -32,7 +29,7 @@ class TestHarness(object):
                 self.import_errors = 1
     
     def run(self, options, args):
-        run_test_suite(TestSuite(self.test_suites), options, args)
+        run_suite(TestSuite(self.test_suites), options, args)
         if self.import_errors:
             sys.exit('there were import errors!')
 
@@ -41,7 +38,9 @@ def all_tests():
     return lst
 
 def run():
+    read_xcapclient_cfg()
     parser = OptionParser(conflict_handler='resolve')
+    parser.add_option('-d', '--debug', action='store_true', default=False)
     parser.add_option("-l", "--list", action="store_true", help="Print list of all tests")
     
     t = TestHarness(all_tests(), parser)
@@ -55,6 +54,8 @@ def run():
             print 
         return
 
+    check_options(options)
+    
     t.run(options, args)
 
 if __name__ == '__main__':

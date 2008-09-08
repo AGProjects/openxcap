@@ -79,20 +79,17 @@ class ElementTest(XCAPTest):
         self.put('resource-lists', xml)
 
         # 415 content type not set
-        self.put('resource-lists', nancy, '/resource-lists/list[@name="friends"]', status=415)
+        self.put('resource-lists', nancy, '/resource-lists/list[@name="friends"]',
+                 headers={'Content-Type' : None},status=415)
 
-        headers = {'Content-type' : 'application/xcap-el+xml'}
         # 409 <not-xml-frag>
-        r = self.put('resource-lists', broken, '/resource-lists/list[@name="friends"]', headers,
-                     status=409)
+        r = self.put('resource-lists', broken, '/resource-lists/list[@name="friends"]', status=409)
 
         # 409 <not-parent>
-        r = self.put('resource-lists', nancy, '/resource-lists/list[@name="others"]/entry[2]',
-                     headers, status=409)
+        r = self.put('resource-lists', nancy, '/resource-lists/list[@name="others"]/entry[2]', status=409)
 
         # 409 <uniqueness-failure>
-        r = self.put('resource-lists', nancy, '/resource-lists/list[@name="friends"]/entry[1]',
-                     headers, status=409)
+        r = self.put('resource-lists', nancy, '/resource-lists/list[@name="friends"]/entry[1]', status=409)
 
 if __name__ == '__main__':
     runSuiteFromModule()

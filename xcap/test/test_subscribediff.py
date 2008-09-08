@@ -111,14 +111,12 @@ class Test(XCAPTest):
                           help="Outbound SIP proxy to use. By default a lookup is performed based on SRV and A records.",
                           metavar="IP[:PORT]")
         parser.add_option("-t", "--siptrace", default=False, action='store_true')
-        XCAPClient.setupOptionParser(parser)
+        setup_parser_client(parser)
 
     def test(self):
         opts = self.options
 
         self.delete(resource, status=[200,404])
-
-        username, domain = opts.username.split('@')
 
         initial_events = Engine.init_options_defaults["initial_events"]
         if content_type is not None:
@@ -133,8 +131,8 @@ class Test(XCAPTest):
                 route = None
             else:
                 route = Route(opts.proxy_ip, opts.proxy_port)
-            sub = Subscription(Credentials(SIPURI(user=username, host=domain), opts.password),
-                               SIPURI(user=username, host=domain), event, route=route, expires=expires)
+            sub = Subscription(Credentials(SIPURI(user=opts.username, host=opts.domain), opts.password),
+                               SIPURI(user=opts.username, host=opts.domain), event, route=route, expires=expires)
             sub.subscribe()
 
             try:

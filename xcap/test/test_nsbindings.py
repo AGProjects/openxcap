@@ -22,6 +22,7 @@ class NSBindingsTest(XCAPTest):
         r = self.get('resource-lists', '/resource-lists/list[@name="friends"]/namespace::*')
         self.assertHeader(r, 'ETag')
         self.assertHeader(r, 'Content-type', 'application/xcap-ns+xml')
+        # add expected content
 
 if __name__ == '__main__':
     runSuiteFromModule()
