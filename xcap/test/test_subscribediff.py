@@ -98,7 +98,7 @@ def get(queue, blocking=True, timeout=1):
     except Empty:
         return None
 
-class Test(XCAPTest):
+class Test:#(XCAPTest):
 
     def assertContains(self, element, list):
         if element not in list:
