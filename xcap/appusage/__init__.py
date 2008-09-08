@@ -409,16 +409,16 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
             auids += "<auid>%s</auid>\n" % id
             namespaces += "<namespace>%s</namespace>\n" % app.default_ns
         self.doc = """<?xml version='1.0' encoding='UTF-8'?>
-        <xcap-caps xmlns='urn:ietf:params:xml:ns:xcap-caps'>
-            <auids>
-            %(auids)s</auids>
-            <extensions>
-            %(extensions)s</extensions>
-            <namespaces>
-            %(namespaces)s</namespaces>
-        </xcap-caps>""" % {"auids": auids,
-                           "extensions": extensions,
-                           "namespaces": namespaces}
+<xcap-caps xmlns='urn:ietf:params:xml:ns:xcap-caps'>
+<auids>
+%(auids)s</auids>
+<extensions>
+%(extensions)s</extensions>
+<namespaces>
+%(namespaces)s</namespaces>
+</xcap-caps>""" % {"auids": auids,
+                   "extensions": extensions,
+                   "namespaces": namespaces}
         return self.doc
 
     def get_document(self, uri, check_etag):
