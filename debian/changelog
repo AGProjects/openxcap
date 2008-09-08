@@ -9,8 +9,9 @@ openxcap (1.0.0) unstable; urgency=high
   * Switched to Python 2.5
   * Improved documentation and testing suite
   * Changed license to GPL
+  * Fixed MySQL operational error (2006)
 
- -- Adrian Georgescu <ag@ag-projects.com>  Fri, 05 Sep 2008 22:14:08 +0200
+ -- Adrian Georgescu <ag@ag-projects.com>  Mon, 08 Sep 2008 15:32:07 +0200
 
 openxcap (0.9.9.5) unstable; urgency=low
 
