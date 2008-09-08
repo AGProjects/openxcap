@@ -406,8 +406,8 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
         extensions = ""
         namespaces = ""
         for (id, app) in applications.items():
-            auids += "<auid>%s<auid>\n" % id
-            namespaces += "<namespace>%s<namespace>\n" % app.default_ns
+            auids += "<auid>%s</auid>\n" % id
+            namespaces += "<namespace>%s</namespace>\n" % app.default_ns
         self.doc = """<?xml version='1.0' encoding='UTF-8'?>
         <xcap-caps xmlns='urn:ietf:params:xml:ns:xcap-caps'>
             <auids>
