@@ -30,28 +30,6 @@ OepnXCAP has been tested on Debian unstable with the following versions:
  - python-zopeinterface: 3.3.1-6
 
 
-For Debian Linux
-----------------
-
-For people running Debian testing or unstable on an i386 architecture there
-is an official public repository provided by AG Projects. To use it, add
-these lines in /etc/apt/sources.list
-
-# AG Projects software
-deb	http://ag-projects.com/debian unstable main
-deb-src http://ag-projects.com/debian unstable main
-
-Install AG Projects debian software signing key:
-
-wget http://download.ag-projects.com/agp-debian-gpg.key
-apt-key add agp-debian-gpg.key
-
-After that, run:
-
-apt-get update
-apt-get install openxcap
-
-
 Testing
 -------
 
