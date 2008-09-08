@@ -63,8 +63,11 @@ def connectionForURI(uri):
         module = db_modules[schema]
     except Exception:
         raise AssertionError("Database scheme '%s' is not supported." % schema)
+    # since we don't use transactions, it should be safe to use reconnect=1
+    # QQQ there's also cp_reconnect (implemented in adbapi). which one is better?
     return adbapi.ConnectionPool(module, db=path.strip('/'), user=user or '',
-                                 passwd=password or '', host=host or 'localhost', cp_noisy=False)
+                                 passwd=password or '', host=host or 'localhost', cp_noisy=False,
+                                 reconnect=1)
 
 def repeat_on_error(N, errorinfo, func, *args, **kwargs):
     #print 'repeat_on_error', N, func.__name__
