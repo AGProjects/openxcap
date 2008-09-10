@@ -159,15 +159,6 @@ with XCAP clients known to be working with OpenXCAP:
     - OpenSER from http://openser.org
 
 
-Caveats
--------
-
-Beware that OpenXCAP server needs to run on a host that has Internet
-connectivity. This is due to a constraint imposed by the underlying libxml
-library that will try to connect to w3c website on startup to retrieve the
-xml schemas used for validating xcap documents
-
-
 Free support
 ------------
 
