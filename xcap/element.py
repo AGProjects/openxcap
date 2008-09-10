@@ -472,7 +472,7 @@ class _test:
             # where to put namespace?
             r = doc.xpath(xpath_expr, namespaces=namespaces)
         except etree.XPathEvalError:
-            return uri.StepParsingError
+            return uri.NodeParsingError
         except Exception, ex:
             traceback.print_exc()
             return ex
@@ -485,9 +485,9 @@ class _test:
     def xcap_get(xpath_expr, source=source1, namespace=None, namespaces={}):
         "Second, use xpath_get_element"
         try:
-            selector = uri.ElementSelector(xpath_expr, namespace, namespaces)
+            selector = uri.parse_node_selector(xpath_expr, namespace, namespaces)[0]
             return XCAPElement.get(source, selector)
-        except (uri.StepParsingError, SelectorError), ex :
+        except (uri.NodeParsingError, SelectorError), ex :
             return ex.__class__
         except Exception, ex:
             traceback.print_exc()
@@ -496,9 +496,9 @@ class _test:
     @staticmethod
     def xcap_put(xpath_expr, element, source=source1, namespace=None, namespaces={}):
         try:
-            selector = uri.ElementSelector(xpath_expr, namespace, namespaces)
+            selector = uri.parse_node_selector(xpath_expr, namespace, namespaces)[0]
             return XCAPElement.put(source, selector, element)[0]
-        except (uri.StepParsingError, SelectorError), ex :
+        except (uri.NodeParsingError, SelectorError), ex :
             return ex.__class__
         except Exception, ex:
             traceback.print_exc()
@@ -536,11 +536,11 @@ class _test:
 
             # there're differences between proper parser in lxml/xpath and simple split used in this module:
             if xpath_get == cls.lxml_xpath_get:
-                check(uri.StepParsingError, '/labels\label')
+                check(uri.NodeParsingError, '/labels\label')
                 check(None, '/')
             else:
                 check(None, '/labels\label')
-                check(uri.StepParsingError, '/')
+                check(uri.NodeParsingError, '/')
 
             check(emph1, '/labels/*[1]/quote/emph')
             check(emph1, '/labels/label[1]/quote/emph')
@@ -551,7 +551,7 @@ class _test:
             check(ezra, '/labels/*[4]/name')
             check(ezra, '/labels/*[4][@added="2003-06-10"]/name')
 
-            check(uri.StepParsingError, '')
+            check(uri.NodeParsingError, '')
             check(cls.source1.split('\n', 1)[1].rstrip('\n'), '/labels')
 
             check(yesterday, '/labels/label[@added="yesterday"]')
@@ -809,4 +809,3 @@ if __name__ == "__main__":
     _test.test_put0()
     _test.test_put1()
     _test.test_put2()
-
