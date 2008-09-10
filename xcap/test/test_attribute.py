@@ -12,6 +12,7 @@ resource_list_xml = """<?xml version="1.0" encoding="UTF-8"?>
       <entry uri="sip:petri@example.com">
         <display-name>Petri Aukia</display-name>
       </entry>
+      <external anchor="http://xcap.example.org/resource-lists/users/sip:a@example.org/index/~~/resource-lists/list%5b@name=%22mkting%22%5d"/>
      </list>
    </resource-lists>"""
 
@@ -26,6 +27,15 @@ class AttributeTest(XCAPTest):
         self.assertBody(r, "friends")
         self.assertHeader(r, 'ETag')
         self.assertHeader(r, 'Content-type', 'application/xcap-att+xml')
+
+        r = self.get('resource-lists', '/resource-lists/list[@name="friends"]/external/@anchor')
+        uri = 'http://xcap.example.org/resource-lists/users/sip:a@example.org/index/~~/resource-lists/list%5b@name=%22mkting%22%5d'
+        self.assertBody(r, uri)
+        
+        r = self.get('resource-lists', '/resource-lists/list[@name="friends"]/external[@anchor="%s"]/@anchor' % uri)
+        self.assertBody(r, uri)
+
+        r = self.get('resource-lists', '/resource-lists/list[@name="friends"]/external[]/@anchor', status=400)
 
     def test_delete(self):
         self.put('resource-lists', resource_list_xml)

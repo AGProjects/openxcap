@@ -12,28 +12,26 @@ xml = """<?xml version="1.0" encoding="UTF-8"?>
       <entry uri="sip:petri@example.com">
         <display-name>Petri Aukia</display-name>
       </entry>
+      <external anchor="http://xcap.example.org/resource-lists/users/sip:a@example.org/index/~~/resource-lists/list%5b@name=%22mkting%22%5d"/>
      </list>
    </resource-lists>"""
 
-def index(s, sub, skip=0):
-    res = 0
+def index(s, sub, skip=0, start=0):
     while skip >= 0:
-        res = s.index(sub, res+1)
+        found = s.index(sub, start)
         skip -= 1
-    return res
+        start = found + 1
+    return found
 
 def eindex(s, sub, skip=0):
     return index(s, sub, skip)+len(sub)
 
-
 lst = xml[xml.index('<list'):eindex(xml, '</list>')]
 nancy = xml[xml.index('<entry uri="sip:nancy'):eindex(xml, '</entry>', 1)]
-bob = """<entry uri="sip:bob@example.com">
-       <display-name>Bob</display-name>
-      </entry>"""
 broken = """<entry uri="sip:alice@example.com">
         <display-name>Alice</display-name>
       """
+external = xml[xml.index('<external'):eindex(xml, '/>')]
 
 class ElementTest(XCAPTest):
     
@@ -53,24 +51,37 @@ class ElementTest(XCAPTest):
         self.assertHeader(r, 'Content-type', 'application/xcap-el+xml')
         
         r = self.get('resource-lists', '/resource-lists/list[@name="friends"]/*[2]')
-        self.assertStatus(r, 200)
         self.assertBody(r, nancy)
+        self.assertHeader(r, 'ETag')
+        self.assertHeader(r, 'Content-type', 'application/xcap-el+xml')
+
+        r = self.get('resource-lists', '/resource-lists/list[@name="friends"]/external[@anchor="http://xcap.example.org/resource-lists/users/sip:a@example.org/index/~~/resource-lists/list%5b@name=%22mkting%22%5d"]')
+        self.assertBody(r, external)
         self.assertHeader(r, 'ETag')
         self.assertHeader(r, 'Content-type', 'application/xcap-el+xml')
 
     def test_delete(self):
         self.put('resource-lists', xml)
 
+        # cannot delete something in the middle
         self.delete('resource-lists', '/resource-lists/list[@name="friends"]/entry[2]', status=409)
-        
+        self.delete('resource-lists', '/resource-lists/list[@name="friends"]/*[3]', status=409)
+
+        # it's ok to delete the last one though
+        r = self.delete('resource-lists', '/resource-lists/list[@name="friends"]/*[4]')
+        self.assertHeader(r, 'ETag')
+
         r = self.delete('resource-lists', '/resource-lists/list[@name="friends"]/*[3]')
         self.assertHeader(r, 'ETag')
 
         r = self.delete('resource-lists', '/resource-lists/list[@name="friends"]/*[2]')
         self.assertHeader(r, 'ETag')
 
-        r = self.delete('resource-lists', '/resource-lists/list[@name="friends"]/*[1]')
+        r = self.delete('resource-lists', '/resource-lists/list[@name="friends"]/entry')
         self.assertHeader(r, 'ETag')
+
+        r = self.get('resource-lists', '/resource-lists/list')
+        self.assertMatchesBody(r, '^<list name="friends">\\s*</list>$')
 
         self.delete('resource-lists',
                     '/resource-lists/list[@name="friends"]/entry[@uri="sip:joe@example.com"]', status=404)
