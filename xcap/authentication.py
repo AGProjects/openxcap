@@ -21,7 +21,7 @@ from application import log
 from xcap.appusage import getApplicationForURI, namespaces
 from xcap.dbutil import connectionForURI
 from xcap.errors import ResourceNotFound
-from xcap.uri import XCAPUser, XCAPUri
+from xcap.uri import XCAPUser, XCAPUri, NodeParsingError
 
 class AuthenticationConfig(ConfigSection):
     _datatypes = {'trusted_peers': StringList}
@@ -67,7 +67,10 @@ def parseNodeURI(node_uri, default_realm='example.com'):
         log.error("XCAP root not found for request URI: %s" % node_uri)
         raise ResourceNotFound("XCAP root not found for uri: %s" % node_uri)
     resource_selector = node_uri[len(xcap_root):]
-    return XCAPUri(xcap_root, resource_selector, default_realm, namespaces)
+    try:
+        return XCAPUri(xcap_root, resource_selector, default_realm, namespaces)
+    except NodeParsingError:
+        raise http.HTTPError(400)
 
 
 class ITrustedPeerCredentials(credentials.ICredentials):
