@@ -1,7 +1,3 @@
-* slash in node selector attribute value results in 500 internal server error
-because split('/')  is used instead of proper parser
-
-
 * easy to cause an exception with invalid requests
 for example, instead of GET send XXX:
 
@@ -31,3 +27,17 @@ what's intentionally skipped:
 * global scope of uri attr in <service> and building /global/index (supposed
 to be used by rls, RLS module in openser doesn't use it)
 
+* won't startup without internet access?
+Traceback (most recent call last):
+  File "./openxcap", line 54, in <module>
+    from xcap.server import XCAPServer
+  File "../openxcap/xcap/server.py", line 22, in <module>
+    from xcap import authentication
+  File "../openxcap/xcap/authentication.py", line 21, in <module>
+    from xcap.appusage import getApplicationForURI, namespaces
+  File "../openxcap/xcap/appusage/__init__.py", line 465, in <module>
+    'resource-lists': ResourceListsApplication(theStorage),
+  File "../openxcap/xcap/appusage/__init__.py", line 65, in __init__
+    self.xml_schema = etree.XMLSchema(xml_schema_doc)
+  File "xmlschema.pxi", line 85, in lxml.etree.XMLSchema.__init__ (src/lxml/lxml.etree.c:97229)
+lxml.etree.XMLSchemaParseError: Operation in progress
