@@ -185,11 +185,11 @@ def step2str(step, namespace2prefix = {}):
     if step.att_name is not None:
         namespace, name = step.att_name
         if namespace:
-            namespace2prefix = prefixes[namespace]
+            prefix = namespace2prefix[namespace]
         else:
             prefix = None
         if prefix:
-            res += '[@%s:%s="%s"]' % (prefix, name, quoteattr(step.att_value))
+            res += '[@%s:%s=%s]' % (prefix, name, quoteattr(step.att_value))
         else:
             res += '[@%s=%s]' % (name, quoteattr(step.att_value))
     return res
