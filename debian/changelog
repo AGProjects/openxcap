@@ -1,3 +1,10 @@
+openxcap (1.0.1) unstable; urgency=low
+
+  * Added proper URI parsing, so value attributes may contain slashes now
+  * Fixed schemas not to fetch files from the internet on initialization
+
+ -- Denis Bilenko <denis@ag-projects.com>  Fri, 12 Sep 2008 10:15:54 +0200
+
 openxcap (1.0.0) unstable; urgency=high
 
   * Added RLS services (RFC 4662 and RFC 4826)
