@@ -1,6 +1,6 @@
 openxcap (1.0.1) unstable; urgency=low
 
-  * Added proper URI parsing, so value attributes may contain slashes now
+  * Added proper URI parsing, so att_value may contain slashes now
   * Fixed schemas not to fetch files from the internet on initialization
 
  -- Denis Bilenko <denis@ag-projects.com>  Fri, 12 Sep 2008 10:15:54 +0200
