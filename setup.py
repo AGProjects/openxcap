@@ -17,7 +17,7 @@ store data like Presence policy in combination with a SIP Presence server
 that supports PUBLISH/SUBSCRIBE/NOTIFY methods to provide a complete
 [http://www.tech-invite.com/Ti-sip-WGs.html#wg-simple SIP SIMPLE] server
 solution.""",
-      license      = "BSD",
+      license      = "GPL",
       platforms    = ["Platform Independent"],
       classifiers  = [
         "Development Status :: 5 - Production/Stable",
