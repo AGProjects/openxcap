@@ -296,8 +296,9 @@ class XCAPElement:
         parser.setFeature(sax.handler.feature_namespaces, 1)
 
         # Q: SAXNotSupportedException: expat does not report namespace prefixes
-        # A: sudo aptitude install python-xml
-        parser.setFeature(sax.handler.feature_namespaces, 1) # need python-xml
+        # A: you need pyxml library which provides _xmlplus package;
+        #    on debian: aptitude install python-xml
+        parser.setFeature(sax.handler.feature_namespace_prefixes, 1) # need _xmlplus package
         return parser
 
     @classmethod
