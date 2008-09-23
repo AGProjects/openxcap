@@ -3,10 +3,3 @@ Logging
 
 - Proper logging of URIs in syslog to reflect UA settings
 - Remove Twisted unnecessary logging
-
-
-Misc
-----
-
-- Have lxml not do online XML Schema schema validation from
-  www.w3.org.
