@@ -391,6 +391,8 @@ class XCAPElement:
 # I have no idea what does that mean, but probably something to do with parser's state becoming invalid
 # under some circumstances.
 
+# prevent openxcap from starting if _xmlplus is not installed
+XCAPElement.make_parser() # test parser creation
 
 class _test:
 
