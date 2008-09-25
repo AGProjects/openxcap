@@ -538,6 +538,7 @@ class _test:
             check(None, '/labels/labelx')
 
             # there're differences between proper parser in lxml/xpath and simple split used in this module:
+            # XXX "simple split" is not used anymore, why this doesn't raise any errors?
             if xpath_get == cls.lxml_xpath_get:
                 check(uri.NodeParsingError, '/labels\label')
                 check(None, '/')
