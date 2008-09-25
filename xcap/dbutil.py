@@ -65,13 +65,22 @@ def connectionForURI(uri):
     except Exception:
         raise AssertionError("Database scheme '%s' is not supported." % schema)
 
+    # reconnecting is safe since we don't use transactions.
+    # the following code prefers MySQLdb native reconnect if it's available,
+    # falling back to twisted's cp_reconnect.
+    # mysql's reconnect is preferred because it's better tested than twisted's
     kwargs = {}
     if module == 'MySQLdb':
         MySQLdb = reflect.namedModule(module)
         if MySQLdb.version_info[:3] >= (1, 2, 2):
-            # since we don't use transactions, it should be safe to use reconnect=1
-            # QQQ there's also cp_reconnect (implemented in adbapi). which one is better?
             kwargs.setdefault('reconnect', 1)
+
+    if 'reconnect' not in kwargs:
+        # note that some versions of MySQLdb don't provide reconnect parameter,
+        # but set it to 1.
+        # hopefully, if underlying reconnect was enabled, twisted will never see
+        # a disconnect and its reconnection code won't interfere.
+        kwargs.setdefault('cp_reconnect', 1)
 
     return adbapi.ConnectionPool(module, db=path.strip('/'), user=user or '',
                                  passwd=password or '', host=host or 'localhost', cp_noisy=False,
