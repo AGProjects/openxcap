@@ -49,7 +49,7 @@ class ServerConfig(ConfigSection):
 configuration = ConfigFile('config.ini')
 configuration.read_settings('Server', ServerConfig)
 
-schemas_directory = os.path.join(os.path.dirname(globals()["__file__"]), "../", "xml-schemas")
+schemas_directory = os.path.join(os.path.dirname(__file__), "../", "xml-schemas")
 
 class ApplicationUsage(object):
     """Base class defining an XCAP application"""
