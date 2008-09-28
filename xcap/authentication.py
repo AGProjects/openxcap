@@ -14,10 +14,10 @@ from twisted.cred import credentials, portal, checkers, error as credError
 from twisted.web2 import http, server, stream
 from twisted.web2.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 
-from application.configuration import *
 from application.configuration.datatypes import StringList, NetworkRangeList
 from application import log
 
+from xcap.config import *
 from xcap.appusage import getApplicationForURI, namespaces
 from xcap.dbutil import connectionForURI
 from xcap.errors import ResourceNotFound
@@ -28,7 +28,7 @@ class AuthenticationConfig(ConfigSection):
     default_realm = 'example.com'
     trusted_peers = []
 
-configuration = ConfigFile('config.ini')
+configuration = ConfigFile()
 
 class XCAPRootURIs(tuple):
     """Configuration data type. A tuple of defined XCAP Root URIs is extracted from

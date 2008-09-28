@@ -13,7 +13,6 @@ import cjson
 from formencode import validators
 
 from application import log
-from application.configuration import *
 from application.python.util import Singleton
 from application.system import default_host_ip
 from application.process import process
@@ -38,6 +37,7 @@ from thor.entities import ThorEntitiesRoleMap, GenericThorEntity as ThorEntity
 from gnutls.interfaces.twisted import X509Credentials
 from gnutls.constants import *
 
+from xcap.config import *
 from xcap.tls import Certificate, PrivateKey
 from xcap.interfaces.backend import IStorage, StatusResponse
 
@@ -121,7 +121,7 @@ class SipAccountData(SQLObject):
     profile  = JSONCol()
 
 
-configuration = ConfigFile('config.ini')
+configuration = ConfigFile()
 configuration.read_settings('ThorNode', ThorNodeConfig)
 configuration.read_settings('ThorNetwork', ThorNetworkConfig)
 

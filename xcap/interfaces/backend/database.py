@@ -6,7 +6,6 @@
 import md5
 import time
 
-from application.configuration import *
 from application.python.util import Singleton
 
 from zope.interface import implements
@@ -16,6 +15,7 @@ from twisted.enterprise import adbapi
 
 from _mysql_exceptions import IntegrityError
 
+from xcap.config import *
 from xcap.interfaces.backend import IStorage, StatusResponse
 from xcap.errors import ResourceNotFound
 from xcap.dbutil import connectionForURI, repeat_on_error
@@ -31,8 +31,7 @@ class Config(ConfigSection):
     ha1_col = 'ha1'
     xcap_table = 'xcap'
 
-## We use this to overwrite some of the settings above on a local basis if needed
-configuration = ConfigFile('config.ini')
+configuration = ConfigFile()
 configuration.read_settings('Database', Config)
 
 class PasswordChecker:

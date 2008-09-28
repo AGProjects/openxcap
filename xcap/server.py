@@ -5,7 +5,6 @@
 
 import os
 
-from application.configuration import *
 from application.configuration.datatypes import StringList, NetworkRangeList
 from application import log
 
@@ -18,6 +17,7 @@ from twisted.cred.portal import Portal
 from twisted.cred import credentials, portal, checkers, error as credError
 from twisted.web2.auth import digest, basic, wrapper
 
+from xcap.config import *
 from xcap import authentication
 from xcap.appusage import getApplicationForURI
 from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute, XCAPNamespaceBinding
@@ -55,7 +55,7 @@ class TLSConfig(ConfigSection):
     private_key = None
 
 ## We use this to overwrite some of the settings above on a local basis if needed
-configuration = ConfigFile('config.ini')
+configuration = ConfigFile()
 configuration.read_settings('Authentication', AuthenticationConfig)
 configuration.read_settings('Server', ServerConfig)
 configuration.read_settings('TLS', TLSConfig)

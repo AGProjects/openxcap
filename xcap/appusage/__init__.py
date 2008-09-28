@@ -5,7 +5,6 @@ import os
 from cStringIO import StringIO
 from lxml import etree
 
-from application.configuration import *
 from application.configuration.datatypes import StringList
 from application.process import process
 from application import log
@@ -13,6 +12,7 @@ from application import log
 from twisted.internet import defer
 from twisted.python import failure
 
+from xcap.config import *
 from xcap.errors import *
 from xcap.interfaces.backend import StatusResponse
 from xcap.element import XCAPElement
@@ -45,8 +45,7 @@ class ServerConfig(ConfigSection):
     backend = Backend('Database')
     document_validation = True
 
-## We use this to overwrite some of the settings above on a local basis if needed
-configuration = ConfigFile('config.ini')
+configuration = ConfigFile()
 configuration.read_settings('Server', ServerConfig)
 
 schemas_directory = os.path.join(os.path.dirname(__file__), "../", "xml-schemas")

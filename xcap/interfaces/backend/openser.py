@@ -5,9 +5,9 @@
 
 import time
 
-from application.configuration import *
 from application import log
 
+from xcap.config import *
 from xcap.interfaces.backend import database
 from xcap.interfaces.openser import ManagementInterface
 from xcap.xcapdiff import Notifier
@@ -18,7 +18,7 @@ class Config(ConfigSection):
     enable_publish_xcapdiff = False
 
 ## We use this to overwrite some of the settings above on a local basis if needed
-configuration = ConfigFile('config.ini')
+configuration = ConfigFile()
 configuration.read_settings('OpenSER', Config)
 
 class PlainPasswordChecker(database.PlainPasswordChecker): pass
