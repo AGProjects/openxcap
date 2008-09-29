@@ -30,36 +30,41 @@ class AuthenticationConfig(ConfigSection):
 
 configuration = ConfigFile()
 
+def list_contains_uri(uris, uri):
+    for u in uris:
+        if u == uri:
+            return True
+        if uri.startswith(u) or u.startswith(uri):
+            log.warn("XCAP Root URI rejected: %r (looks like %r)" % (uri, u))
+            return True
+
 class XCAPRootURIs(tuple):
     """Configuration data type. A tuple of defined XCAP Root URIs is extracted from
        the configuration file."""
     def __new__(typ):
-        uris = [value for name, value in configuration.get_section("Server") or [] if name == "root"]
-        for uri in uris:
+        uris = []
+        for uri in configuration.get_values_unique('Server', 'root'):
             scheme, host, path, params, query, fragment = urlparse.urlparse(uri)
             if not scheme or not host or scheme not in ("http", "https"):
-                log.warn("XCAP Root URI not valid: %s" % uri)
-                uris.remove(uri) # XXX changing list while iterating
+                log.warn("XCAP Root URI not valid: %r" % uri)
+            elif not list_contains_uri(uris, uri):
+                uris.append(uri)
         if not uris:
             raise ResourceNotFound("At least one XCAP Root URI must be defined")
         return tuple(uris)
 
-root_uris = XCAPRootURIs()
-
-class ServerConfig(ConfigSection):
-    _datatypes = {'root_uris': XCAPRootURIs} # WTF is that, how does it relates to root?
-    root_uris = ()
+class ServerConfig:
+    root_uris = XCAPRootURIs()
 
 configuration.read_settings('Authentication', AuthenticationConfig)
-configuration.read_settings('Server', ServerConfig)
 
-print 'Supported Root URIs: %s' % ','.join(root_uris)
+print 'Supported Root URIs: %s' % ', '.join(ServerConfig.root_uris)
 
 def parseNodeURI(node_uri, default_realm='example.com'):
     """Parses the given Node URI, containing the XCAP root, document selector,
        and node selector, and returns an XCAPUri instance if succesful."""
     xcap_root = None
-    for uri in root_uris:
+    for uri in ServerConfig.root_uris:
         if node_uri.startswith(uri):
             xcap_root = uri
             break
