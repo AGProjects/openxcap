@@ -20,19 +20,16 @@ XPATH_DEFAULT_PREFIX = 'default' # should be more random
 class XCAPUser(object):
     """XCAP ID."""
 
-    def __init__(self, user_id):
-        if user_id.startswith("sip:"):
-            user_id = user_id[4:]
-        _split = user_id.split('@', 1)
-        self.username = _split[0]
-        if len(_split) == 2:
-            self.domain = _split[1]
-        else:
-            self.domain = None
-        self.uri = 'sip:%s@%s' % (self.username, self.domain)
+    def __init__(self, username, domain):
+        self.username = username
+        self.domain = domain
+
+    @property
+    def uri(self):
+        return 'sip:%s@%s' % (self.username, self.domain)
 
     def __eq__(self, other):
-        return isinstance(other, XCAPUser) and self.username == other.username and self.domain == other.domain
+        return isinstance(other, XCAPUser) and self.uri == other.uri
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -42,6 +39,21 @@ class XCAPUser(object):
 
     def __str__(self):
         return "%s@%s" % (self.username, self.domain)
+
+    def __repr__(self):
+        return 'XCAPUser(%r, %r)' % (self.username, self.domain)
+
+    @classmethod
+    def parse(cls, user_id, default_domain=None):
+        if user_id.startswith("sip:"):
+            user_id = user_id[4:]
+        _split = user_id.split('@', 1)
+        username = _split[0]
+        if len(_split) == 2:
+            domain = _split[1]
+        else:
+            domain = default_domain
+        return cls(username, domain)
 
 # XXX currently equivalent but differently encoded URIs won't be considered equal.
 def unquote_attr_value(s):
@@ -387,11 +399,11 @@ class XCAPUri(object):
 
     node_selector_separator = "~~"
 
-    def __init__(self, xcap_root, resource_selector, default_realm='example.com', namespaces = {}):
+    def __init__(self, xcap_root, resource_selector, namespaces):
         "namespaces maps application id to default namespace"
         self.xcap_root = xcap_root
         self.resource_selector = resource_selector
-        realm = default_realm
+        realm = None
         # convention to get the realm if it's not contained in the user ID section
         # of the document selector (bad eyebeam)
         if self.resource_selector.startswith("@"):
@@ -410,9 +422,10 @@ class XCAPUri(object):
             self.node_selector = NodeSelector(_split[1], namespaces.get(self.application_id))
         else:
             self.node_selector = None
-        self.user = self.doc_selector.user_id and XCAPUser(self.doc_selector.user_id)
-        if not self.user.domain:
-            self.user.domain = realm
+        if self.doc_selector.user_id:
+            self.user = XCAPUser.parse(self.doc_selector.user_id, realm)
+        else:
+            self.user = XCAPUser(None, realm)
 
     def __str__(self):
         return self.xcap_root + self.resource_selector

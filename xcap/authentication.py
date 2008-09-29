@@ -61,7 +61,7 @@ configuration.read_settings('Authentication', AuthenticationConfig)
 
 print 'Supported Root URIs: %s' % ', '.join(ServerConfig.root_uris)
 
-def parseNodeURI(node_uri, default_realm='example.com'):
+def parseNodeURI(node_uri, default_realm):
     """Parses the given Node URI, containing the XCAP root, document selector,
        and node selector, and returns an XCAPUri instance if succesful."""
     xcap_root = None
@@ -70,11 +70,14 @@ def parseNodeURI(node_uri, default_realm='example.com'):
             xcap_root = uri
             break
     if xcap_root is None:
-        log.error("XCAP root not found for request URI: %s" % node_uri)
+        log.msg("XCAP root not found for request URI: %s" % node_uri)
         raise ResourceNotFound("XCAP root not found for uri: %s" % node_uri)
     resource_selector = node_uri[len(xcap_root):]
     try:
-        return XCAPUri(xcap_root, resource_selector, default_realm, namespaces)
+        r = XCAPUri(xcap_root, resource_selector, namespaces)
+        if r.user.domain is None:
+            r.user.domain = default_realm
+        return r
     except NodeParsingError:
         raise http.HTTPError(400)
 
@@ -143,8 +146,17 @@ class XCAPAuthRealm(object):
 
         raise NotImplementedError("Only IAuthUser and ITrustedPeer interfaces are supported")
 
-## authentication wrapper for XCAP resources
+def get_cred(request, default_realm):
+    auth = request.headers.getHeader('authorization')
+    if auth:
+        typ, data = auth
+        if typ == 'basic':
+            return data.decode('base64').split(':', 1)[0], default_realm
+        elif typ == 'digest':
+            raise NotImplementedError
+    return None, default_realm
 
+## authentication wrapper for XCAP resources
 class XCAPAuthResource(HTTPAuthResource):
 
     def allowedMethods(self):
@@ -158,10 +170,17 @@ class XCAPAuthResource(HTTPAuthResource):
     def authenticate(self, request):
         """Authenticates an XCAP request."""
         uri = request.scheme + "://" + request.host + request.uri
-        request.xcap_uri = parseNodeURI(uri, AuthenticationConfig.default_realm)
+        xcap_uri = parseNodeURI(uri, AuthenticationConfig.default_realm)
+        request.xcap_uri = xcap_uri
         ## For each request the authentication realm must be
         ## dinamically deducted from the XCAP request URI
-        realm = request.xcap_uri.user.domain
+        realm = xcap_uri.user.domain
+
+        if not xcap_uri.user.username:
+            # for 'global' requests there's no username@domain in the URI,
+            # so we will use username and domain from Authorization header
+            xcap_uri.user.username, xcap_uri.user.domain = get_cred(request, AuthenticationConfig.default_realm)
+
         self._updateRealm(realm)
         remote_addr = request.remoteAddr.host
         if AuthenticationConfig.trusted_peers:
@@ -189,7 +208,7 @@ class XCAPAuthResource(HTTPAuthResource):
         if not application:
             raise ResourceNotFound
 
-        if interface is IAuthUser and application.is_authorized(XCAPUser(avatar_id), xcap_uri):
+        if interface is IAuthUser and application.is_authorized(XCAPUser.parse(avatar_id), xcap_uri):
             return HTTPAuthResource._loginSucceeded(self, avatar, request)
         elif interface is ITrustedPeer:
             return HTTPAuthResource._loginSucceeded(self, avatar, request)
