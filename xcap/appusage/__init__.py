@@ -16,6 +16,7 @@ from xcap.config import *
 from xcap.errors import *
 from xcap.interfaces.backend import StatusResponse
 from xcap.element import XCAPElement
+from xcap.dbutil import generate_etag
 
 supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pres-rules',
                           'resource-lists', 'rls-services', 'pidf-manipulation', 'watchers')
@@ -114,6 +115,19 @@ class ApplicationUsage(object):
     ## Document management
 
     def get_document(self, uri, check_etag):
+        context = uri.doc_selector.context
+        if context == 'global':
+            return self.get_document_global(uri, check_etag)
+        elif context == 'users':
+            return self.get_document_local(uri, check_etag)
+        else:
+            log.msg("unknown document selector context (expected 'global' or 'users': %s" % context)
+            raise ResourceNotFound
+
+    def get_document_global(self, uri, check_etag):
+        raise ResourceNotFound
+
+    def get_document_local(self, uri, check_etag):
         return self.storage.get_document(uri, check_etag)
 
     def put_document(self, uri, document, check_etag):
@@ -400,7 +414,7 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
 
     def _get_document(self):
         if hasattr(self, 'doc'):
-            return self.doc
+            return self.doc, self.etag
         auids = ""
         extensions = ""
         namespaces = ""
@@ -418,10 +432,15 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
 </xcap-caps>""" % {"auids": auids,
                    "extensions": extensions,
                    "namespaces": namespaces}
-        return self.doc
+        self.etag = generate_etag('xcap-caps', self.doc)
+        return self.doc, self.etag
 
-    def get_document(self, uri, check_etag):
-        return defer.succeed(StatusResponse(200, data=self._get_document()))
+    def get_document_global(self, uri, check_etag):
+        doc, etag = self._get_document()
+        return defer.succeed(StatusResponse(200, etag=etag, data=doc))
+
+    def get_document_local(self, uri, check_etag):
+        raise ResourceNotFound
 
 
 class WatchersApplication(ResourceListsApplication):
@@ -441,7 +460,7 @@ class WatchersApplication(ResourceListsApplication):
         #self.validate_document(doc)
         return StatusResponse(200, data=doc)
 
-    def get_document(self, uri, check_etag):
+    def get_document_local(self, uri, check_etag):
         watchers_def = self.storage.get_watchers(uri)
         watchers_def.addCallback(self._watchers_to_xml)
         return watchers_def
