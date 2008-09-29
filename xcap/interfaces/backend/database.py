@@ -18,8 +18,7 @@ from _mysql_exceptions import IntegrityError
 from xcap.config import *
 from xcap.interfaces.backend import IStorage, StatusResponse
 from xcap.errors import ResourceNotFound
-from xcap.dbutil import connectionForURI, repeat_on_error
-
+from xcap.dbutil import connectionForURI, repeat_on_error, generate_etag
 
 class Config(ConfigSection):
     authentication_db_uri = 'mysql://user:pass@db/openser'
@@ -198,7 +197,7 @@ class Storage(object):
         result = trans.fetchall()
         if not result:
             ## the document doesn't exist, create it
-            etag = self.generate_etag(uri, document)
+            etag = generate_etag(uri, document)
             query = """INSERT INTO %(table)s (username, domain, doc_type, etag, doc, doc_uri)
  VALUES (%%(username)s, %%(domain)s, %%(doc_type)s, %%(etag)s, %%(document)s, %%(document_path)s)""" % {
                 "table":    Config.xcap_table }
@@ -217,7 +216,7 @@ class Storage(object):
             ## first check the etag of the existing resource
             check_etag(old_etag)
             ## the document exists, replace it
-            etag = self.generate_etag(uri, document)
+            etag = generate_etag(uri, document)
             query = """UPDATE %(table)s
                        SET doc = %%(document)s, etag = %%(etag)s
                        WHERE username = %%(username)s AND domain = %%(domain)s
@@ -287,10 +286,7 @@ class Storage(object):
     def delete_document(self, uri, check_etag):
         return repeat_on_error(10, DeleteFailed, self.conn.runInteraction, self._delete_document, uri, check_etag)
 
-    def generate_etag(self, uri, document):
-        return md5.new(uri.xcap_root + str(uri.doc_selector) + str(time.time())).hexdigest()
-
-    # QQQ isn't it application-specific?
+    # QQQ isn't this application-specific?
     def _get_watchers(self, trans, uri):
         status_mapping = {1: "allow",
                           2: "confirm",

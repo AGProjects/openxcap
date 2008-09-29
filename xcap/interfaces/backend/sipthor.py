@@ -3,8 +3,6 @@
 # This module is prorietary to AG-Projects. Use of this module by third
 # parties is unsupported.
 
-import md5
-from time import time
 from Queue import Queue
 import signal
 
@@ -40,6 +38,7 @@ from gnutls.constants import *
 from xcap.config import *
 from xcap.tls import Certificate, PrivateKey
 from xcap.interfaces.backend import IStorage, StatusResponse
+from xcap.dbutil import generate_etag
 
 class ThorNodeConfig(ConfigSection):
     _datatypes = {'certificate': Certificate, 'private_key': PrivateKey, 'ca': Certificate}
@@ -427,7 +426,7 @@ class Storage(object):
 
     def put_document(self, uri, document, check_etag):
         self._normalize_document_path(uri)
-        etag = self.generate_etag(uri, document)
+        etag = generate_etag(uri, document)
         result = self._database.put(uri, document, check_etag, etag)
         result.addCallback(self._cb_put, etag, "%s@%s" % (uri.user.username, uri.user.domain))
         result.addErrback(self._eb_not_found)
@@ -451,9 +450,6 @@ class Storage(object):
     def _cb_delete(self, nothing, thor_key):
         self._provisioning.notify("update", "sip_account", thor_key)
         return StatusResponse(200)
-
-    def generate_etag(self, uri, document):
-        return md5.new(uri.xcap_root + str(uri.doc_selector) + str(time())).hexdigest()
 
     def get_watchers(self, uri):
         thor_key = "%s@%s" % (uri.user.username, uri.user.domain)

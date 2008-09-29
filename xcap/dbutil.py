@@ -1,11 +1,26 @@
 """Database utilities"""
 
 import os
+import md5
+import time
 
 from twisted.enterprise import adbapi
 from twisted.python import reflect
 
 db_modules = {"mysql": "MySQLdb"}
+
+def generate_etag(uri, document):
+    """Generate an etag for the given XCAP URI and document.
+
+    @param uri: an XCAP URI that contains the XCAP user and the document selector
+
+    @param document: an XCAP document
+    """
+    if hasattr(uri, 'xcap_root'):
+        return md5.new(uri.xcap_root + str(uri.doc_selector) + str(time.time())).hexdigest()
+    else:
+        return md5.new(uri + str(time.time())).hexdigest()
+
 
 def parseURI(uri):
     schema, rest = uri.split(':', 1)
