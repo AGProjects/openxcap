@@ -3,6 +3,7 @@
 
 """HTTP handling for the XCAP server"""
 
+import sys
 import os
 
 from application.configuration.datatypes import StringList, NetworkRangeList
@@ -10,7 +11,9 @@ from application import log
 
 from zope.interface import implements
 
-from twisted.internet import pollreactor; pollreactor.install()
+if 'twisted.internet.reactor' not in sys.modules:
+    from twisted.internet import pollreactor; pollreactor.install()
+
 from twisted.internet import reactor
 from twisted.web2 import channel, resource, http, responsecode, server
 from twisted.cred.portal import Portal
