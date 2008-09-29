@@ -23,6 +23,16 @@ def generate_etag(uri, document):
 
 
 def parseURI(uri):
+    """
+    >>> parseURI('mysql://username:123@localhost/openser')
+    ('mysql', 'username', '123', 'localhost', None, '/openser', {})
+    >>> parseURI('sqlite:/:memory:')
+    ('sqlite', None, None, None, None, ':memory:', {})
+    >>> parseURI('sqlite:///full/path/to/database')
+    ('sqlite', None, None, None, None, '/full/path/to/database', {})
+    >>> parseURI('sqlite:/C|/full/path/to/database')
+    ('sqlite', None, None, None, None, '/C|/full/path/to/database', {})
+    """
     schema, rest = uri.split(':', 1)
     assert rest.startswith('/'), "URIs must start with scheme:/ -- you did not include a / (in %r)" % rest
     if rest.startswith('/') and not rest.startswith('//'):
@@ -70,6 +80,8 @@ def parseURI(uri):
             argname, argvalue = single.split('=', 1)
             argvalue = urllib.unquote(argvalue)
             args[argname] = argvalue
+    if path == '/:memory:':
+        path = path[1:]
     return schema, user, password, host, port, path, args
 
 def connectionForURI(uri):
@@ -89,6 +101,17 @@ def connectionForURI(uri):
         MySQLdb = reflect.namedModule(module)
         if MySQLdb.version_info[:3] >= (1, 2, 2):
             kwargs.setdefault('reconnect', 1)
+        kwargs.setdefault('host', host or 'localhost')
+        kwargs.setdefault('user', user or '')
+        kwargs.setdefault('passwd', password or '')
+        path = path.lstrip('/')
+        kwargs.setdefault('db', path)
+        args = ()
+    elif module == 'sqlite3':
+        if path == ':memory:':
+            # otherwise a database per connection is created
+            kwargs['cp_min'] = kwargs['cp_max'] = 1
+        args = (path, )
 
     if 'reconnect' not in kwargs:
         # note that some versions of MySQLdb don't provide reconnect parameter,
@@ -97,9 +120,11 @@ def connectionForURI(uri):
         # a disconnect and its reconnection code won't interfere.
         kwargs.setdefault('cp_reconnect', 1)
 
-    return adbapi.ConnectionPool(module, db=path.strip('/'), user=user or '',
-                                 passwd=password or '', host=host or 'localhost', cp_noisy=False,
-                                 **kwargs)
+    kwargs.setdefault('cp_noisy', False)
+
+    pool = adbapi.ConnectionPool(module, *args, **kwargs)
+    pool.schema = schema
+    return pool
 
 def repeat_on_error(N, errorinfo, func, *args, **kwargs):
     #print 'repeat_on_error', N, func.__name__

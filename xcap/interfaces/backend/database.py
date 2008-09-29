@@ -3,14 +3,14 @@
 
 """Implementation of a database backend."""
 
-import md5
-import time
+import re
 
 from application.python.util import Singleton
 
 from zope.interface import implements
 from twisted.cred import credentials, portal, checkers, error as credError
 from twisted.internet import defer
+from twisted.python.failure import Failure
 from twisted.enterprise import adbapi
 
 from _mysql_exceptions import IntegrityError
@@ -21,8 +21,10 @@ from xcap.errors import ResourceNotFound
 from xcap.dbutil import connectionForURI, repeat_on_error, generate_etag
 
 class Config(ConfigSection):
-    authentication_db_uri = 'mysql://user:pass@db/openser'
-    storage_db_uri = 'mysql://user:pass@db/openser'
+    _datatypes = {'authentication_db_uri' : str,
+                  'storage_db_uri': str}
+    authentication_db_uri = 'sqlite:/:memory:'
+    storage_db_uri = 'sqlite:/:memory:'
     subscriber_table = 'subscriber'
     user_col = 'username'
     domain_col = 'domain'
@@ -33,7 +35,18 @@ class Config(ConfigSection):
 configuration = ConfigFile()
 configuration.read_settings('Database', Config)
 
-class PasswordChecker:
+class DBBase(object):
+
+    def __init__(self):
+        self._db_connect()
+
+    def fixr(self, expr, params):
+        if self.conn.schema == 'sqlite':
+            return pyformat_to_qmark(expr, params)
+        else:
+            return expr, params
+
+class PasswordChecker(DBBase):
     """A credentials checker against a database subscriber table."""
 
     implements(checkers.ICredentialsChecker)
@@ -41,11 +54,8 @@ class PasswordChecker:
     credentialInterfaces = (credentials.IUsernamePassword,
         credentials.IUsernameHashedPassword)
 
-    def __init__(self):
-        self.__db_connect()
-
-    def __db_connect(self):
-        self.conn = connectionForURI(Config.authentication_db_uri)
+    def _db_connect(self):
+        self.conn = auth_db_connection(Config.authentication_db_uri)
 
     def _query_credentials(self, credentials):
         raise NotImplementedError
@@ -92,7 +102,7 @@ class PlainPasswordChecker(PasswordChecker):
                     "table":    Config.subscriber_table }
         params = {"username": username,
                   "domain":   domain}
-        return self.conn.runQuery(query, params).addCallback(self._got_query_results, credentials)
+        return self.conn.runQuery(*self.fixr(query, params)).addCallback(self._got_query_results, credentials)
 
     def _authenticate_credentials(self, hash, credentials):
         return defer.maybeDeferred(
@@ -118,21 +128,51 @@ class HashPasswordChecker(PasswordChecker):
                     "table":    Config.subscriber_table}
         params = {"username": username,
                   "domain":   domain}
-        return self.conn.runQuery(query, params).addCallback(self._got_query_results, credentials)
+        return self.conn.runQuery(*self.fixr(query, params)).addCallback(self._got_query_results, credentials)
 
     def _authenticate_credentials(self, hash, credentials):
         return defer.maybeDeferred(
                 credentials.checkHash, hash).addCallback(
                 self._checkedPassword, credentials.username, credentials.realm)
 
-class UpdateFailed(Exception):
-    pass
+class Error(Exception):
 
-class DeleteFailed(Exception):
-    pass
+    def __init__(self):
+        if hasattr(self, 'msg'):
+            return Exception.__init__(self, self.msg)
+        else:
+            return Exception.__init__(self)
 
+class RaceError(Error):
+    """The errors of this type are raised for the requests that failed because
+    of concurrent modification of the database by other clients.
 
-class Storage(object):
+    For example, before DELETE we do SELECT first, to check that a document of the
+    right etag exists. The actual check is performed by a function in twisted
+    that is passed as a callback. Then etag from the SELECT request is used in the
+    DELETE request.
+
+    This seems unnecessary convoluted and probably should be changed to
+    'DELETE .. WHERE etag=ETAG'. We still need to find out whether DELETE was
+    actually performed. While mysql has affected_rows(), with sqlite it seems that
+    SELECT is necessary.
+    """
+
+class UpdateFailed(RaceError):
+    msg = 'UPDATE request failed'
+
+class DeleteFailed(RaceError):
+    msg = 'DELETE request failed'
+
+class MultipleResultsError(Error):
+    """This should never happen. If it did happen. that means either the table
+    was corrupted or there's a logic error"""
+    msg = 'database request has more than one result: '
+
+    def __init__(self, params):
+        Exception.__init__(self, msg + repr(params))
+
+class Storage(DBBase):
     __metaclass__ = Singleton
     
     implements(IStorage)
@@ -144,11 +184,8 @@ class Storage(object):
                    "pidf-manipulation": 1<<4,
                    "test-app"         : 0}
 
-    def __init__(self):
-        self.__db_connect()
-
-    def __db_connect(self):
-        self.conn = connectionForURI(Config.storage_db_uri)
+    def _db_connect(self):
+        self.conn = storage_db_connection(Config.storage_db_uri)
 
     def _normalize_document_path(self, uri):
         ## some clients e.g. counterpath's eyebeam save presence rules under
@@ -170,10 +207,14 @@ class Storage(object):
                   "domain"  : domain,
                   "doc_type": doc_type,
                   "document_path": uri.doc_selector.document_path}
-        trans.execute(query, params)
+        trans.execute(*self.fixr(query, params))
         result = trans.fetchall()
-        if result:
+        if len(result)>1:
+            raise MultipleResultsError(params)
+        elif result:
             doc, etag = result[0]
+            if isinstance(doc, unicode):
+                doc = doc.encode('utf-8')
             check_etag(etag)
             response = StatusResponse(200, etag, doc)
         else:
@@ -193,9 +234,11 @@ class Storage(object):
                   "domain"  : domain,
                   "doc_type": doc_type,
                   "document_path": document_path}
-        trans.execute(query, params)
+        trans.execute(*self.fixr(query, params))
         result = trans.fetchall()
-        if not result:
+        if len(result)>1:
+            raise MultipleResultsError(params)
+        elif not result:
             ## the document doesn't exist, create it
             etag = generate_etag(uri, document)
             query = """INSERT INTO %(table)s (username, domain, doc_type, etag, doc, doc_uri)
@@ -209,7 +252,7 @@ class Storage(object):
                       "document_path": document_path}
             # may raise IntegrityError here, if the document was created in another connection
             # will be catched by repeat_on_error
-            trans.execute(query, params)
+            trans.execute(*self.fixr(query, params))
             return StatusResponse(201, etag)
         else:
             old_etag = result[0][0]
@@ -230,10 +273,10 @@ class Storage(object):
                       "doc_type": doc_type,
                       "old_etag": old_etag,
                       "document_path": document_path}
-            trans.execute(query, params)
+            trans.execute(*self.fixr(query, params))
             # the request may not update anything (e.g. if etag was changed by another connection
             # after we did SELECT); if so, we should retry
-            updated = trans._connection.affected_rows()
+            updated = getattr(trans._connection, 'affected_rows', lambda : 1)()
             if not updated:
                 raise UpdateFailed
             assert updated == 1, updated
@@ -252,9 +295,11 @@ class Storage(object):
                   "domain"  : domain,
                   "doc_type": doc_type,
                   "document_path": document_path}
-        trans.execute(query, params)
+        trans.execute(*self.fixr(query, params))
         result = trans.fetchall()
-        if result:
+        if len(result)>1:
+            raise MultipleResultsError(params)
+        elif result:
             etag = result[0][0]
             check_etag(etag)
             query = """DELETE FROM %(table)s
@@ -266,8 +311,8 @@ class Storage(object):
                       "doc_type": doc_type,
                       "document_path": document_path,
                       "etag": etag}
-            trans.execute(query, params)
-            deleted = trans._connection.affected_rows()
+            trans.execute(*self.fixr(query, params))
+            deleted = getattr(trans._connection, 'affected_rows', lambda : 1)()
             if not deleted:
                 # the document was replaced/removed after the SELECT but before the DELETE
                 raise DeleteFailed
@@ -313,3 +358,74 @@ class Storage(object):
         return self.conn.runInteraction(self._get_watchers, uri)
 
 installSignalHandlers = True
+
+def auth_db_connection(uri):
+    conn = connectionForURI(uri)
+    if conn.schema=='sqlite':
+        d = conn.runOperation(SQLITE_CREATE_SUBSCRIBER % Config.__dict__)
+        d.addErrback(Failure.printTraceback)
+        d.addCallback(lambda x: conn.runOperation(INSERT_ALICE % Config.__dict__))
+    return conn
+
+def storage_db_connection(uri):
+    conn = connectionForURI(uri)
+    if conn.schema=='sqlite':
+        conn.runOperation(SQLITE_CREATE_XCAP % Config.__dict__).addErrback(Failure.printTraceback)
+    else:
+        def cb(res):
+            if res[0:1][0:1] and res[0][0]:
+                print '%s xcap documents in the database' % res[0][0]
+            return res
+        def eb(fail):
+            fail.printTraceback()
+            return fail
+        # connect early, so database problem are detected early
+        d = conn.runQuery('SELECT count(*) from %s' % Config.xcap_table)
+        d.addCallback(cb)
+        d.addErrback(eb)
+    return conn
+
+def pyformat_to_qmark(expr, params):
+    """
+    >>> params = {'username': 1, 'domain': 2, 'doc_type': 3, 'document_path': 4}
+    >>> pyformat_to_qmark('SELECT etag FROM xcap WHERE username = %(username)s AND domain = %(domain)s ' +
+    ... 'AND doc_type= %(doc_type)s AND doc_uri = %(document_path)s', params)
+    ('SELECT etag FROM xcap WHERE username = ? AND domain = ? AND doc_type= ? AND doc_uri = ?', [1, 2, 3, 4])
+    """
+    new_params = []
+    def repl(s):
+        param = s.group(0)[2:-2]
+        new_params.append(params[param])
+        return '?'
+    res = re.sub('%\\(\w+\\)s', repl, expr), new_params
+    return res
+
+SQLITE_CREATE_SUBSCRIBER = """
+CREATE TABLE IF NOT EXISTS %(subscriber_table)s (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    %(user_col)s TEXT NOT NULL,
+    %(domain_col)s TEXT NOT NULL,
+    %(password_col)s TEXT NOT NULL,
+    %(ha1_col)s TEXT NOT NULL,
+    UNIQUE (%(user_col)s, %(domain_col)s)
+);"""
+
+INSERT_ALICE = """INSERT INTO %(subscriber_table)s
+VALUES (1, 'alice', 'example.com', '123', 'e7e17aa8f41805bdf8ccc4d5520560d0')"""
+
+SQLITE_CREATE_XCAP = """
+CREATE TABLE IF NOT EXISTS %(xcap_table)s (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `username` TEXT NOT NULL,
+  `domain` TEXT NOT NULL,
+  `doc` TEXT NOT NULL,
+  `doc_type` INTEGER NOT NULL,
+  `etag` TEXT NOT NULL,
+  `source` INTEGER,
+  `doc_uri` TEXT NOT NULL,
+  `port` INTEGER,
+  UNIQUE (`username`,`domain`,`doc_type`,`doc_uri`)
+);
+"""
+
+#implement sqlite-aware classes in dbutil
