@@ -24,8 +24,9 @@ from xcap.errors import ResourceNotFound
 from xcap.uri import XCAPUser, XCAPUri, NodeParsingError
 
 class AuthenticationConfig(ConfigSection):
-    _datatypes = {'trusted_peers': StringList}
-    default_realm = 'example.com'
+    _datatypes = {'trusted_peers': StringList,
+                  'default_realm': str}
+    default_realm = None
     trusted_peers = []
 
 configuration = ConfigFile()

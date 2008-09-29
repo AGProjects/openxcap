@@ -39,17 +39,18 @@ class Backend(object):
             raise ValueError("Couldn't find the '%s' backend module: %s" % (value.lower(), str(e)))
 
 class AuthenticationConfig(ConfigSection):
-    _datatypes = {'trusted_peers': StringList}
+    _datatypes = {'trusted_peers': StringList,
+                  'default_realm': str}
     type = 'basic'
     cleartext_passwords = True
-    default_realm = 'example.com'
+    default_realm = None
     trusted_peers = []
 
 class ServerConfig(ConfigSection):
     _datatypes = {'backend': Backend}
     port = 8000
     address = '0.0.0.0'
-    root = 'http://xcap.example.com/'
+    root = 'http://127.0.0.1/'
     backend = Backend('Database')
 
 class TLSConfig(ConfigSection):
