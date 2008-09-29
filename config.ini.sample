@@ -13,6 +13,13 @@ port = 443
 
 ; The XCAP Root URI; must not contain any port number. If it has the 'https' scheme,
 ; the server will listen for requests in TLS mode.
+
+; Insert more "root=" lines here to create aliases for XCAP root.
+; The LAST 'root=' line sets the primary XCAP root, which will be
+; used when generating xcap-diff.
+; There's no way to find out which XCAP root a document belongs to,
+; as such information is not stored in the database.
+
 root = https://xcap.example.com/xcap-root
 
 ; The backend to be used for storage and authentication. Current supported
