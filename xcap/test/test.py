@@ -54,8 +54,7 @@ def run():
             print 
         return
 
-    check_options(options)
-    
+    check_options(options)   
     t.run(options, args)
 
 if __name__ == '__main__':

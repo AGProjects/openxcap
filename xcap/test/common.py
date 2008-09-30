@@ -138,7 +138,7 @@ class XCAPTest(unittest.TestCase):
             if msg is None:
                 msg = '%s in headers' % key
             raise self.failureException(msg)
-    
+
     def assertBody(self, r, value, msg=None):
         """Fail if value != r.body."""
         if value != r.body:
@@ -159,7 +159,7 @@ class XCAPTest(unittest.TestCase):
             if msg is None:
                 msg = '%s found in body' % value
             raise self.failureException(msg)
-    
+
     def assertMatchesBody(self, r, pattern, msg=None, flags=0):
         """Fail if value (a regex pattern) is not in r.body."""
         if re.search(pattern, r.body, flags) is None:
@@ -243,7 +243,7 @@ class XCAPTest(unittest.TestCase):
 
 
 class TestSuite(unittest.TestSuite):
-    
+
     def initialize(self, options, args):
         for test in self._tests:
             if hasattr(test, 'initialize'):
@@ -293,7 +293,7 @@ def run_suite(suite, options, args):
 def check_options(options):
     xcaplib.xcapclient.check_options(options)
     if hasattr(options, 'debug') and options.debug:
-        HTTPConnectionWrapper.debug = True        
+        HTTPConnectionWrapper.debug = True
 
 def runSuiteFromModule(module='__main__'):
     read_xcapclient_cfg()
