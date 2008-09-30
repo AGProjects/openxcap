@@ -4,8 +4,20 @@ import re
 import types
 from optparse import OptionParser
 
-sys.path.append('../../xcaplib')
+
+xcaplib_min_version = (1, 0, 2)
+
+sys.path.append('../../../python-xcaplib')
 import xcaplib
+try:
+    xcaplib.version_info
+except AttributeError:
+    raise ImportError('Need python-xcaplib of version at least %s.%s.%s' % xcaplib_min_version)
+
+if xcaplib.version_info[:3]<xcaplib_min_version:
+    raise ImportError('Need python-xcaplib of version at least %s.%s.%s, you have %s.%s.%s' % \
+                      (xcaplib_min_version + xcaplib.version_info[:3]))
+
 from xcaplib.client import Resource, HTTPError
 from xcaplib.xcapclient import setup_parser_client, make_xcapclient, read_xcapclient_cfg
 del sys.path[-1]
