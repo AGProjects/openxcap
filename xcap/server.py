@@ -159,4 +159,7 @@ class XCAPServer:
             log.msg("TLS started")
         else:        
             reactor.listenTCP(ServerConfig.port, channel.HTTPFactory(self.site), interface=ServerConfig.address)
+        self.run()
+
+    def run(self):
         reactor.run(installSignalHandlers=ServerConfig.backend.installSignalHandlers)
