@@ -3,6 +3,7 @@ import unittest
 import re
 import types
 from optparse import OptionParser
+from copy import copy
 
 
 xcaplib_min_version = (1, 0, 2)
@@ -50,14 +51,19 @@ class XCAPTest(unittest.TestCase):
         setup_parser_client(parser) # QQQ should it be there? it executes the same code multiple times
 
     def initialize(self, options, args = []):
-        self.options = options
-        self.args = args
+        self._options = copy(options)
+        self._args = copy(args)
 
     def new_client(self):
         return make_xcapclient(self.options)
 
-    def setUp(self):
+    def update_client_options(self):
         self.client = self.new_client()
+
+    def setUp(self):
+        self.options = self._options
+        self.args = self._args
+        self.update_client_options()
 
     def assertStatus(self, r, status, msg=None):
         if status is None:
@@ -199,8 +205,6 @@ class TestSuite(unittest.TestSuite):
     
     def initialize(self, options, args):
         for test in self._tests:
-            test.options = options
-            test.args = args
             if hasattr(test, 'initialize'):
                 test.initialize(options, args)
 
