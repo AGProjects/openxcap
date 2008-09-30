@@ -1,23 +1,30 @@
 from common import *
 
-resource_list_xml = """<?xml version="1.0" encoding="UTF-8"?>
-   <resource-lists xmlns="urn:ietf:params:xml:ns:resource-lists">
-     <list name="friends">
-     </list>
-   </resource-lists>"""
-
 class AuthTest(XCAPTest):
     
-    def test_authorization(self):
-        self.put('resource-lists', resource_list_xml)
-        self.get('dummy-application', status=404)
-        
-        ### the request cannot be authenticated
-        #password = self.account
-        #self.client.password += "dummy"
-        #self.get('resource-lists', status=401)
-        #self.client.password = password
-        
+    def test_users_auth(self):
+        for app in apps:
+            self.get(app, status=[200,404])
+
+        self.options.password += 'x'
+        self.update_client_options()
+        for app in apps:
+            self.get(app, status=[401])
+
+    def test_global_auth(self):
+        for app in apps:
+            self.get_global(app, status=[200,404])
+            
+        self.options.password += 'x'
+        self.update_client_options()
+        for app in apps:
+            self.get_global(app, status=401)
+
+    # XXX test PUT/DELETE auth as well?
+    # XXX test digest authentication
+    # XXX test authorization
+
+    #def test_authorization(self):
         ### the request cannot be authorized (we're trying to access someone else' resource)
         #account = self.account
         #self.account = "dummy" + self.account
