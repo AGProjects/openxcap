@@ -7,7 +7,8 @@ import time
 from twisted.enterprise import adbapi
 from twisted.python import reflect
 
-db_modules = {"mysql": "MySQLdb"}
+db_modules = {"mysql": "MySQLdb",
+              "sqlite": "sqlite3"}
 
 def generate_etag(uri, document):
     """Generate an etag for the given XCAP URI and document.
