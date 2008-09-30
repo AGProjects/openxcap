@@ -23,16 +23,48 @@ from xcaplib.client import Resource, HTTPError
 from xcaplib.xcapclient import setup_parser_client, make_xcapclient, read_xcapclient_cfg
 del sys.path[-1]
 
+
+apps = ['pres-rules',
+        'org.openmobilealliance.pres-rules',
+        'resource-lists',
+        'pidf-manipulation',
+        'watchers',
+        'rls-services',
+        'test-app',
+        'xcap-caps']
+
+
+def format_httperror(e):
+    try:
+        headers = e.hdrs
+    except AttributeError:
+        # HTTPError has hdrs method, but addinfourl has headers
+        headers = e.headers
+    return "%s %s\n%s" % (e.code, e.msg, headers)
+
 # the tests expect to receive reply object with 'body' attribute
 class HTTPConnectionWrapper(xcaplib.client.HTTPConnectionWrapper):
+    debug = False
+
+    def __init__(self, *args):
+        return xcaplib.client.HTTPConnectionWrapper.__init__(self, *args)
 
     def request(self, *args, **kwargs):
-        if hasattr(self, 'debug') and self.debug:
-            print args, kwargs
+        r = None
         try:
             r = xcaplib.client.HTTPConnectionWrapper.request(self, *args, **kwargs)
-        except HTTPError, r:
-            pass
+        except HTTPError, e:
+            r = e
+        except Exception, ex:
+            print args, kwargs
+            raise
+        finally:
+            if self.debug and r:
+                print r.req.format()
+                print
+                print format_httperror(r)
+                print
+
         r.body = r.fp.read()
         return r
 
