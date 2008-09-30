@@ -75,7 +75,7 @@ class ApplicationUsage(object):
 
     def _check_UTF8_encoding(self, xml_doc):
         """Check if the document is UTF8 encoded. Raise an NotUTF8Error if it's not."""
-        if xml_doc.docinfo.encoding != 'UTF-8':
+        if xml_doc.docinfo.encoding.lower() != 'utf-8':
             log.error("The document is not UTF-8 encoded. Encoding is : %s" % xml_doc.docinfo.encoding)
             raise NotUTF8Error()
 
