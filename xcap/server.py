@@ -19,6 +19,7 @@ from twisted.web2 import channel, resource, http, responsecode, server
 from twisted.cred.portal import Portal
 from twisted.cred import credentials, portal, checkers, error as credError
 from twisted.web2.auth import digest, basic, wrapper
+from twisted.internet import defer
 
 from xcap.config import *
 from xcap import authentication
@@ -99,29 +100,54 @@ class XCAPRoot(resource.Resource, resource.LeafResource):
             else: ## the request is for an element
                 return XCAPElement(xcap_uri, application)
 
-    def cbLogRequest(self, response, request):
-        try:
-            log_request(request, response)
-        except Exception, e:
-            log.error("Error while logging XCAP request: %s" % str(e))
-            log.err()
-        return response
-
     def renderHTTP(self, request):
-        ## forward the request to the appropiate XCAP resource, based on the 
+        ## forward the request to the appropiate XCAP resource, based on the
         ## XCAP request URI
         xcap_uri = request.xcap_uri
         application = getApplicationForURI(xcap_uri)
         if not application:
             return http.Response(responsecode.NOT_FOUND, stream="Application not supported")
         resource = self.resourceForURI(xcap_uri) ## let the appropriate resource handle the request
-        d = resource.renderHTTP(request)
-        d.addCallback(self.cbLogRequest, request)
-        return d
+        return resource.renderHTTP(request)
+
+
+class Request(server.Request):
+    def __init__(self, *args, **kw):
+        return server.Request.__init__(self, *args, **kw)
+
+    def writeResponse(self, response):
+        log_request(self, response)
+        return server.Request.writeResponse(self, response)
+
+
+class HTTPChannelRequest(channel.http.HTTPChannelRequest):
+    _base = channel.http.HTTPChannelRequest
+
+    def gotInitialLine(self, line):
+        self._initial_line = line
+        return self._base.gotInitialLine(self, line)
+
+    def createRequest(self):
+        self._base.createRequest(self)
+        self.request._initial_line = self._initial_line
+
+class HTTPChannel(channel.http.HTTPChannel):
+    chanRequestFactory = HTTPChannelRequest
+
+
+class HTTPFactory(channel.HTTPFactory):
+    noisy = False
+    protocol = HTTPChannel
+
+
+class XCAPSite(server.Site):
+
+    def __call__(self, *args, **kwargs):
+        return Request(site=self, *args, **kwargs)
 
 
 class XCAPServer:
-    
+
     def __init__(self):
         portal = Portal(authentication.XCAPAuthRealm())
         if AuthenticationConfig.cleartext_passwords:
@@ -143,22 +169,21 @@ class XCAPServer:
             raise ValueError("Invalid authentication type: '%s'. Please check the configuration." % auth_type)
 
         root = authentication.XCAPAuthResource(XCAPRoot(),
-                                            (credential_factory,),
-                                            portal, (authentication.IAuthUser,))
-        self.site = server.Site(root)
+                                               (credential_factory,),
+                                               portal, (authentication.IAuthUser,))
+        self.site = XCAPSite(root)
 
     def start(self):
-        channel.HTTPFactory.noisy = False
         if ServerConfig.root.startswith('https'):
             from gnutls.interfaces.twisted import X509Credentials
             cert, pKey = TLSConfig.certificate, TLSConfig.private_key
             if cert is None or pKey is None:
                 log.fatal("the TLS certificates or the private key could not be loaded")
             credentials = X509Credentials(cert, pKey)
-            reactor.listenTLS(ServerConfig.port, channel.HTTPFactory(self.site), credentials, interface=ServerConfig.address)
+            reactor.listenTLS(ServerConfig.port, HTTPFactory(self.site), credentials, interface=ServerConfig.address)
             log.msg("TLS started")
-        else:        
-            reactor.listenTCP(ServerConfig.port, channel.HTTPFactory(self.site), interface=ServerConfig.address)
+        else:
+            reactor.listenTCP(ServerConfig.port, HTTPFactory(self.site), interface=ServerConfig.address)
         self.run()
 
     def run(self):
