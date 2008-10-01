@@ -16,6 +16,11 @@ __all__ = [
     'UniquenessFailureError', 'ConstraintFailureError'
     ]
 
+class BadRequest(HTTPError):
+
+    def __init__(self, msg=""):
+        HTTPError.__init__(self, Response(400, stream=msg))
+
 
 class ResourceNotFound(HTTPError):
     
