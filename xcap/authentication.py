@@ -247,6 +247,7 @@ class XCAPAuthResource(HTTPAuthResource):
             d = self.authenticate(request)
             d.addCallback(_renderResource)
             return d
+
         def _failed_reading(failure):
             log.error('PUT: failed reading : ', str(failure))
             return http.Response(responsecode.INTERNAL_SERVER_ERROR, stream="Could not read data")
@@ -254,6 +255,9 @@ class XCAPAuthResource(HTTPAuthResource):
         if request.method in ('PUT', 'DELETE'):
             # we need to authenticate the request after all the attachment stream
             # has been read
+            # QQQ DELETE doesn't have any attachments, does it? nor does GET.
+            # QQQ Reading attachment when there isn't one won't hurt, will it?
+            # QQQ So why don't we just do it all the time for all requests?
             data = []
             d = stream.readStream(request.stream, data.append)
             d.addCallbacks(_finished_reading, _failed_reading, callbackArgs=(data,))
