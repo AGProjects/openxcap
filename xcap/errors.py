@@ -11,11 +11,8 @@ from twisted.web2.http import Response, HTTPError
 __all__ = [
     'XCAPError',
     'ResourceNotFound',
-    
     'NotWellFormedError', 'SchemaValidationError', 'NotUTF8Error', 'NotXMLAtrributeValueError',
-    
-    'NotXMLFragmentError', 'CannotInsertError', 'CannotDeleteError', 'NoParentError', 
-    
+    'NotXMLFragmentError', 'CannotInsertError', 'CannotDeleteError', 'NoParentError',
     'UniquenessFailureError', 'ConstraintFailureError'
     ]
 
