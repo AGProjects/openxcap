@@ -16,6 +16,19 @@ from xcap.errors import *
 
 XPATH_DEFAULT_PREFIX = 'default' # should be more random
 
+class Error(ValueError):
+    """Base class for all errors in this module.
+
+    If such an error is raised, the server should respond with 400 Bad Request
+    pasting str(ex) into the response body.
+    """
+
+class NodeParsingError(Error):
+    pass
+
+class DocumentSelectorError(Error):
+    pass
+
 
 class XCAPUser(object):
     """XCAP ID."""
@@ -113,11 +126,6 @@ class NamespaceSelector(TerminalSelector):
 class Str(str):
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__, str.__repr__(self))
-
-  
-class NodeParsingError(ValueError):
-    pass
-
 
 def parse_qname(qname, defnamespace, namespaces):
     if qname == '*':
@@ -270,7 +278,7 @@ def parse_node_selector(s, namespace=None, namespaces=None):
     try:
         return read_node_selector(tokens, namespace, namespaces)
     except NodeParsingError, ex:
-        ex.args = (repr(s),)
+        ex.args = ('Failed to parse node: %r' % s,)
         raise
     except:
         log.error('internal error in parse_node_selector(%r)' % s)
@@ -356,7 +364,6 @@ class NodeSelector(object):
         ns_bindings[XPATH_DEFAULT_PREFIX] = default_ns
         return ns_bindings
 
-
 class DocumentSelector(Str):
     """Constructs a DocumentSelector containing the application_id, context, user_id
        and document from the given selector string.
@@ -371,26 +378,30 @@ class DocumentSelector(Str):
 
     def __init__(self, selector):
         if not isinstance(selector, str):
-            raise TypeError("Document Selector must be a string")
+            raise TypeError("Document Selector must be a string: %r" % selector)
         segments  = selector.split('/')
         if not segments[0]: ## ignore first '/'
             segments.pop(0)
         if not segments[-1]: ## ignore last '/' if present
             segments.pop()
         if len(segments) < 2:
-            raise ValueError("invalid Document Selector")
+            raise DocumentSelectorError("DocumentSelector must contain at least 2 segments: %r" % selector)
         self.application_id = segments[0]
-        self.context = segments[1]     ## either "global" or "users"
+        self.context = segments[1]
         if self.context not in ("users", "global"):
-            raise ValueError("the Document Selector context must be 'users' or 'global': '%s'" % self.context)
+            raise DocumentSelectorError("DocumentSelector context is either 'users' or 'global', not %r: %r" % \
+                             (self.context, selector))
         self.user_id = None
         if self.context == "users":
-            self.user_id = segments[2]
+            try:
+                self.user_id = segments[2]
+            except IndexError:
+                raise DocumentSelectorError('DocumentSelector is incomplete: %r' % selector)
             segments = segments[3:]
         else:
             segments = segments[2:]
         if not segments:
-            raise ValueError("invalid Document Selector: missing document's path")
+            raise DocumentSelectorError("DocumentSelector must contain document's path: %r" % selector)
         self.document_path = '/'.join(segments)
 
 
@@ -412,11 +423,7 @@ class XCAPUri(object):
             self.resource_selector = self.resource_selector[first_slash:]
         _split = self.resource_selector.split(self.node_selector_separator, 1)
         doc_selector = _split[0]
-        try:
-            self.doc_selector = DocumentSelector(doc_selector)  ## the Document Selector
-        except (TypeError, ValueError), e:
-            log.error("Invalid Document Selector %s (%s)" % (doc_selector, str(e)))
-            raise ResourceNotFound(str(e))
+        self.doc_selector = DocumentSelector(doc_selector)  ## the Document Selector
         self.application_id = self.doc_selector.application_id
         if len(_split) == 2:                             ## the Node Selector
             self.node_selector = NodeSelector(_split[1], namespaces.get(self.application_id))

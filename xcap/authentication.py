@@ -20,8 +20,9 @@ from application import log
 from xcap.config import *
 from xcap.appusage import getApplicationForURI, namespaces
 from xcap.dbutil import connectionForURI
-from xcap.errors import ResourceNotFound
-from xcap.uri import XCAPUser, XCAPUri, NodeParsingError
+from xcap.errors import ResourceNotFound, BadRequest
+from xcap.uri import XCAPUser, XCAPUri, NodeParsingError, Error as URIError
+
 
 class AuthenticationConfig(ConfigSection):
     _datatypes = {'trusted_peers': StringList,
@@ -78,8 +79,8 @@ def parseNodeURI(node_uri, default_realm):
         if r.user.domain is None:
             r.user.domain = default_realm
         return r
-    except NodeParsingError:
-        raise http.HTTPError(400)
+    except URIError, e:
+        raise BadRequest(str(e))
 
 
 class ITrustedPeerCredentials(credentials.ICredentials):
