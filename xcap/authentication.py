@@ -11,7 +11,7 @@ from zope.interface import Interface, implements
 from twisted.internet import defer
 from twisted.python import failure
 from twisted.cred import credentials, portal, checkers, error as credError
-from twisted.web2 import http, server, stream
+from twisted.web2 import http, server, stream, responsecode
 from twisted.web2.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 
 from application.configuration.datatypes import StringList, NetworkRangeList
@@ -233,6 +233,11 @@ class XCAPAuthResource(HTTPAuthResource):
         Authenticate the request then return the result of calling renderHTTP
         on C{self.wrappedResource}
         """
+        if request.method not in self.allowedMethods():
+            response = http.Response(responsecode.NOT_ALLOWED)
+            response.headers.setHeader("allow", self.allowedMethods())
+            return response
+
         def _renderResource(resource):
             return resource.renderHTTP(request)
 
