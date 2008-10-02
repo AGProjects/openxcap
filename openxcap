@@ -12,7 +12,7 @@ if __name__ == '__main__':
     import xcap
 
     name = 'openxcap'
-    fullname = 'Open XCAP'
+    fullname = 'OpenXCAP'
     description = 'An open source XCAP Server'
 
     config_directory = '/etc/openxcap'
@@ -55,11 +55,11 @@ if __name__ == '__main__':
     try:
         server = XCAPServer()
     except Exception, why:
-        print >>sys.stderr, "Failed to create Open XCAP: %s" % why
+        print >>sys.stderr, "Failed to create OpenXCAP: %s" % why
         sys.exit(1)
 
     try:
         server.start()
     except Exception, why:
-        print >>sys.stderr, "Failed to start Open XCAP: %s" % why
+        print >>sys.stderr, "Failed to start OpenXCAP: %s" % why
         sys.exit(1)
