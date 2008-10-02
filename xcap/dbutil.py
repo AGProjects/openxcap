@@ -92,7 +92,7 @@ def connectionForURI(uri):
     try:
         module = db_modules[schema]
     except Exception:
-        raise AssertionError("Database scheme '%s' is not supported." % schema)
+        raise ValueError("Database scheme '%s' is not supported." % schema)
 
     # reconnecting is safe since we don't use transactions.
     # the following code prefers MySQLdb native reconnect if it's available,
