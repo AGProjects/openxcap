@@ -42,4 +42,4 @@ import new
 from twisted.web2.auth.basic import BasicCredentialFactory
 
 method = new.instancemethod(decode, None, BasicCredentialFactory)
-setattr(BasicCredentialFactory, 'decode', method)
+BasicCredentialFactory.decode = method
