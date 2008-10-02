@@ -34,6 +34,30 @@ backend = OpenSER
 document_validation = Yes
 
 
+[Logging]
+; directory where to put log files, default is /var/log/openxcap
+; if empty, like in the following line, logs will be printed to stdout
+;directory=
+
+; The following log_* parameters control what information is logged for which errors.
+; Their format is comma-separated list of HTTP error codes that should enable the feature
+; currently implemented: log_request_headers, log_response_body, log_stacktrace
+
+; Some examples:
+
+; * log stack trace for 500 Internal Error only (default)
+;log_stacktrace=500
+
+; * log stack trace (if available) for any error
+;log_stacktrace=any
+
+; * log responses sent to the client for 400 and 409 errors (default is none)
+;log_response_body=400,409
+
+; * log headers sent by the client for 401 errors (default is none)
+;log_request_headers=401
+
+
 [Authentication]
 
 ; The HTTP authentication type, this can be either 'basic' or 'digest'.
