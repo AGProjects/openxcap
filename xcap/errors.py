@@ -3,8 +3,7 @@
 
 """XCAP errors module"""
 
-import cgi
-
+from xml.sax.saxutils import quoteattr
 from twisted.web2 import http_headers
 from twisted.web2.http import Response, HTTPError
 
@@ -33,30 +32,48 @@ class ResourceNotFound(HTTPError):
 
 
 class XCAPError(HTTPError):
-    
+
     code = 409
     namespace = "urn:ietf:params:xml:ns:xcap-error"
     tag = "undefined"
-    
-    def __init__(self, description=""):
-        ## the 'description' argument is the 'description' atrribute
-        self.description = description
+    phrase = ''
+
+    def __init__(self, phrase=None, comment=''):
+        if phrase is not None:
+            self.phrase = phrase
+        if comment:
+            self.comment = '<!--\n' + str(comment).replace('-->', '--&gt;') + '\n-->'
+        else:
+            self.comment = ''
         self.response = ErrorResponse(self.code, self.build_xml_output())
         HTTPError.__init__(self, self.response)
 
     def build_xml_output(self):
-        if self.description:
-            phrase_attr = ' phrase="%s"' % self.description
+        return """<?xml version="1.0" encoding="UTF-8"?>
+<xcap-error xmlns="%s">%s</xcap-error>""" % (self.namespace, self.format_my_tag())
+
+    def format_my_body(self):
+        return ''
+
+    def format_my_phrase(self):
+        if self.phrase:
+            return ' phrase=%s' % quoteattr(self.phrase)
         else:
-            phrase_attr = ''
-        output = """<?xml version="1.0" encoding="UTF-8"?>
-                    <xcap-error xmlns="%(namespace)s">
-                      <%(tag)s%(phrase)s/>
-                    </xcap-error>""" % {
-                        "namespace": self.namespace,
-                        "phrase"   : phrase_attr,
-                        "tag"      : self.tag}
-        return output
+            return ''
+
+    def format_my_tag(self):
+        phrase_attr = self.format_my_phrase()
+        body = self.format_my_body()
+        if body or self.comment:
+            return '<%s%s>%s%s<%s/>' % (self.tag, phrase_attr, self.comment, body, self.tag)
+        else:
+            return '<%s%s/>' % (self.tag, phrase_attr)
+
+    def __str__(self):
+        try:
+            return self.format_my_tag()
+        except:
+            return ''
 
 
 class ErrorResponse(Response):
@@ -64,7 +81,7 @@ class ErrorResponse(Response):
     A L{Response} object which simply contains a status code and a description of
     what happened.
     """
-    
+
     def __init__(self, code, output):
         """
         @param code: a response code in L{responsecode.RESPONSES}.
@@ -78,7 +95,6 @@ class ErrorResponse(Response):
 
         ## Its MIME type, registered by this specification, is "application/xcap-error+xml".
         self.headers.setHeader("content-type", http_headers.MimeType("application", "xcap-error+xml", mime_params))
-
 
 class SchemaValidationError(XCAPError):
     tag = "schema-validation-error"
@@ -107,29 +123,15 @@ class NotUTF8Error(XCAPError):
 class NoParentError(XCAPError):
     tag = "no-parent"
 
-    def __init__(self, description="", ancestor=None):
+    def __init__(self, phrase='', ancestor='', comment=''):
         self.ancestor = ancestor
-        XCAPError.__init__(self, description)
+        XCAPError.__init__(self, phrase, comment)
 
-    def build_xml_output(self):
-        if self.description:
-            phrase_attr = ' phrase="%s"' % self.description
-        else:
-            phrase_attr = ''
+    def format_my_body(self):
         if self.ancestor:
-            ancestor = "<ancestor>%s</ancestor>" % self.ancestor
+            return "<ancestor>%s</ancestor>" % self.ancestor
         else:
-            ancestor = ""
-        output = """<?xml version="1.0" encoding="UTF-8"?>
-                    <xcap-error xmlns="%(namespace)s">
-                      <%(tag)s%(phrase)s>%(ancestor)s
-                      </%(tag)s>
-                    </xcap-error>""" % {
-                        "namespace": self.namespace,
-                        "phrase"   : phrase_attr,
-                        "ancestor" : ancestor,
-                        "tag"      : self.tag}
-        return output
+            return ""
 
 class UniquenessFailureError(XCAPError): # TODO
     tag = "uniqueness-failure"
