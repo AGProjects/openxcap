@@ -269,8 +269,8 @@ def parse_node_selector(s, namespace=None, namespaces=None):
     """
     if namespaces is None:
         namespaces = {}
-    tokens = xpath_tokenizer(s)
     try:
+        tokens = xpath_tokenizer(s)
         return read_node_selector(tokens, namespace, namespaces)
     except NodeParsingError, ex:
         ex.args = ('Failed to parse node: %r' % s,)
