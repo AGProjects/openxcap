@@ -93,7 +93,7 @@ class ConfigFile(_ConfigFile):
             ptype = cls._datatypes.get(prop, eval('cls.%s.__class__' % prop))
             try:
                 val = self.parser.get(section, prop)
-            except:
+            except Exception:
                 continue
             else:
                 try:
