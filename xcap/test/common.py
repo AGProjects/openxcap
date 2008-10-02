@@ -210,6 +210,7 @@ class XCAPTest(unittest.TestCase):
 
     def put_new(self, application, resource, node=None,
                 status=201, content_type_in_GET=None, client=None):
+        # QQQ use If-None-Match or some other header to do that without get
         self.get(application, node=node, status=404, client=client)
         return self.put(application, resource, node, status, content_type_in_GET, client)
 
