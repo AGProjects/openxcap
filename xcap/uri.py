@@ -15,11 +15,8 @@ from xcap.errors import *
 XPATH_DEFAULT_PREFIX = 'default' # should be more random
 
 class Error(ValueError):
-    """Base class for all errors in this module.
-
-    If such an error is raised, the server should respond with 400 Bad Request
-    pasting str(ex) into the response body.
-    """
+    "Base class for all errors in this module"
+    http_error = 400
 
 class NodeParsingError(Error):
     pass
