@@ -40,7 +40,7 @@ def format_httperror(e):
     except AttributeError:
         # HTTPError has hdrs method, but addinfourl has headers
         headers = e.headers
-    return "%s %s\n%s" % (e.code, e.msg, headers)
+    return "%s %s\n%s\n%s" % (e.code, e.msg, headers, e.body)
 
 # the tests expect to receive reply object with 'body' attribute
 class HTTPConnectionWrapper(xcaplib.client.HTTPConnectionWrapper):
@@ -53,8 +53,10 @@ class HTTPConnectionWrapper(xcaplib.client.HTTPConnectionWrapper):
         r = None
         try:
             r = xcaplib.client.HTTPConnectionWrapper.request(self, *args, **kwargs)
+            r.body = r.read()
         except HTTPError, e:
             r = e
+            r.body = r.read()
         except Exception, ex:
             print args, kwargs
             raise
@@ -65,7 +67,6 @@ class HTTPConnectionWrapper(xcaplib.client.HTTPConnectionWrapper):
                 print format_httperror(r)
                 print
 
-        r.body = r.fp.read()
         return r
 
     def get(self, path, headers=None, etag=None):
