@@ -1,5 +1,6 @@
-Logging
--------
-
-- Proper logging of URIs in syslog to reflect UA settings
-- Remove Twisted unnecessary logging
+- Log the whole URI, not just path. construct it from Host headers or default
+  xcap-root if Host is not present
+- Allow port in root= settings, thus making port= parameter unnecessary.
+  Make sure that when listening on non-default port valid URIs are logged (see prev. issue)
+- finish global/users: test that all possible combinations (global/users GET/PUT/DELETE each app)
+  return reasonable error
