@@ -1,4 +1,5 @@
 import os
+from ConfigParser import NoOptionError
 from application.configuration import ConfigFile as _ConfigFile, ConfigParser, ConfigSection, datatypes
 from application.process import process
 from application import log
@@ -107,7 +108,10 @@ class ConfigFile(_ConfigFile):
                     setattr(cls, prop, value)
 
     def get_values_unique(self, section, option):
-        result = self.parser.get(section, option)
+        try:
+            result = self.parser.get(section, option)
+        except NoOptionError:
+            return []
         try:
             return self.parser._sections[section].get_values_unique(option)
         except KeyError:
