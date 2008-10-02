@@ -174,20 +174,17 @@ class XCAPTest(unittest.TestCase):
         r = self.get(application, client=client)
         self.assertBody(r, body)
 
-    def __get(self, get_func, application, node=None, status=200, **kwargs):
-        r = get_func(application, node, **kwargs)
+    def get(self, application, node=None, status=200, **kwargs):
+        client = kwargs.pop('client', None) or self.client
+        r = client.get(application, node, **kwargs)
         self.assertStatus(r, status)
         if 200<=status<=299:
             self.assertHeader(r, 'ETag')
         return r
 
-    def get(self, *args, **kwargs):
-        client = kwargs.pop('client', None) or self.client
-        return self.__get(client.get, *args, **kwargs)
-
     def get_global(self, *args, **kwargs):
-        client = kwargs.pop('client', None) or self.client
-        return self.__get(client.get_global, *args, **kwargs)
+        kwargs['globaltree'] = True
+        return self.get(*args, **kwargs)
 
     def put(self, application, resource, node=None,
             status=[200,201], content_type_in_GET=None, client=None, **kwargs):
@@ -213,9 +210,9 @@ class XCAPTest(unittest.TestCase):
         self.get(application, node=node, status=404, client=client)
         return self.put(application, resource, node, status, content_type_in_GET, client)
 
-    def delete(self, application, node=None, status=200, client=None):
+    def delete(self, application, node=None, status=200, client=None, **kwargs):
         client = client or self.client
-        r = client.delete(application, node)
+        r = client.delete(application, node, **kwargs)
         self.assertStatus(r, status)
 
         # if deleting succeed, GET should return 404
