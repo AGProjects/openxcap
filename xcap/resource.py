@@ -63,8 +63,7 @@ class XCAPDocument(XCAPResource):
     def http_PUT(self, request):
         application = self.application
         document = request.attachment
-        d = application.put_document(self.xcap_uri, document, lambda e: self.checkEtag(request, e))
-        return d
+        return application.put_document(self.xcap_uri, document, lambda e: self.checkEtag(request, e))
 
     def http_DELETE(self, request):
         d = self.application.delete_document(self.xcap_uri, lambda e: self.checkEtag(request, e))
