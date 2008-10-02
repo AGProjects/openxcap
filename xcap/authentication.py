@@ -250,10 +250,6 @@ class XCAPAuthResource(HTTPAuthResource):
             d.addCallback(_renderResource)
             return d
 
-        def _failed_reading(failure):
-            log.error('PUT: failed reading : ', str(failure))
-            return http.Response(responsecode.INTERNAL_SERVER_ERROR, stream="Could not read data")
-
         if request.method in ('PUT', 'DELETE'):
             # we need to authenticate the request after all the attachment stream
             # has been read
@@ -262,7 +258,7 @@ class XCAPAuthResource(HTTPAuthResource):
             # QQQ So why don't we just do it all the time for all requests?
             data = []
             d = stream.readStream(request.stream, data.append)
-            d.addCallbacks(_finished_reading, _failed_reading, callbackArgs=(data,))
+            d.addCallback(_finished_reading, data)
             return d
         else:
             d = self.authenticate(request)
