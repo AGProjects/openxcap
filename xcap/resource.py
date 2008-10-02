@@ -30,7 +30,6 @@ class XCAPResource(resource.Resource, resource.LeafResource, MetaDataMixin):
     def renderHTTP(self, request):
         d = resource.Resource.renderHTTP(self, request)
         d.addCallback(self.sendResponse)
-        d.addErrback(self.onError)
         return d
 
     def setHeaders(self, response):
@@ -50,11 +49,6 @@ class XCAPResource(resource.Resource, resource.LeafResource, MetaDataMixin):
             self.e_tag = ETag(response.etag)
         response = http.Response(response.code, stream=response.data)
         return self.setHeaders(response)
-
-    def onError(self, f):
-        ## If we get an HTTPError, return its attached response
-        f.trap(http.HTTPError)
-        return f.value.response
 
     def etag(self):
         return self.e_tag or None
