@@ -12,17 +12,9 @@ __all__ = [
     'ResourceNotFound',
     'NotWellFormedError', 'SchemaValidationError', 'NotUTF8Error', 'NotXMLAtrributeValueError',
     'NotXMLFragmentError', 'CannotInsertError', 'CannotDeleteError', 'NoParentError',
-    'UniquenessFailureError', 'ConstraintFailureError'
-    ]
-
-class BadRequest(HTTPError):
-
-    def __init__(self, msg=""):
-        HTTPError.__init__(self, Response(400, stream=msg))
-
+    'UniquenessFailureError', 'ConstraintFailureError']
 
 class ResourceNotFound(HTTPError):
-    
     def __init__(self, msg=""):
         self.msg = msg
         HTTPError.__init__(self, Response(404, stream=msg))

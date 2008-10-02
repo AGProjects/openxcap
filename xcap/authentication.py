@@ -20,7 +20,7 @@ from application import log
 from xcap.config import *
 from xcap.appusage import getApplicationForURI, namespaces
 from xcap.dbutil import connectionForURI
-from xcap.errors import ResourceNotFound, BadRequest
+from xcap.errors import ResourceNotFound
 from xcap.uri import XCAPUser, XCAPUri, NodeParsingError, Error as URIError
 
 
@@ -78,13 +78,10 @@ def parseNodeURI(node_uri, default_realm):
     if xcap_root is None:
         raise ResourceNotFound("XCAP root not found for uri: %s" % node_uri)
     resource_selector = node_uri[len(xcap_root):]
-    try:
-        r = XCAPUri(xcap_root, resource_selector, namespaces)
-        if r.user.domain is None:
-            r.user.domain = default_realm
-        return r
-    except URIError, e:
-        raise BadRequest(str(e))
+    r = XCAPUri(xcap_root, resource_selector, namespaces)
+    if r.user.domain is None:
+        r.user.domain = default_realm
+    return r
 
 
 class ITrustedPeerCredentials(credentials.ICredentials):
