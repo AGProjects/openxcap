@@ -45,12 +45,17 @@ class XCAPRootURIs(tuple):
        the configuration file."""
     def __new__(typ):
         uris = []
-        for uri in configuration.get_values_unique('Server', 'root'):
+        def add(uri):
             scheme, host, path, params, query, fragment = urlparse.urlparse(uri)
             if not scheme or not host or scheme not in ("http", "https"):
-                log.warn("XCAP Root URI not valid: %r" % uri)
+                log.warn("Invalid XCAP Root URI: %r" % uri)
             elif not list_contains_uri(uris, uri):
                 uris.append(uri)
+        for uri in configuration.get_values_unique('Server', 'root'):
+            add(uri)
+        if not uris:
+            import socket
+            add('http://' + socket.getfqdn())
         if not uris:
             raise ResourceNotFound("At least one XCAP Root URI must be defined")
         return tuple(uris)
@@ -71,7 +76,6 @@ def parseNodeURI(node_uri, default_realm):
             xcap_root = uri
             break
     if xcap_root is None:
-        log.msg("XCAP root not found for request URI: %s" % node_uri)
         raise ResourceNotFound("XCAP root not found for uri: %s" % node_uri)
     resource_selector = node_uri[len(xcap_root):]
     try:
