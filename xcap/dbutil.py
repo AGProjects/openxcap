@@ -3,6 +3,7 @@
 import os
 import md5
 import time
+import urllib
 
 from twisted.enterprise import adbapi
 from twisted.python import reflect
