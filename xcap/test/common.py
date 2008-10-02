@@ -153,7 +153,7 @@ class XCAPTest(unittest.TestCase):
         """Fail if value not in r.body."""
         if value not in r.body:
             if msg is None:
-                msg = '%s not in body' % value
+                msg = '%r not in body\nbody: %r' % (value, r.body)
             raise self.failureException(msg)
 
     def assertNotInBody(self, r, value, msg=None):
