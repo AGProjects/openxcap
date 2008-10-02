@@ -10,7 +10,6 @@ if __name__ == '__main__':
     from application import log
 
     import xcap
-    from xcap.logutil import start_log
 
     name = 'openxcap'
     fullname = 'Open XCAP'
@@ -38,6 +37,7 @@ if __name__ == '__main__':
         log.msg("Fatal error: %s" % e)
         sys.exit(1)
 
+    from xcap.logutil import start_log
     if options.fork:
         try:
             process.daemonize(pidFile)
