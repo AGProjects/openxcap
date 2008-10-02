@@ -84,6 +84,7 @@ class Logging(ConfigSection):
     _datatypes = {'directory': str,
                   'log_response_body': ErrorCodeList,
                   'log_request_headers': ErrorCodeList,
+                  'log_request_body': ErrorCodeList,
                   'log_stacktrace': ErrorCodeList}
 
     directory = '/var/log/openxcap'
@@ -91,7 +92,7 @@ class Logging(ConfigSection):
     # each log message is followed by the headers of the request
     log_request_headers = []
 
-    # QQQ what about log_request_body?
+    log_request_body = []
 
     # each log message is followed by the body of the response sent to the client
     log_response_body = []
@@ -103,6 +104,12 @@ class Logging(ConfigSection):
     def format_request_headers(cls, code, request):
         if matches(cls.log_request_headers, code):
             return format_request_headers(request)
+        return ''
+
+    @classmethod
+    def format_request_body(cls, code, request):
+        if matches(cls.log_request_body, code):
+            return format_request_body(request)
         return ''
 
     @classmethod
@@ -147,6 +154,14 @@ def format_request_headers(request):
                 res += '\t%s: %s\n' % (k, x)
     if res:
         res = 'REQUEST headers:\n' + res
+    return res
+
+def format_request_body(request):
+    res = ''
+    if hasattr(request, 'attachment'):
+        res = str(request.attachment)
+        if res:
+            return 'REQUEST: ' + res.replace('\n', '\n\t') + '\n'
     return res
 
 def format_stacktrace(reason):
@@ -226,6 +241,7 @@ def format_log_message(request, response, reason):
         msg = format_access_record(request, response)
         code = getattr(response, 'code', None)
         info += Logging.format_request_headers(code, request)
+        info += Logging.format_request_body(code, request)
         info += Logging.format_response_body(code, response)
         info += Logging.format_stacktrace(code, reason)
     except Exception:
