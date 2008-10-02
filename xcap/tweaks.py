@@ -20,7 +20,7 @@ class BasicCredentials(credentials.UsernamePassword):
         self.realm = realm
 
     def checkHash(self, digestHash):
-        return digestHash == self.makeHash(self.username, self.realm, self.password)
+        return digestHash == makeHash(self.username, self.realm, self.password)
 
 
 def decode(self, response, request):
