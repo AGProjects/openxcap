@@ -342,7 +342,7 @@ class NodeSelector(object):
                 prefix, ns = m.split('=')
                 ns_bindings[prefix] = ns
             except ValueError:
-                log.error("Ignoring invalid XPointer XMLNS expression: %s" % m)
+                log.error("Ignoring invalid XPointer XMLNS expression: %r" % m)
                 continue
         return ns_bindings
 
