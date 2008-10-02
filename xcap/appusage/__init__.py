@@ -65,6 +65,8 @@ class ApplicationUsage(object):
             self.xml_schema = etree.XMLSchema(xml_schema_doc)
         else:
             class EverythingIsValid:
+                def __call__(self, *args, **kw):
+                    return True
                 def validate(self, *args, **kw):
                     return True
             self.xml_schema = EverythingIsValid()
