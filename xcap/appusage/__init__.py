@@ -15,7 +15,7 @@ from twisted.python import failure
 from xcap.config import *
 from xcap.errors import *
 from xcap.interfaces.backend import StatusResponse
-from xcap.element import XCAPElement
+from xcap.element import XCAPElement, SelectorError
 from xcap.dbutil import generate_etag
 
 supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pres-rules',
@@ -78,28 +78,29 @@ class ApplicationUsage(object):
     def _check_UTF8_encoding(self, xml_doc):
         """Check if the document is UTF8 encoded. Raise an NotUTF8Error if it's not."""
         if xml_doc.docinfo.encoding.lower() != 'utf-8':
-            log.error("The document is not UTF-8 encoded. Encoding is : %s" % xml_doc.docinfo.encoding)
-            raise NotUTF8Error()
+            raise NotUTF8Error(comment='document encoding is %s' % xml_doc.docinfo.encoding)
 
     def _check_schema_validation(self, xml_doc):
         """Check if the given XCAP document validates against the application's schema"""
-        if not self.xml_schema.validate(xml_doc):
-            log.error("Failed to validate document against XML schema: %s" % self.xml_schema.error_log)
-            raise SchemaValidationError("The document doesn't comply to the XML schema")
+        if not self.xml_schema(xml_doc):
+            raise SchemaValidationError(comment=self.xml_schema.error_log)
 
     def _check_additional_constraints(self, xml_doc):
         """Check additional validations constraints for this XCAP document. Should be 
            overriden in subclasses if specified by the application usage, and raise
            a ConstraintFailureError if needed."""
-        pass
 
     def validate_document(self, xcap_doc):
         """Check if a document is valid for this application."""
         try:
             xml_doc = etree.parse(StringIO(xcap_doc))
-        except Exception: ## not a well formed XML document
-            log.error("XML document is not well formed.")
-            raise NotWellFormedError
+            # XXX do not use TreeBuilder here
+        except etree.XMLSyntaxError, ex:
+            ex.http_error = NotWellFormedError(comment=str(ex))
+            raise
+        except Exception, ex:
+            ex.http_error = NotWellFormedError()
+            raise
         self._check_UTF8_encoding(xml_doc)
         if ServerConfig.document_validation:
             self._check_schema_validation(xml_doc)
@@ -116,6 +117,9 @@ class ApplicationUsage(object):
 
     ## Document management
 
+    def _not_implemented(self, context):
+        raise ResourceNotFound("Application %s does not implement %s context" % (self.id, context))
+
     def get_document(self, uri, check_etag):
         context = uri.doc_selector.context
         if context == 'global':
@@ -123,20 +127,16 @@ class ApplicationUsage(object):
         elif context == 'users':
             return self.get_document_local(uri, check_etag)
         else:
-            log.msg("unknown document selector context (expected 'global' or 'users': %s" % context)
-            raise ResourceNotFound
+            _not_implemented(context)
 
     def get_document_global(self, uri, check_etag):
-        raise ResourceNotFound
+        self._not_implemented('global')
 
     def get_document_local(self, uri, check_etag):
         return self.storage.get_document(uri, check_etag)
 
     def put_document(self, uri, document, check_etag):
-        try:
-            self.validate_document(document)
-        except Exception:
-            return defer.fail(failure.Failure())
+        self.validate_document(document)
         return self.storage.put_document(uri, document, check_etag)
 
     def delete_document(self, uri, check_etag):
@@ -146,21 +146,25 @@ class ApplicationUsage(object):
 
     def _cb_put_element(self, response, uri, element, check_etag):
         """This is called when the document that relates to the element is retreived."""
-        if response.code == 404:
-            raise NoParentError
+        if response.code == 404:          ### XXX let the storate raise
+            raise NoParentError           ### catch error in errback and attach http_error
 
         fixed_element_selector = uri.node_selector.element_selector.fix_star(element)
 
-        result = XCAPElement.put(response.data, fixed_element_selector, element)
+        try:
+            result = XCAPElement.put(response.data, fixed_element_selector, element)
+        except SelectorError, ex:
+            ex.http_error = NoParentError(comment=str(ex))
+            raise
+
         if result is None:
-            raise NoParentError # vs. ResourceNotFound?
+            raise NoParentError
 
         new_document, created = result
         get_result = XCAPElement.get(new_document, uri.node_selector.element_selector)
 
         if get_result != element.strip():
-            # GET request on the same URI must return just put document. This PUT doesn't comply.
-            raise CannotInsertError
+            raise CannotInsertError('PUT request failed GET(PUT(x))==x invariant')
 
         d = self.put_document(uri, new_document, check_etag)
 
@@ -181,15 +185,19 @@ class ApplicationUsage(object):
         try:
             etree.parse(StringIO(element)).getroot()
             # verify if it has one element, if not should we throw the same exception?
-        except Exception:
-            raise NotXMLFragmentError
+        except etree.XMLSyntaxError, ex:
+            ex.http_error = NotXMLFragmentError(comment=str(ex))
+            raise
+        except Exception, ex:
+            ex.http_error = NotXMLFragmentError()
+            raise
         d = self.get_document(uri, check_etag)
         return d.addCallbacks(self._cb_put_element, callbackArgs=(uri, element, check_etag))
 
     def _cb_get_element(self, response, uri):
-        """This is called when the document that relates to the element is retreived."""
-        if response.code == 404:
-            raise ResourceNotFound
+        """This is called when the document related to the element is retrieved."""
+        if response.code == 404:     ## XXX
+            raise ResourceNotFound   ## XXX
         result = XCAPElement.get(response.data, uri.node_selector.element_selector)
         if not result:
             raise ResourceNotFound
@@ -207,8 +215,7 @@ class ApplicationUsage(object):
             raise ResourceNotFound
         get_result = XCAPElement.find(new_document, uri.node_selector.element_selector)
         if get_result:
-            # GET request on the same URI must return 404. This DELETE doesn't comply.
-            raise CannotDeleteError
+            raise CannotDeleteError('DELETE request failed GET(DELETE(x))==404 invariant')
         return self.put_document(uri, new_document, check_etag)
 
     def delete_element(self, uri, check_etag):
@@ -228,10 +235,13 @@ class ApplicationUsage(object):
         try:
             xpath = uri.node_selector.replace_default_prefix()
             attribute = xml_doc.xpath(xpath, namespaces = ns_dict)
-        except Exception:
+        except Exception, ex:
+            ex.http_error = ResourceNotFound()
+            raise
+        if not attribute:
             raise ResourceNotFound
-        if len(attribute) != 1:
-            raise ResourceNotFound
+        elif len(attribute) != 1:
+            raise ResourceNotFound('XPATH expression is ambiguous')
         # TODO
         # The server MUST NOT add namespace bindings representing namespaces 
         # used by the element or its children, but declared in ancestor elements
@@ -250,10 +260,13 @@ class ApplicationUsage(object):
         ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
             elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
-        except Exception:
+        except Exception, ex:
+            ex.http_error = ResourceNotFound()
+            raise
+        if not elem:
             raise ResourceNotFound
         if len(elem) != 1:
-            raise ResourceNotFound
+            raise ResourceNotFound('XPATH expression is ambiguous')
         elem = elem[0]
         attribute = uri.node_selector.terminal_selector.attribute
         if elem.get(attribute):  ## check if the attribute exists XXX use KeyError instead
@@ -277,10 +290,13 @@ class ApplicationUsage(object):
         ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
             elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
-        except Exception:
+        except Exception, ex:
+            ex.http_error = NoParentError()
+            raise
+        if not elem:
             raise NoParentError
         if len(elem) != 1:
-            raise NoParentError
+            raise NoParentError('XPATH expression is ambiguous')
         elem = elem[0]
         attr_name = uri.node_selector.terminal_selector.attribute
         elem.set(attr_name, attribute)
@@ -304,10 +320,13 @@ class ApplicationUsage(object):
         ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
             elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
-        except Exception:
-            raise ResourceNotFound
+        except Exception, ex:
+            ex.http_error =  ResourceNotFound()
+            raise
         if not elem:
             raise ResourceNotFound
+        elif len(elem)!=1:
+            raise ResourceNotFound('XPATH expression is ambiguous')
         elem = elem[0]
         namespaces = ''
         for prefix, ns in elem.nsmap.items():
@@ -354,26 +373,26 @@ class ResourceListsApplication(ApplicationUsage):
             if child.tag == list_tag:
                 name = child.get("name")
                 if name in name_attrs:
-                    raise UniquenessFailureError()
+                    raise UniquenessFailureError('attribute *name* is not unique')
                 else:
                     name_attrs.add(name)
             elif child.tag == entry_tag:
                 uri = child.get("uri")
                 if uri in uri_attrs:
-                    raise UniquenessFailureError()
+                    raise UniquenessFailureError('attribute *uri* is not unique')
                 else:
                     uri_attrs.add(uri)
             elif child.tag == entry_ref_tag:
                 ref = child.get("ref")
                 if ref in ref_attrs:
-                    raise UniquenessFailureError()
+                    raise UniquenessFailureError('attribute *ref* is not unique')
                 else:
                     # TODO check if it's a relative URI, else raise ConstraintFailure
                     ref_attrs.add(ref)
             elif child.tag == external_tag:
                 anchor = child.get("anchor")
                 if anchor in anchor_attrs:
-                    raise UniquenessFailureError()
+                    raise UniquenessFailureError('attribute *anchor* is not unique')
                 else:
                     # TODO check if it's a HTTP URL, else raise ConstraintFailure
                     anchor_attrs.add(anchor)
@@ -442,7 +461,7 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
         return defer.succeed(StatusResponse(200, etag=etag, data=doc))
 
     def get_document_local(self, uri, check_etag):
-        raise ResourceNotFound
+        self._not_implemented('users')
 
 
 class WatchersApplication(ResourceListsApplication):
