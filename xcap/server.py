@@ -4,24 +4,23 @@
 """HTTP handling for the XCAP server"""
 
 import sys
-import os
 
-from application.configuration.datatypes import StringList, NetworkRangeList
+from application.configuration.datatypes import StringList
 from application import log
 
 from twisted.web2 import channel, resource, http, responsecode, http_headers, server
 from twisted.cred.portal import Portal
-from twisted.cred import credentials, portal, checkers, error as credError
-from twisted.web2.auth import digest, basic, wrapper
-from twisted.internet import defer
+from twisted.web2.auth import digest, basic
+from twisted.python import failure
 
 from xcap.config import *
 from xcap import authentication
 from xcap.appusage import getApplicationForURI
 from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute, XCAPNamespaceBinding
 from xcap.tls import Certificate, PrivateKey
-from xcap.uri import XCAPUri, AttributeSelector, NamespaceSelector
+from xcap.uri import AttributeSelector, NamespaceSelector
 from xcap import __version__ as version
+from xcap.logutil import log_access, log_error
 
 server.VERSION = "OpenXCAP/%s" % version
 
@@ -53,6 +52,7 @@ class TLSConfig(ConfigSection):
     certificate = None
     private_key = None
 
+
 ## We use this to overwrite some of the settings above on a local basis if needed
 configuration = ConfigFile()
 configuration.read_settings('Authentication', AuthenticationConfig)
@@ -60,30 +60,16 @@ configuration.read_settings('Server', ServerConfig)
 configuration.read_settings('TLS', TLSConfig)
 
 
-def log_request(request, response):
-    uri = request.xcap_uri
-    method = request.method
-    user_agent = request.headers.getHeader('user-agent', 'unknown')
-    size = 0
-    if method == "GET" and response.stream is not None:
-        size = response.stream.length
-    elif method in ("PUT", "DELETE") and request.stream is not None:
-        size = request.stream.length
-    log_uri = "%s://%s:%d%s" % (request.scheme, request.host, request.port, request.uri)
-    msg = '%s from %s "%s %s" %s %d - %s' % (uri.user, request.remoteAddr.host,
-                                        method, log_uri, response.code, size, user_agent)
-    log.msg(msg)
-
-
 class XCAPRoot(resource.Resource, resource.LeafResource):
     addSlash = True
 
     def allowedMethods(self):
+        # not used , but methods were already checked by XCAPAuthResource
         return ('GET', 'PUT', 'DELETE')
 
     def resourceForURI(self, xcap_uri):
         application = getApplicationForURI(xcap_uri)
-        if not xcap_uri.node_selector: ## the request is for an XCAP document
+        if not xcap_uri.node_selector:
             return XCAPDocument(xcap_uri, application)
         else:
             terminal_selector = xcap_uri.node_selector.terminal_selector
@@ -91,7 +77,7 @@ class XCAPRoot(resource.Resource, resource.LeafResource):
                 return XCAPAttribute(xcap_uri, application)
             elif isinstance(terminal_selector, NamespaceSelector):
                 return XCAPNamespaceBinding(xcap_uri, application)
-            else: ## the request is for an element
+            else:
                 return XCAPElement(xcap_uri, application)
 
     def renderHTTP(self, request):
@@ -104,14 +90,58 @@ class XCAPRoot(resource.Resource, resource.LeafResource):
         resource = self.resourceForURI(xcap_uri) ## let the appropriate resource handle the request
         return resource.renderHTTP(request)
 
+def get_response_body(exc):
+    if hasattr(exc, 'stream') and hasattr(exc.stream, 'mem'):
+        return exc.stream.mem
+    else:
+        return str(exc)
 
 class Request(server.Request):
+
     def __init__(self, *args, **kw):
-        return server.Request.__init__(self, *args, **kw)
+        server.Request.__init__(self, *args, **kw)
 
     def writeResponse(self, response):
-        log_request(self, response)
-        return server.Request.writeResponse(self, response)
+        reason = getattr(self, '_reason', None)
+        log_access(self, response, reason)
+        try:
+            return server.Request.writeResponse(self, response)
+        finally:
+            if reason is not None:
+                del self._reason
+
+    def _processingFailed(self, reason):
+        # save the reason, it will be used for the stacktrace
+        self._reason = reason
+
+        exc = getattr(reason, 'value', None)
+        if exc:
+            # is the exception has 'http_error' and it is HTTPError, we use it to generate the response.
+            # this allows us to attach http_error to non-HTTPError errors (as opposed to
+            # re-raising HTTPError-derived exception) and enjoy the original stacktraces in the log
+            if not isinstance(exc, http.HTTPError) and hasattr(exc, 'http_error'):
+                http_error = exc.http_error
+                if isinstance(http_error, http.HTTPError):
+                    return server.Request._processingFailed(self, failure.Failure(http_error))
+                elif isinstance(http_error, int):
+                    s = get_response_body(exc)
+                    response = http.Response(http_error, stream=s)
+                    fail = failure.Failure(http.HTTPError(response))
+                    return server.Request._processingFailed(self, fail)
+
+        return server.Request._processingFailed(self, reason)
+
+    def renderHTTP_exception(self, req, reason):
+        body = ("<html><head><title>Internal Server Error</title></head>"
+                "<body><h1>Internal Server Error</h1>An error occurred rendering the requested page. More information is available in the server log.</body></html>")
+
+        response = http.Response(
+            responsecode.INTERNAL_SERVER_ERROR,
+            {'content-type': http_headers.MimeType('text','html')},
+            body)
+
+        log_error(req, response, reason)
+        return response
 
 
 class HTTPChannelRequest(channel.http.HTTPChannelRequest):

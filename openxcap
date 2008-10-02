@@ -10,6 +10,7 @@ if __name__ == '__main__':
     from application import log
 
     import xcap
+    from xcap.logutil import start_log
 
     name = 'openxcap'
     fullname = 'Open XCAP'
@@ -43,7 +44,7 @@ if __name__ == '__main__':
         except ProcessError, e:
             log.fatal(str(e))
             sys.exit(1)
-        log.startSyslog(name)
+        start_log()
     else:
         pass
         #from application.debug.memory import *
