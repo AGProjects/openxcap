@@ -84,8 +84,10 @@ class XCAPTest(unittest.TestCase):
         setup_parser_client(parser) # QQQ should it be there? it executes the same code multiple times
 
     def initialize(self, options, args = []):
-        self._options = copy(options)
-        self._args = copy(args)
+        if not hasattr(self, '_options'):
+            self._options = copy(options)
+        if not hasattr(self, '_args'):
+            self._args = copy(args)
 
     def new_client(self):
         return make_xcapclient(self.options)
