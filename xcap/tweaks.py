@@ -1,6 +1,6 @@
 import md5
 
-from twisted.cred import credentials
+from twisted.cred import credentials, error
 from twisted.web2.auth.digest import IUsernameDigestHash
 
 from zope.interface import implements, Interface
