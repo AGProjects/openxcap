@@ -79,6 +79,9 @@ def succeed(r):
 
 class XCAPTest(unittest.TestCase):
 
+    # if true, each PUT or DELETE will be followed by GET to ensure that it has indeed succeeded
+    invariant_check = True
+
     @classmethod
     def setupOptionParser(cls, parser):
         setup_parser_client(parser) # QQQ should it be there? it executes the same code multiple times
@@ -194,7 +197,7 @@ class XCAPTest(unittest.TestCase):
 
         # if PUTting succeed, check that document is there and equals to resource
 
-        if succeed(r_put):
+        if self.invariant_check and succeed(r_put):
             r_get = self.get(application, node, status=None, client=client)
             self.assertStatus(r_get, 200,
                               'although PUT succeed, following GET on the same URI did not: %s %s' % \
@@ -216,7 +219,7 @@ class XCAPTest(unittest.TestCase):
         self.assertStatus(r, status)
 
         # if deleting succeed, GET should return 404
-        if succeed(r) or r.code == 404:
+        if self.invariant_check and succeed(r) or r.code == 404:
             r_get = self.get(application, node, status=None)
             self.assertStatus(r_get, 404,
                               'although DELETE succeed, following GET on the same URI did not return 404: %s %s' % \
