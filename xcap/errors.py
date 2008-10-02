@@ -25,7 +25,11 @@ class BadRequest(HTTPError):
 class ResourceNotFound(HTTPError):
     
     def __init__(self, msg=""):
+        self.msg = msg
         HTTPError.__init__(self, Response(404, stream=msg))
+
+    def __str__(self):
+        return self.msg
 
 
 class XCAPError(HTTPError):
