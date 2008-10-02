@@ -169,7 +169,6 @@ class XCAPProvisioning(EventServiceClient):
         except LookupError:
             node = None
         except Exception:
-            log.msg("Error doing Thor ID lookup")
             log.err()
             node = None
         return node
