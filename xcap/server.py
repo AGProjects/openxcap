@@ -9,13 +9,7 @@ import os
 from application.configuration.datatypes import StringList, NetworkRangeList
 from application import log
 
-from zope.interface import implements
-
-if 'twisted.internet.reactor' not in sys.modules:
-    from twisted.internet import pollreactor; pollreactor.install()
-
-from twisted.internet import reactor
-from twisted.web2 import channel, resource, http, responsecode, server
+from twisted.web2 import channel, resource, http, responsecode, http_headers, server
 from twisted.cred.portal import Portal
 from twisted.cred import credentials, portal, checkers, error as credError
 from twisted.web2.auth import digest, basic, wrapper
@@ -174,6 +168,10 @@ class XCAPServer:
         self.site = XCAPSite(root)
 
     def start(self):
+        if 'twisted.internet.reactor' not in sys.modules:
+            from twisted.internet import pollreactor; pollreactor.install()
+        from twisted.internet import reactor
+
         if ServerConfig.root.startswith('https'):
             from gnutls.interfaces.twisted import X509Credentials
             cert, pKey = TLSConfig.certificate, TLSConfig.private_key
@@ -184,7 +182,7 @@ class XCAPServer:
             log.msg("TLS started")
         else:
             reactor.listenTCP(ServerConfig.port, HTTPFactory(self.site), interface=ServerConfig.address)
-        self.run()
+        self.run(reactor)
 
-    def run(self):
+    def run(self, reactor):
         reactor.run(installSignalHandlers=ServerConfig.backend.installSignalHandlers)
