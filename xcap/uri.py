@@ -1,10 +1,38 @@
 """XCAP URI module
 
 http://tools.ietf.org/html/rfc4825#section-6
+
+The algorithm to decode the URI is as following:
+
+ * First, percent-decode the whole URI (urllib.unquote)
+ * Split document selector from node selector (str.split('~~'))
+ * Then use xpath_tokenizer from lxml to parse the whole node selector
+   and extract individual steps
+
+Although after doing percent-decoding first, we cannot use s.split('/'),
+using lexer from lxml alleviates that fact a bit and produces good results.
+
+A potential problem can arise with URIs that contain [percent-encoded] double quotes.
+Here's an example:
+
+/resource-lists/list[@name="friends"]/external[@anchor="/list[@name=%22mkting%22]"]
+
+which would be converted to
+
+/resource-lists/list[@name="friends"]/external[@anchor="/list[@name="mkting"]"]
+
+and that would confuse the parser.
+
+I'm not sure if it's legal to have such URIs, but if it is this module has to be fixed.
+Meanwhile, the safe approach is to use &quot;
+
+/resource-lists/list[@name="friends"]/external[@anchor="/list[@name=&quot;mkting&quot;]"]
+
 """
 
 import re
-from urllib import unquote
+from urllib import unquote, quote
+
 from copy import copy
 from xml.sax.saxutils import quoteattr
 from lxml import _elementpath as ElementPath
@@ -71,13 +99,30 @@ def unquote_attr_value(s):
     raise NodeParsingError
 
 def xpath_tokenizer(p):
+    """
+    >>> xpath_tokenizer('resource-lists')
+    ['resource-lists']
+
+    >>> xpath_tokenizer('list[@name="friends"]')
+    ['list', '[', '@', 'name', '=', 'friends', ']']
+
+    We cannot properly tokenize an URI like this :(
+    >>> uri_ugly = 'external[@anchor="http://xcap.example.org/resource-lists/users/sip:a@example.org/index/~~/resource-lists/list[@name="mkting"]"]'
+    >>> len(xpath_tokenizer(uri_ugly)) # expected 7
+    10
+
+    To feed such URI to this function, replace quote \" with &quot;
+    >>> uri_nice = 'external[@anchor="http://xcap.example.org/resource-lists/users/sip:a@example.org/index/~~/resource-lists/list[@name=&quot;mkting&quot;]"]'
+    >>> len(xpath_tokenizer(uri_nice)) # expected 7
+    7
+    """
     out = []
     prev = None
     for op, tag in ElementPath.xpath_tokenizer(p):
         if prev == '=':
             unq = unquote_attr_value
         else:
-            unq = unquote
+            unq = lambda x:x
         if op:
             x = Op(unq(op))
         else:
@@ -401,22 +446,34 @@ class DocumentSelector(Str):
 
 
 class XCAPUri(object):
-    """An XCAP URI containing the XCAP root, document selector and node selector."""
+    """An XCAP URI containing the XCAP root, document selector and node selector.
 
-    node_selector_separator = "~~"
+    >>> uri = XCAPUri('https://xcap.sipthor.net/xcap-root@ag-projects.com',
+    ... '/resource-lists/users/sip:denis@umts.ro/properties-resource-list.xml/~~/resource-lists/list%5b@name=%22Default%22%5d/entry%5b@uri=%22sip%3adenis%40umts.ro%22%5d', {})
+
+    >>> uri.user
+    XCAPUser('denis', 'umts.ro')
+
+    >>> uri.node_selector.element_selector
+    [Step((None, 'resource-lists')), Step((None, 'list'), None, (None, 'name'), 'Default'), Step((None, 'entry'), None, (None, 'uri'), 'sip:denis@umts.ro')]
+
+    """
 
     def __init__(self, xcap_root, resource_selector, namespaces):
         "namespaces maps application id to default namespace"
         self.xcap_root = xcap_root
-        self.resource_selector = resource_selector
+        self.resource_selector = unquote(resource_selector)
         realm = None
+
         # convention to get the realm if it's not contained in the user ID section
         # of the document selector (bad eyebeam)
         if self.resource_selector.startswith("@"):
             first_slash = self.resource_selector.find("/")
             realm = self.resource_selector[1:first_slash]
             self.resource_selector = self.resource_selector[first_slash:]
-        _split = self.resource_selector.split(self.node_selector_separator, 1)
+
+        _split = self.resource_selector.split('~~', 1)
+
         doc_selector = _split[0]
         self.doc_selector = DocumentSelector(doc_selector)  ## the Document Selector
         self.application_id = self.doc_selector.application_id
