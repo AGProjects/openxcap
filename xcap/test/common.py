@@ -6,7 +6,7 @@ from optparse import OptionParser
 from copy import copy
 
 
-xcaplib_min_version = (1, 0, 2)
+xcaplib_min_version = (1, 0, 3)
 
 sys.path.append('../../../python-xcaplib')
 import xcaplib
