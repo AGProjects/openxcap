@@ -17,11 +17,25 @@ from twisted.web2.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 from application.configuration.datatypes import StringList, NetworkRangeList
 from application import log
 
+from xcap import __version__
 from xcap.config import *
 from xcap.appusage import getApplicationForURI, namespaces
 from xcap.dbutil import connectionForURI
 from xcap.errors import ResourceNotFound
 from xcap.uri import XCAPUser, XCAPUri, NodeParsingError, Error as URIError
+
+
+# body of 404 error message to render when user requests xcap-root
+# it's html, because XCAP root is often published on the web.
+# NOTE: there're no plans to convert other error messages to html.
+# Since a web-browser is not the primary tool for accessing XCAP server, text/plain
+# is easier for clients to present to user/save to logs/etc.
+WELCOME = ('<html><head><title>Not Found</title></head>'
+           '<body><h1>Not Found</h1>XCAP server does not serve anything '
+           'directly under XCAP Root URL. You have to be more specific.'
+           '<br><br>'
+           '<address><a href="http://www.openxcap.org">OpenXCAP/%s</address>'
+           '</body></html>') % __version__
 
 
 class AuthenticationConfig(ConfigSection):
@@ -78,6 +92,8 @@ def parseNodeURI(node_uri, default_realm):
     if xcap_root is None:
         raise ResourceNotFound("XCAP root not found for uri: %s" % node_uri)
     resource_selector = node_uri[len(xcap_root):]
+    if not resource_selector or resource_selector=='/':
+        raise ResourceNotFound(WELCOME)
     r = XCAPUri(xcap_root, resource_selector, namespaces)
     if r.user.domain is None:
         r.user.domain = default_realm
