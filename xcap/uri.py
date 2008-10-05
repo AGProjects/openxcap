@@ -417,13 +417,13 @@ class DocumentSelector(Str):
     """
 
     def __init__(self, selector):
-        if not isinstance(selector, str):
-            raise TypeError("Document Selector must be a string: %r" % selector)
+        if selector[:1]=='/':
+            selector = selector[1:]
+        if selector[-1:]=='/':
+            selector = selector[:-1]
+        if not selector:
+            raise DocumentSelectorError("Document selector does not contain auid")
         segments  = selector.split('/')
-        if not segments[0]: ## ignore first '/'
-            segments.pop(0)
-        if not segments[-1]: ## ignore last '/' if present
-            segments.pop()
         if len(segments) < 2:
             raise DocumentSelectorError("DocumentSelector must contain at least 2 segments: %r" % selector)
         self.application_id = segments[0]
