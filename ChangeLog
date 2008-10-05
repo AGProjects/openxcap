@@ -1,40 +1,67 @@
-Changes in version 1.0.0
-------------------------
+openxcap (1.0.2) unstable; urgency=high
+
+  * Fixed and improved logging. it now logs much more then before and can be customized
+  * Fixed bug: xcap-caps application was not available under /global/ tree
+  * Added experimental support for sqlite database
+  * Fixed multiple xcap roots/aliases. having more then one root= entry in the config is legal now
+  * Fixed bug that made OpenXCAP dependent on specific MySQLdb versions (those having with 'reconnect' parameter)
+  * Fixed pyxml issue: previously, if pyxml was not installed, OpenXCAP would fail
+    with obscure exception on element operation. Now it refuses to start.
+  * Fixed URI parsing
+  * Better error reporting in many cases
+  * Many more bugs fixes
+
+ -- Denis Bilenko <denis@ag-projects.com>  Fri, 03 Oct 2008 05:42:45 +0200
+
+openxcap (1.0.1) unstable; urgency=low
+
+  * Added proper URI parsing, so att_value may contain slashes now
+  * Fixed schemas not to fetch files from the internet on initialization
+
+ -- Denis Bilenko <denis@ag-projects.com>  Fri, 12 Sep 2008 10:15:54 +0200
+
+openxcap (1.0.0) unstable; urgency=high
 
   * Added RLS services (RFC 4662 and RFC 4826)
   * Added support for xcap-diff based on draft-ietf-simple-xcap-diff-09
-  * Added partial get/put/delete of elements in the XCAP documents
+  * Added partial get/put/delete of elements in the XCAP documents 
   * Added test suite for rls-services, resource-lists and partial updates
   * Many bug fixes from field experiences
   * Development status from beta to production
   * Switched to Python 2.5
   * Improved documentation and testing suite
   * Changed license to GPL
+  * Fixed MySQL operational error (2006)
 
-Changes in version 0.9.9.5
---------------------------
+ -- Adrian Georgescu <ag@ag-projects.com>  Mon, 08 Sep 2008 15:32:07 +0200
+
+openxcap (0.9.9.5) unstable; urgency=low
 
   * Fixed a wrongly named positional argument
 
-Changes in version 0.9.9.4
---------------------------
+ -- Ruud Klaver <ruud@ag-projects.com>  Thu, 12 Jun 2008 10:58:11 +0200
+
+openxcap (0.9.9.4) unstable; urgency=low
 
   * Fixed one keyword argument too many
 
-Changes in version 0.9.9.3
---------------------------
+ -- Ruud Klaver <ruud@ag-projects.com>  Tue, 03 Jun 2008 10:38:27 +0200
+
+openxcap (0.9.9.3) unstable; urgency=low
 
   * Changed some lxml function argument from positional to keyword
 
-Changes in version 0.9.9.2
---------------------------
+ -- Ruud Klaver <ruud@ag-projects.com>  Tue, 03 Jun 2008 10:32:06 +0200
+
+openxcap (0.9.9.2) unstable; urgency=low
 
   * Changed debian package to not automatically start the server on install
   * Fix for dburi being updated in SIPThor backend
   * Fixed the SIPThor module to not make a new connection on every transaction
 
-Changes in version 0.9.9.1
---------------------------
+ -- Ruud Klaver <ruud@ag-projects.com>  Wed, 14 May 2008 11:18:00 +0200
+
+openxcap (0.9.9.1) unstable; urgency=low
 
   * Removed memcache access from the SIPThor backend to reflect change in
     architecture
@@ -43,8 +70,9 @@ Changes in version 0.9.9.1
     signal handlers. Backends now include a installSignalHandlers boolean
     variable.
 
-Changes in version 0.9.9
-------------------------
+ -- Ruud Klaver <ruud@ag-projects.com>  Mon, 31 Mar 2008 13:23:19 +0200
+
+openxcap (0.9.9) unstable; urgency=low
 
   * Fixed node selector decoding
   * Save presence rules documents under the same file name ("index.xml")
@@ -54,49 +82,75 @@ Changes in version 0.9.9
   * DELETE of a full document doesn't produce an Etag in the 200 response
   * Added SIP Thor backend
 
-Changes in version 0.9.8
-------------------------
+ -- Mircea Amarascu <mircea@ag-projects.com>  Mon, 21 Jan 2008 23:26:29 +0200
 
-  * Support subdirectories by using doc_uri column in xcap table
+openxcap (0.9.8) unstable; urgency=low
+
+  * Support subdirectories by using doc_uri column in xcap table.
   * Updated MySQL xcap table structure
 
-Changes in version 0.9.7
-------------------------
+ -- Adrian Georgescu <adigeo@ag-projects.com>  Fri, 09 Nov 2007 18:48:51 +0100
+
+openxcap (0.9.7) unstable; urgency=low
 
   * Prevented Twisted from printing SQL login info in the log
   * Added some info to INSTALL about tested versions
 
-Changes in version 0.9.6
-------------------------
+ -- Ruud Klaver <ruud@ag-projects.com>  Fri, 19 Oct 2007 14:33:08 +0200
 
-  * Fixed trusted peer authentication bug against the latest Twisted
-    svn trunk.
+openxcap (0.9.6) unstable; urgency=low
 
-Changes in version 0.9.5
-------------------------
+  * Fixed trusted peer authentication bug against the latest Twisted svn trunk.
 
-  * Changed watcher application to reflect new database column names of
-    OpenSER revision 2923
+ -- Mircea Amarascu <mircea@ag-projects.com>  Fri, 19 Oct 2007 08:29:13 +0300
+
+openxcap (0.9.5) unstable; urgency=low
+
+  * Changed watcher application to reflect new database column names of OpenSER revision 2923
   * Changed default SQL table name from "xcap" to "xcap_xml"
 
-Changes in version 0.9.4
-------------------------
+ -- Adrian Georgescu <ag@ag-projects.com>  Wed, 17 Oct 2007 16:40:05 +0200
+
+openxcap (0.9.4) unstable; urgency=low
 
   * Added "watchers" application to query OpenSER presence watchers.
   * Include debian directory in the source archive.
 
-Changes in version 0.9.3
-------------------------
+ -- Mircea Amarascu <mircea@ag-projects.com>  Wed, 10 Oct 2007 17:19:12 +0300
+
+openxcap (0.9.3) unstable; urgency=low
 
   * Adjusted OpenXCAP to use python-application >= 1.0.9
   * Set TLS mode based on http/https scheme of the root URI.
   * document_validation defaults to Yes in config.ini.sample
 
-Changes in version 0.9.2
-------------------------
+ -- Mircea Amarascu <mircea@ag-projects.com>  Wed, 19 Sep 2007 15:20:16 +0300
+
+openxcap (0.9.2) unstable; urgency=low
 
   * Changed the name and structure of xcap_xml table.
   * Added the 'type' param to refreshWatchers OpenSER command.
   * Added configuration option to disable XML schema validation.
   * Updated XML scheme to allow EyeBeam resource lists to pass validation.
   * Update debian dependencies.
+
+ -- Mircea Amarascu <mircea@ag-projects.com>  Wed, 19 Sep 2007 10:03:19 +0300
+
+openxcap (0.9.1) unstable; urgency=low
+
+  * Fixed the debian control file.
+  * Fixed some lintian warnings.
+  * Added MANIFEST.in file.
+  * Removed no longer needed remove-version-control rule.
+  * Fixed install rule name.
+  * Do not copy config.ini.sample as it is into /etc/openxcap/
+  * Added tls directory and .placeholder to prevent it from being purged.
+  * Use relative paths for tls certificates in config.ini
+
+ -- Dan Pascu <dan@ag-projects.com>  Mon, 03 Sep 2007 12:42:47 +0300
+
+openxcap (0.9.0) unstable; urgency=low
+
+  * Initial release.
+
+ -- Mircea Amarascu <mircea@ag-projects.com>  Wed, 29 Aug 2007 14:03:17 +0300
