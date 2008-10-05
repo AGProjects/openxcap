@@ -283,6 +283,8 @@ class LocatorError(ValueError):
 
 
 class SelectorError(LocatorError):
+    http_error = 404
+
     def __init__(self, msg, handler=None):
         msg = 'more than one element matches: %s' % msg
         LocatorError.__init__(self, msg, handler)
