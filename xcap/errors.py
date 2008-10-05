@@ -57,7 +57,7 @@ class XCAPError(HTTPError):
         phrase_attr = self.format_my_phrase()
         body = self.format_my_body()
         if body or self.comment:
-            return '<%s%s>%s%s<%s/>' % (self.tag, phrase_attr, self.comment, body, self.tag)
+            return '<%s%s>%s%s</%s>' % (self.tag, phrase_attr, self.comment, body, self.tag)
         else:
             return '<%s%s/>' % (self.tag, phrase_attr)
 
