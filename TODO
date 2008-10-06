@@ -1,3 +1,6 @@
+- Move startup messages to syslog
+- Display at startup in syslog the path of the log directory 
+- Rename error.log to server.log 
 - Log the whole URI, not just path. construct it from Host headers or default
   xcap-root if Host is not present
 - Allow port in root= settings, thus making port= parameter unnecessary.
