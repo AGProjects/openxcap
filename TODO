@@ -23,3 +23,7 @@
 - xcap-directory
 - log the start/stop openxcap messages to syslog becaue all our applications log there and we need to correlate these logs from multiple apps
 - errors from twisted are text/html and from xcap are text/plain: use one (text/plain?)
+- debian: dpkg cannot restart openxcap:
+Failed to start OpenXCAP 1.0.3: Couldn't listen on 81.23.228.164:443: (98, 'Address already in
+use')
+unable to delete pidfile /var/run/openxcap/openxcap.pid: [Errno 2] No such file or directory: '/var/run/openxcap/openxcap.pid'
