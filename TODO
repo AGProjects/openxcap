@@ -5,6 +5,7 @@
   Inside, always use xcap root with port (if non-default), i.e. put port in logs, xcap-diff docs.
 - finish global/users: test that all possible combinations (global/users GET/PUT/DELETE each app)
   return reasonable error
+  - global + digest auth = not implemented
 - URIs in att_value. Should differently encoded be considered equal?
   Note, that there're 2 encodings: percent-encoding, and xml attribute encoding (i.e. &quot; and friends)
   Resource Lists RFC features example document with http URI that has percent-encoding in it.
@@ -14,3 +15,8 @@
   that URI was percent encoded in the first place, why not paste it in the documents as it is, using
   XML escaping where necessary.
   Make few simple xpath expressions that include that URI as att_value and post it SIMPLE mailing list.
+- test system: validate after each GET, including error messages, test well-formedness of the received elements.
+- validation after put/delete attribute
+- xcap-directory
+- log the start/stop openxcap messages to syslog becaue all our applications log there and we need to correlate these logs from multiple apps
+- errors from twisted are text/html and from xcap are text/plain: use one (text/plain?)
