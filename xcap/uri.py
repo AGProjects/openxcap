@@ -44,13 +44,12 @@ XPATH_DEFAULT_PREFIX = 'default' # should be more random
 
 class Error(ValueError):
     "Base class for all errors in this module"
-    http_error = 400
 
 class NodeParsingError(Error):
-    pass
+    http_error = 400
 
 class DocumentSelectorError(Error):
-    pass
+    http_error = 404
 
 
 class XCAPUser(object):
