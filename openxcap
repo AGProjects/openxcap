@@ -12,14 +12,15 @@ if __name__ == '__main__':
     import xcap
 
     name = 'openxcap'
-    fullname = 'OpenXCAP'
     description = 'An open source XCAP Server'
+    version = xcap.extended_version()
+    fullname = 'OpenXCAP %s' % version
 
     config_directory = '/etc/openxcap'
     runtime_directory = '/var/run/openxcap'
     default_pid = "%s/%s.pid" % (runtime_directory, name)
 
-    parser = OptionParser(version="%%prog %s" % xcap.__version__)
+    parser = OptionParser(version="%%prog %s" % version)
     parser.add_option("--no-fork", action="store_false", dest="fork", default=1,
                       help="run the process in the foreground (for debugging)")
     parser.add_option("--pid", dest="pidFile", default=default_pid,
@@ -49,17 +50,17 @@ if __name__ == '__main__':
         pass
         #from application.debug.memory import *
 
-    print "Starting %s %s" % (fullname, xcap.__version__)
+    print "Starting %s" % fullname
 
     from xcap.server import XCAPServer
     try:
         server = XCAPServer()
     except Exception, why:
-        print >>sys.stderr, "Failed to create OpenXCAP: %s" % why
+        print >>sys.stderr, "Failed to create %s: %s" % (fullname, why)
         sys.exit(1)
 
     try:
         server.start()
     except Exception, why:
-        print >>sys.stderr, "Failed to start OpenXCAP: %s" % why
+        print >>sys.stderr, "Failed to start %s: %s" % (fullname, why)
         sys.exit(1)
