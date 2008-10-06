@@ -424,23 +424,23 @@ class DocumentSelector(Str):
             raise DocumentSelectorError("Document selector does not contain auid")
         segments  = selector.split('/')
         if len(segments) < 2:
-            raise DocumentSelectorError("DocumentSelector must contain at least 2 segments: %r" % selector)
+            raise DocumentSelectorError("Document selector does not contain context: %r" % selector)
         self.application_id = segments[0]
         self.context = segments[1]
         if self.context not in ("users", "global"):
-            raise DocumentSelectorError("DocumentSelector context is either 'users' or 'global', not %r: %r" % \
-                             (self.context, selector))
+            raise DocumentSelectorError("Document selector context must be either 'users' or 'global', not %r: %r" % \
+                                        (self.context, selector))
         self.user_id = None
         if self.context == "users":
             try:
                 self.user_id = segments[2]
             except IndexError:
-                raise DocumentSelectorError('DocumentSelector is incomplete: %r' % selector)
+                raise DocumentSelectorError('Document selector does not contain user id: %r' % selector)
             segments = segments[3:]
         else:
             segments = segments[2:]
         if not segments:
-            raise DocumentSelectorError("DocumentSelector must contain document's path: %r" % selector)
+            raise DocumentSelectorError("Document selector does not contain document's path: %r" % selector)
         self.document_path = '/'.join(segments)
 
 
