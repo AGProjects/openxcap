@@ -6,18 +6,19 @@ This module implements
 
 This allows to implement GET/PUT/DELETE for elements in XCAP server.
 
-Syntax for element selectors is a subset of xpath, but a xpath implementation
-was not used. One reason is that xpath only implements locating an element but not
-an insertion point for element selectors which do not point to an existing
-element, but will point to the inserted element after PUT.
+Syntax for element selectors is a subset of XPATH, but an XPATH implementation
+was not used. One reason is that XPATH only implements locating an element but not
+an insertion point for an element selector which does not point to an existing
+element (but will point to the inserted element after PUT).
 
 For element selectors of type *[@att="value"] insertion point depends on
 the content of a new element. For RFC compliant behavior, fix such requests
-by replacing '*' with root tag of new element's body.
+by replacing '*' with the root tag of the new element.
 """
 from xml import sax
 from StringIO import StringIO
 from xcap import uri
+
 
 class Step:
     # to be matched against uri.Step
@@ -71,7 +72,7 @@ class ElementLocator(ContentHandlerBase):
     of XPATH defined in RFC 4825)
 
     There's an intentional difference from XPATH (at least as implemented
-    in lxml): tail following closing tag is not included in the end result
+    in lxml): tail following the closing tag is not included in the end result
     (this doesn't make sense for XCAP and incompatible with some of the
     requirements in RFC).
     """

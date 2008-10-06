@@ -116,7 +116,7 @@ class Request(server.Request):
 
         exc = getattr(reason, 'value', None)
         if exc:
-            # is the exception has 'http_error' and it is HTTPError, we use it to generate the response.
+            # if the exception has 'http_error' and it is HTTPError, we use it to generate the response.
             # this allows us to attach http_error to non-HTTPError errors (as opposed to
             # re-raising HTTPError-derived exception) and enjoy the original stacktraces in the log
             if not isinstance(exc, http.HTTPError) and hasattr(exc, 'http_error'):

@@ -90,7 +90,7 @@ def parseNodeURI(node_uri, default_realm):
             xcap_root = uri
             break
     if xcap_root is None:
-        raise ResourceNotFound("XCAP root not found for uri: %s" % node_uri)
+        raise ResourceNotFound("XCAP root not found for URI: %s" % node_uri)
     resource_selector = node_uri[len(xcap_root):]
     if not resource_selector or resource_selector=='/':
         raise ResourceNotFound(WELCOME)
