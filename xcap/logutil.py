@@ -82,6 +82,7 @@ AnyErrorCode = AnyErrorCode('')
 
 class Logging(ConfigSection):
     _datatypes = {'directory': str,
+                  'log_response_headers': ErrorCodeList,
                   'log_response_body': ErrorCodeList,
                   'log_request_headers': ErrorCodeList,
                   'log_request_body': ErrorCodeList,
@@ -94,6 +95,8 @@ class Logging(ConfigSection):
 
     log_request_body = []
 
+    log_response_headers = []
+
     # each log message is followed by the body of the response sent to the client
     log_response_body = []
 
@@ -101,9 +104,15 @@ class Logging(ConfigSection):
     log_stacktrace = [500]
 
     @classmethod
-    def format_request_headers(cls, code, request):
+    def format_request_headers(cls, code, r):
         if matches(cls.log_request_headers, code):
-            return format_request_headers(request)
+            return format_headers(r, 'REQUEST headers:\n')
+        return ''
+
+    @classmethod
+    def format_response_headers(cls, code, r):
+        if matches(cls.log_response_headers, code):
+            return format_headers(r, 'RESPONSE headers:\n')
         return ''
 
     @classmethod
@@ -146,14 +155,14 @@ def format_response_body(response):
         return 'RESPONSE: ' + msg.replace('\n', '\n\t') + '\n'
     return res
 
-def format_request_headers(request):
+def format_headers(r, msg='REQUEST headers:\n'):
     res = ''
-    if hasattr(request, 'headers'):
-        for (k, v) in request.headers.getAllRawHeaders():
+    if hasattr(r, 'headers'):
+        for (k, v) in r.headers.getAllRawHeaders():
             for x in v:
                 res += '\t%s: %s\n' % (k, x)
     if res:
-        res = 'REQUEST headers:\n' + res
+        res = msg + res
     return res
 
 def format_request_body(request):
@@ -242,6 +251,7 @@ def format_log_message(request, response, reason):
         code = getattr(response, 'code', None)
         info += Logging.format_request_headers(code, request)
         info += Logging.format_request_body(code, request)
+        info += Logging.format_response_headers(code, response)
         info += Logging.format_response_body(code, response)
         info += Logging.format_stacktrace(code, reason)
     except Exception:
