@@ -190,6 +190,9 @@ class XCAPAuthResource(HTTPAuthResource):
         uri = request.scheme + "://" + request.host + request.uri
         xcap_uri = parseNodeURI(uri, AuthenticationConfig.default_realm)
         request.xcap_uri = xcap_uri
+        if xcap_uri.doc_selector.context=='global':
+            return defer.succeed(self.wrappedResource)
+
         ## For each request the authentication realm must be
         ## dinamically deducted from the XCAP request URI
         realm = xcap_uri.user.domain
