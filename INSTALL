@@ -45,7 +45,8 @@ Prerequisites:
  - Twisted framework (http://twistedmatrix.com) - Twisted Core, Twisted Web and Twisted Web 2
  - python-lxml (http://codespeak.net/lxml)
  - python-application
- - python-xml
+ - python-xml (_xmlplus package provided by pyxml library)
+ - python-mysqldb
 
 To enable TLS support:
 
