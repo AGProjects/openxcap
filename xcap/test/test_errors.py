@@ -18,29 +18,35 @@ class ErrorsTest(XCAPTest):
     def test409(self):
         self.put('resource-lists', 'xxx', status=409)
 
+    def check(self, code, message, *uris):
+        for uri in uris:
+            r = self.client.con.request('GET', uri)
+            self.assertEqual(r.code, code)
+            self.assertInBody(r, message)
+
     def test400(self):
 
-        r = self.get('resource-lists', '/resource-lists/list[@name="friends"]/external[]/@anchor', status=400)
+        self.get('resource-lists', '/resource-lists/list[@name="friends"]/external[]/@anchor', status=400)
 
-        def check(message, *uris):
-            for uri in uris:
-                r = self.client.con.request('GET', uri)
-                self.assertEqual(r.code, 400)
-                self.assertInBody(r, message)
+        self.check(400, "to parse node",
+                   'resource-lists/users/alice@example.com/index.xml~~')
 
-        check('at least 2 segments', '', 'xxx')
+    def test404(self):
 
-        check("context is either 'users' or 'global'",
-              'resource-lists/user/alice@example.com/index.xml')
+        self.check(404, 'XCAP Root', '')
 
-        check('incomplete', 'resource-lists/users')
+        self.check(404, 'context', 'xxx')
 
-        check("must contain document's path",
-              'resource-lists/users/alice@example.com',
-              'resource-lists/users/alice@example.com/')
+        self.check(404, "context",
+                   'resource-lists/user/alice@example.com/index.xml')
 
-        check("to parse node",
-              'resource-lists/users/alice@example.com/index.xml~~')
+        self.check(404, 'user id', 'resource-lists/users')
+
+        self.check(404, "not contain ",
+                   'resource-lists/users/alice@example.com',
+                   'resource-lists/users/alice@example.com/')
+
+        # XXX test for multiple matches
 
     def test405(self):
         r = self.client.con.request('POST', '')
@@ -49,7 +55,6 @@ class ErrorsTest(XCAPTest):
         r = self.client.con.request('XXX', '')
         self.assertEqual(r.code, 405) # but apache responds with 501
 
-    # 404: already tested everywhere
     # 412: tested in test_etags.py
 
 if __name__ == '__main__':
