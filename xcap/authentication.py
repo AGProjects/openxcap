@@ -3,6 +3,8 @@
 
 """XCAP authentication module"""
 
+# XXX this module should be either renamed or refactored as it does more then just auth.
+
 from xcap import tweaks
 
 import urlparse
