@@ -1,3 +1,10 @@
+openxcap (1.0.4) unstable; urgency=low
+
+  * Disabled authentication for requests in /global/ context, because it didn't work well.
+    It is safe, because the only use for /global/ now is retrieving xcap-caps.
+
+ -- Denis Bilenko <denis@ag-projects.com>  Tue, 07 Oct 2008 19:34:47 +0200
+
 openxcap (1.0.3) unstable; urgency=low
 
   * Fixed: requesting XCAP root resulted in 500 (now 404)
