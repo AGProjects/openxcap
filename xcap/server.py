@@ -81,13 +81,10 @@ class XCAPRoot(resource.Resource, resource.LeafResource):
                 return XCAPElement(xcap_uri, application)
 
     def renderHTTP(self, request):
-        ## forward the request to the appropiate XCAP resource, based on the
-        ## XCAP request URI
-        xcap_uri = request.xcap_uri
-        application = getApplicationForURI(xcap_uri)
+        application = getApplicationForURI(request.xcap_uri)
         if not application:
             return http.Response(responsecode.NOT_FOUND, stream="Application not supported")
-        resource = self.resourceForURI(xcap_uri) ## let the appropriate resource handle the request
+        resource = self.resourceForURI(request.xcap_uri)
         return resource.renderHTTP(request)
 
 def get_response_body(exc):

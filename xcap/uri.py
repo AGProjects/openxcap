@@ -474,9 +474,9 @@ class XCAPUri(object):
         _split = self.resource_selector.split('~~', 1)
 
         doc_selector = _split[0]
-        self.doc_selector = DocumentSelector(doc_selector)  ## the Document Selector
+        self.doc_selector = DocumentSelector(doc_selector)
         self.application_id = self.doc_selector.application_id
-        if len(_split) == 2:                             ## the Node Selector
+        if len(_split)==2:
             self.node_selector = NodeSelector(_split[1], namespaces.get(self.application_id))
         else:
             self.node_selector = None
