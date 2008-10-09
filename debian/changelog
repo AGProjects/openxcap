@@ -19,7 +19,7 @@ openxcap (1.0.2) unstable; urgency=high
   * Fixed bug: xcap-caps application was not available under /global/ tree
   * Added experimental support for sqlite database
   * Fixed multiple xcap roots/aliases. having more then one root= entry in the config is legal now
-  * Fixed bug that made OpenXCAP dependent on specific MySQLdb versions (those having with 'reconnect' parameter)
+  * Fixed bug that made OpenXCAP dependent on specific MySQLdb versions (those with 'reconnect' parameter)
   * Fixed pyxml issue: previously, if pyxml was not installed, OpenXCAP would fail
     with obscure exception on element operation. Now it refuses to start.
   * Fixed URI parsing
