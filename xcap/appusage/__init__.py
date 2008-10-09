@@ -15,7 +15,7 @@ from twisted.python import failure
 from xcap.config import *
 from xcap.errors import *
 from xcap.interfaces.backend import StatusResponse
-from xcap.element import XCAPElement, SelectorError
+from xcap import element
 from xcap.dbutil import generate_etag
 
 supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pres-rules',
@@ -144,16 +144,16 @@ class ApplicationUsage(object):
 
     ## Element management
 
-    def _cb_put_element(self, response, uri, element, check_etag):
+    def _cb_put_element(self, response, uri, element_body, check_etag):
         """This is called when the document that relates to the element is retreived."""
         if response.code == 404:          ### XXX let the storate raise
             raise NoParentError           ### catch error in errback and attach http_error
 
-        fixed_element_selector = uri.node_selector.element_selector.fix_star(element)
+        fixed_element_selector = uri.node_selector.element_selector.fix_star(element_body)
 
         try:
-            result = XCAPElement.put(response.data, fixed_element_selector, element)
-        except SelectorError, ex:
+            result = element.put(response.data, fixed_element_selector, element_body)
+        except element.SelectorError, ex:
             ex.http_error = NoParentError(comment=str(ex))
             raise
 
@@ -161,9 +161,9 @@ class ApplicationUsage(object):
             raise NoParentError
 
         new_document, created = result
-        get_result = XCAPElement.get(new_document, uri.node_selector.element_selector)
+        get_result = element.get(new_document, uri.node_selector.element_selector)
 
-        if get_result != element.strip():
+        if get_result != element_body.strip():
             raise CannotInsertError('PUT request failed GET(PUT(x))==x invariant')
 
         d = self.put_document(uri, new_document, check_etag)
@@ -181,9 +181,9 @@ class ApplicationUsage(object):
         
         return d
 
-    def put_element(self, uri, element, check_etag):
+    def put_element(self, uri, element_body, check_etag):
         try:
-            etree.parse(StringIO(element)).getroot()
+            etree.parse(StringIO(element_body)).getroot()
             # verify if it has one element, if not should we throw the same exception?
         except etree.XMLSyntaxError, ex:
             ex.http_error = NotXMLFragmentError(comment=str(ex))
@@ -192,13 +192,13 @@ class ApplicationUsage(object):
             ex.http_error = NotXMLFragmentError()
             raise
         d = self.get_document(uri, check_etag)
-        return d.addCallbacks(self._cb_put_element, callbackArgs=(uri, element, check_etag))
+        return d.addCallbacks(self._cb_put_element, callbackArgs=(uri, element_body, check_etag))
 
     def _cb_get_element(self, response, uri):
         """This is called when the document related to the element is retrieved."""
         if response.code == 404:     ## XXX
             raise ResourceNotFound   ## XXX
-        result = XCAPElement.get(response.data, uri.node_selector.element_selector)
+        result = element.get(response.data, uri.node_selector.element_selector)
         if not result:
             raise ResourceNotFound
         return StatusResponse(200, response.etag, result)
@@ -210,10 +210,10 @@ class ApplicationUsage(object):
     def _cb_delete_element(self, response, uri, check_etag):
         if response.code == 404:
             raise ResourceNotFound
-        new_document = XCAPElement.delete(response.data, uri.node_selector.element_selector)
+        new_document = element.delete(response.data, uri.node_selector.element_selector)
         if not new_document:
             raise ResourceNotFound
-        get_result = XCAPElement.find(new_document, uri.node_selector.element_selector)
+        get_result = element.find(new_document, uri.node_selector.element_selector)
         if get_result:
             raise CannotDeleteError('DELETE request failed GET(DELETE(x))==404 invariant')
         return self.put_document(uri, new_document, check_etag)
@@ -475,8 +475,7 @@ class WatchersApplication(ResourceListsApplication):
         for watcher in watchers:
             watcher_elem = etree.SubElement(root, "watcher")
             for name, value in watcher.iteritems():
-                element = etree.SubElement(watcher_elem, name)
-                element.text = value
+                etree.SubElement(watcher_elem, name).text = value
         doc = etree.tostring(root, encoding="utf-8", pretty_print=True, xml_declaration=True)
         #self.validate_document(doc)
         return StatusResponse(200, data=doc)

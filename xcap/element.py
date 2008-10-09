@@ -291,90 +291,82 @@ class SelectorError(LocatorError):
         LocatorError.__init__(self, msg, handler)
 
 
-class XCAPElement:
+def make_parser():
+    parser = sax.make_parser()
+    parser.setFeature(sax.handler.feature_namespaces, 1)
+    # Q: SAXNotSupportedException: expat does not report namespace prefixes
+    # A: you need pyxml library which provides _xmlplus package;
+    #    on debian: aptitude install python-xml
+    parser.setFeature(sax.handler.feature_namespace_prefixes, 1)
+    return parser
 
-    @classmethod
-    def make_parser(cls):
-        parser = sax.make_parser()
-        parser.setFeature(sax.handler.feature_namespaces, 1)
+def find(document, element_selector):
+    """Return an element as (first index, last index+1)
 
-        # Q: SAXNotSupportedException: expat does not report namespace prefixes
-        # A: you need pyxml library which provides _xmlplus package;
-        #    on debian: aptitude install python-xml
-        parser.setFeature(sax.handler.feature_namespace_prefixes, 1) # need _xmlplus package
-        return parser
+    If it couldn't be found, return None.
+    If there're several matches, raise SelectorError.
+    """
+    parser = make_parser()
+    el = ElementLocator(element_selector)
+    parser.setContentHandler(el)
+    parser.parse(StringIO(document))
+    if el.state == 'DONE':
+        el.fix_end_pos(document)
+        return (el.start_pos, el.end_pos)
+    else:
+        return LocatorError.generate_error(el, element_selector)
 
-    @classmethod
-    def find(cls, document, element_selector):
-        """Return an element as (first index, last index+1)
+def get(document, element_selector):
+    """Return an element as a string.
 
-        If it couldn't be found, return None.
-        If there're several matches, raise SelectorError.
-        """
-        parser = cls.make_parser()
-        el = ElementLocator(element_selector)
-        parser.setContentHandler(el)
+    If it couldn't be found, return None.
+    If there're several matches, raise SelectorError.
+    """
+    location = find(document, element_selector)
+    if location is not None:
+        start, end = location
+        return document[start:end]
+
+def delete(document, element_selector):
+    """Return document with element deleted.
+
+    If it couldn't be found, return None.
+    If there're several matches, raise SelectorError.
+    """
+    location = find(document, element_selector)
+    if location is not None:
+        start, end = location
+        return document[:start] + document[end:]
+
+def put(document, element_selector, element_str):
+    """Return a 2-items tuple: (new_document, created).
+    new_document is a copy of document with element_str inside.
+    created is True if insertion was performed as opposed to replacement.
+
+    If element_selector matches an existing element, it is replaced with element_str.
+    If not, it is inserted at appropriate place.
+
+    If it's impossible to insert at this location, return None.
+    If element_selector matches more than one element or more than one possible
+    place to insert and there're no rule to resolve the ambiguity then SelectorError
+    is raised.
+    """
+    location = find(document, element_selector)
+    if location is None:
+        ipl = InsertPointLocator(element_selector)
+        parser = make_parser()
+        parser.setContentHandler(ipl)
         parser.parse(StringIO(document))
-        if el.state == 'DONE':
-            el.fix_end_pos(document)
-            return (el.start_pos, el.end_pos)
+        if ipl.state == 'DONE':
+            ipl.fix_end_pos(document)
+            start, end = ipl.end_pos, ipl.end_pos
+            created = True
         else:
-            return LocatorError.generate_error(el, element_selector)
-
-    @classmethod
-    def get(cls, document, element_selector):
-        """Return an element as a string.
-
-        If it couldn't be found, return None.
-        If there're several matches, raise SelectorError.
-        """
-        location = cls.find(document, element_selector)
-        if location is not None:
-            start, end = location
-            return document[start:end]
-
-    @classmethod
-    def delete(cls, document, element_selector):
-        """Return document with element deleted.
-
-        If it couldn't be found, return None.
-        If there're several matches, raise SelectorError.
-        """
-        location = cls.find(document, element_selector)
-        if location is not None:
-            start, end = location
-            return document[:start] + document[end:]
-
-    @classmethod
-    def put(cls, document, element_selector, element_str):
-        """Return a 2-items tuple: (new_document, created).
-        new_document is a copy of document with element_str inside.
-        created is True if insertion was performed as opposed to replacement.
-
-        If element_selector matches an existing element, it is replaced with element_str.
-        If not, it is inserted at appropriate place.
-
-        If it's impossible to insert at this location, return None.
-        If element_selector matches more than one element or more than one possible
-        place to insert and there're no rule to resolve the ambiguity then SelectorError
-        is raised.
-        """
-        location = cls.find(document, element_selector)
-        if location is None:
-            ipl = InsertPointLocator(element_selector)
-            parser = cls.make_parser()
-            parser.setContentHandler(ipl)
-            parser.parse(StringIO(document))
-            if ipl.state == 'DONE':
-                ipl.fix_end_pos(document)
-                start, end = ipl.end_pos, ipl.end_pos
-                created = True
-            else:
-                return LocatorError.generate_error(ipl, element_selector)
-        else:
-            start, end = location
-            created = False
-        return (document[:start] + element_str + document[end:], created)
+            return LocatorError.generate_error(ipl, element_selector)
+    else:
+        start, end = location
+        created = False
+    return (document[:start] + element_str + document[end:], created)
 
 # Q: why create a new parser for every parsing?
 # A: when sax.make_parser() was called once, I've occasionaly encountered an exception like this:
@@ -395,7 +387,7 @@ class XCAPElement:
 # under some circumstances.
 
 # prevent openxcap from starting if _xmlplus is not installed
-XCAPElement.make_parser() # test parser creation
+make_parser() # test parser creation
 
 class _test:
 
@@ -493,7 +485,7 @@ class _test:
         "Second, use xpath_get_element"
         try:
             selector = uri.parse_node_selector(xpath_expr, namespace, namespaces)[0]
-            return XCAPElement.get(source, selector)
+            return get(source, selector)
         except (uri.NodeParsingError, SelectorError), ex :
             return ex.__class__
         except Exception, ex:
@@ -504,7 +496,7 @@ class _test:
     def xcap_put(xpath_expr, element, source=source1, namespace=None, namespaces={}):
         try:
             selector = uri.parse_node_selector(xpath_expr, namespace, namespaces)[0]
-            return XCAPElement.put(source, selector, element)[0]
+            return put(source, selector, element)[0]
         except (uri.NodeParsingError, SelectorError), ex :
             return ex.__class__
         except Exception, ex:
