@@ -1,6 +1,7 @@
 """XCAP application usage module"""
 
 import os
+import sys
 
 from cStringIO import StringIO
 from lxml import etree
@@ -35,10 +36,15 @@ class EnabledApplications(StringList):
 class Backend(object):
     """Configuration datatype, used to select a backend module from the configuration file."""
     def __new__(typ, value):
+        value = value.lower()
         try:
-            return __import__('xcap.interfaces.backend.%s' % value.lower(), globals(), locals(), [''])
+            return __import__('xcap.interfaces.backend.%s' % value, globals(), locals(), [''])
         except ImportError, e:
-            raise ValueError("Couldn't find the '%s' backend module: %s" % (value.lower(), str(e)))
+            log.fatal("Cannot load '%s' backend module: %s" % (value, str(e)))
+            sys.exit(1)
+        except Exception, e:
+            log.err()
+            sys.exit(1)
 
 class ServerConfig(ConfigSection):
     _datatypes = {'applications': EnabledApplications, 'backend': Backend}
