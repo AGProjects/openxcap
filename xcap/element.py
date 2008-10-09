@@ -15,6 +15,7 @@ For element selectors of type *[@att="value"] insertion point depends on
 the content of a new element. For RFC compliant behavior, fix such requests
 by replacing '*' with the root tag of the new element.
 """
+import sys
 from StringIO import StringIO
 from application import log
 from xcap import uri
@@ -40,7 +41,7 @@ except ImportError:
         # no miracle today, complain about the original error
         log.fatal("Package _xmlplus was not found on your system. Please install pyxml library")
         # comment the following line out if you don't need element operations
-        raise SystemExit
+        sys.exit(1)
 
 
 class Step:
