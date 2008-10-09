@@ -15,9 +15,32 @@ For element selectors of type *[@att="value"] insertion point depends on
 the content of a new element. For RFC compliant behavior, fix such requests
 by replacing '*' with the root tag of the new element.
 """
-from xml import sax
 from StringIO import StringIO
+from application import log
 from xcap import uri
+
+
+def make_parser():
+    parser = sax.make_parser()
+    parser.setFeature(sax.handler.feature_namespaces, 1)
+    parser.setFeature(sax.handler.feature_namespace_prefixes, 1)
+    return parser
+
+try:
+    # we need feature_namespace_prefixes that is implemented in _xmlplus's expat
+    # parser, but not in the stock xml package
+    from _xmlplus import sax
+except ImportError:
+
+    # let's hope for a miracle
+    from xml import sax
+    try:
+        make_parser()
+    except sax._exceptions.SAXNotSupportedException:
+        # no miracle today, complain about the original error
+        log.fatal("Package _xmlplus was not found on your system. Please install pyxml library")
+        # comment the following line out if you don't need element operations
+        raise SystemExit
 
 
 class Step:
@@ -291,15 +314,6 @@ class SelectorError(LocatorError):
         LocatorError.__init__(self, msg, handler)
 
 
-def make_parser():
-    parser = sax.make_parser()
-    parser.setFeature(sax.handler.feature_namespaces, 1)
-    # Q: SAXNotSupportedException: expat does not report namespace prefixes
-    # A: you need pyxml library which provides _xmlplus package;
-    #    on debian: aptitude install python-xml
-    parser.setFeature(sax.handler.feature_namespace_prefixes, 1)
-    return parser
-
 def find(document, element_selector):
     """Return an element as (first index, last index+1)
 
@@ -385,9 +399,6 @@ def put(document, element_selector, element_str):
 #
 # I have no idea what does that mean, but probably something to do with parser's state becoming invalid
 # under some circumstances.
-
-# prevent openxcap from starting if _xmlplus is not installed
-make_parser() # test parser creation
 
 class _test:
 
