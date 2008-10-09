@@ -15,7 +15,7 @@ from twisted.python import failure
 
 from xcap.config import *
 from xcap import authentication
-from xcap.appusage import getApplicationForURI
+from xcap.appusage import getApplicationForURI, Backend
 from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute, XCAPNamespaceBinding
 from xcap.tls import Certificate, PrivateKey
 from xcap.uri import AttributeSelector, NamespaceSelector
@@ -23,14 +23,6 @@ from xcap import __version__ as version
 from xcap.logutil import log_access, log_error
 
 server.VERSION = "OpenXCAP/%s" % version
-
-class Backend(object):
-    """Configuration datatype, used to select a backend module from the configuration file."""
-    def __new__(typ, value):
-        try:
-            return __import__('xcap.interfaces.backend.%s' % value.lower(), globals(), locals(), [''])
-        except ImportError, e:
-            raise ValueError("Couldn't find the '%s' backend module: %s" % (value.lower(), str(e)))
 
 class AuthenticationConfig(ConfigSection):
     _datatypes = {'trusted_peers': StringList,
