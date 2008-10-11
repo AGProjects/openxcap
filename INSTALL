@@ -77,7 +77,7 @@ package, the test suite is found in /usr/lib/python2.5/site-packages/xcap/test
 To run the test suite add a user to the subscriber database
 (alice@example.com in the following example) and execute:
 
-./test.py --xcap-root https://xcap.example.com/xcap-root --username alice --domain example.com --password 123
+./test.py --xcap-root 'https://xcap.example.com/xcap-root' --username alice --domain example.com --password 123
 
 You can also save the credentials and xcap root in ~/.xcapclient.ini:
 
