@@ -1,12 +1,27 @@
-- Move startup messages to syslog
-- Display at startup in syslog the path of the log directory 
-- Rename error.log to server.log 
-- Log the whole URI, not just path. construct it from Host headers or default
-  xcap-root if Host is not present
+
+High priority
+-------------
+
+- Log server messages to syslog
+- Test suite test.py must be able to run from any directory
+- Test suite and xcap cleint library must use .sipclient/config.ini configuration file
+- Add xcap-directory application
+- Log the whole HTTP URI as sent by the client
+- Validation after put/delete attribute
+- Debian: dpkg cannot restart openxcap:
+  Failed to start OpenXCAP 1.0.3: Couldn't listen on 81.23.228.164:443: (98, 'Address already in
+  use')
+  unable to delete pidfile /var/run/openxcap/openxcap.pid: [Errno 2] No such file or directory: '/var/run/openxcap/openxcap.pid'
+
+Low priority
+------------
+
 - Allow port in root= settings, thus making port= parameter unnecessary.
   Make sure that when listening on non-default port valid URIs are logged (see prev. issue)
-  Inside, always use xcap root with port (if non-default), i.e. put port in logs, xcap-diff docs.
-- finish global/users: test that all possible combinations (global/users GET/PUT/DELETE each app)
+  Inside, always use xcap root with port (if non-default), i.e. put port in logs, xcap-diff docs
+
+- Test suite: validate after each GET, including error messages, test well-formedness of the received elements.
+- Finish global/users: test that all possible combinations (global/users GET/PUT/DELETE each app)
   return reasonable error
   - global + digest auth = not implemented
 - URIs in att_value. Should differently encoded be considered equal?
@@ -18,12 +33,5 @@
   that URI was percent encoded in the first place, why not paste it in the documents as it is, using
   XML escaping where necessary.
   Make few simple xpath expressions that include that URI as att_value and post it SIMPLE mailing list.
-- test system: validate after each GET, including error messages, test well-formedness of the received elements.
-- validation after put/delete attribute
-- xcap-directory
-- log the start/stop openxcap messages to syslog becaue all our applications log there and we need to correlate these logs from multiple apps
-- errors from twisted are text/html and from xcap are text/plain: use one (text/plain?)
-- debian: dpkg cannot restart openxcap:
-Failed to start OpenXCAP 1.0.3: Couldn't listen on 81.23.228.164:443: (98, 'Address already in
-use')
-unable to delete pidfile /var/run/openxcap/openxcap.pid: [Errno 2] No such file or directory: '/var/run/openxcap/openxcap.pid'
+- Errors from twisted are text/html and from xcap are text/plain: use one (text/plain?)
+
