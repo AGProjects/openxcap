@@ -1,10 +1,11 @@
 import sys
+import os
 import unittest
 import re
 import types
 from optparse import OptionParser
+from lxml import etree
 from copy import copy
-
 
 xcaplib_min_version = (1, 0, 3)
 
@@ -19,7 +20,7 @@ if xcaplib.version_info[:3]<xcaplib_min_version:
     raise ImportError('Need python-xcaplib of version at least %s.%s.%s, you have %s.%s.%s' % \
                       (xcaplib_min_version + xcaplib.version_info[:3]))
 
-from xcaplib.client import Resource, HTTPError
+from xcaplib.client import HTTPError
 from xcaplib.xcapclient import setup_parser_client, make_xcapclient, read_xcapclient_cfg
 del sys.path[-1]
 
@@ -180,6 +181,7 @@ class XCAPTest(unittest.TestCase):
     def get(self, application, node=None, status=200, **kwargs):
         client = kwargs.pop('client', None) or self.client
         r = client.get(application, node, **kwargs)
+        self.validate_error(r, application)
         self.assertStatus(r, status)
         if 200<=status<=299:
             self.assertHeader(r, 'ETag')
@@ -193,6 +195,7 @@ class XCAPTest(unittest.TestCase):
             status=[200,201], content_type_in_GET=None, client=None, **kwargs):
         client = client or self.client
         r_put = client.put(application, resource, node, **kwargs)
+        self.validate_error(r_put, application)
         self.assertStatus(r_put, status)
 
         # if PUTting succeed, check that document is there and equals to resource
@@ -217,6 +220,7 @@ class XCAPTest(unittest.TestCase):
     def delete(self, application, node=None, status=200, client=None, **kwargs):
         client = client or self.client
         r = client.delete(application, node, **kwargs)
+        self.validate_error(r, application)
         self.assertStatus(r, status)
 
         # if deleting succeed, GET should return 404
@@ -244,6 +248,15 @@ class XCAPTest(unittest.TestCase):
         self.put(application, document, status=200, content_type_in_GET=content_type, client=client)
         self.delete(application, status=200, client=client)
         self.delete(application, status=404, client=client)
+
+    def validate_error(self, r, application):
+        if r.code==409 or r.headers.gettype()=='application/xcap-error+xml':
+            self.assertEqual(r.headers.gettype(), 'application/xcap-error+xml')
+            xml = validate_xcaps_error(r.body)
+            if '<uniqueness-failure' in r.body:
+                namespaces={'d': 'urn:ietf:params:xml:ns:xcap-error'}
+                field = xml.xpath('/d:xcap-error/d:uniqueness-failure/d:exists/@field', namespaces=namespaces)
+                assert len(field)==1, r.body
 
 
 class TestSuite(unittest.TestSuite):
@@ -298,6 +311,23 @@ def check_options(options):
     xcaplib.xcapclient.check_options(options)
     if hasattr(options, 'debug') and options.debug:
         HTTPConnectionWrapper.debug = True
+
+
+def validate(document, schema):
+    parser = etree.XMLParser(schema = schema)
+    return etree.fromstring(document, parser)
+
+def open_schema(filename):
+    my_dir = os.path.dirname(os.path.abspath(__file__))
+    return file(os.path.join(my_dir, 'schemas', filename))
+
+def load_schema(filename):
+    return etree.XMLSchema(etree.parse(open_schema(filename)))
+
+xcaps_error_schema = load_schema('xcap-error.xsd')
+
+def validate_xcaps_error(document):
+    return validate(document, xcaps_error_schema)
 
 def runSuiteFromModule(module='__main__'):
     read_xcapclient_cfg()
