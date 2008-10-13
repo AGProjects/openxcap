@@ -377,7 +377,7 @@ class ResourceListsApplication(ApplicationUsage):
     schema_file = 'resource-lists.xsd'
 
     @classmethod
-    def check_lists(cls, elem, list_tag):
+    def check_list(cls, elem, list_tag):
         """Check additional constraints (see section 3.4.5 of RFC 4826).
 
         elem is xml Element that containts <list>s
@@ -398,6 +398,7 @@ class ResourceListsApplication(ApplicationUsage):
                     attribute_not_unique(child, 'name')
                 else:
                     name_attrs.add(name)
+                cls.check_list(child, list_tag)
             elif child.tag == entry_tag:
                 uri = child.get("uri")
                 if uri in uri_attrs:
@@ -421,8 +422,7 @@ class ResourceListsApplication(ApplicationUsage):
 
     def _check_additional_constraints(self, xml_doc):
         """Check additional constraints (see section 3.4.5 of RFC 4826)."""
-        for elem in xml_doc.getiterator():
-            self.check_lists(elem, "{%s}list" % self.default_ns)
+        self.check_list(xml_doc.getroot(), "{%s}list" % self.default_ns)
 
 
 class RLSServicesApplication(ApplicationUsage):
@@ -434,8 +434,7 @@ class RLSServicesApplication(ApplicationUsage):
 
     def _check_additional_constraints(self, xml_doc):
         """Check additional constraints (see section 3.4.5 of RFC 4826)."""
-        for elem in xml_doc.getiterator():
-            ResourceListsApplication.check_lists(elem, "{%s}list" % self.default_ns)
+        ResourceListsApplication.check_list(xml_doc.getroot(), "{%s}list" % self.default_ns)
 
 
 class PIDFManipulationApplication(ApplicationUsage):
