@@ -13,7 +13,7 @@ from twisted.cred.portal import Portal
 from twisted.web2.auth import digest, basic
 from twisted.python import failure
 
-from xcap.config import *
+from xcap.config import ConfigFile, ConfigSection
 from xcap import authentication
 from xcap.appusage import getApplicationForURI, Backend
 from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute, XCAPNamespaceBinding
@@ -78,6 +78,7 @@ class XCAPRoot(resource.Resource, resource.LeafResource):
             return http.Response(responsecode.NOT_FOUND, stream="Application not supported")
         resource = self.resourceForURI(request.xcap_uri)
         return resource.renderHTTP(request)
+
 
 def get_response_body(exc):
     if hasattr(exc, 'stream') and hasattr(exc.stream, 'mem'):

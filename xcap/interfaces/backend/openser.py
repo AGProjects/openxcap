@@ -3,11 +3,9 @@
 
 """Implementation of an OpenSER backend."""
 
-import time
-
 from application import log
 
-from xcap.config import *
+from xcap.config import ConfigFile, ConfigSection
 from xcap.interfaces.backend import database
 from xcap.interfaces.openser import ManagementInterface
 from xcap.xcapdiff import Notifier

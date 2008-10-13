@@ -3,7 +3,6 @@
 # This module is prorietary to AG-Projects. Use of this module by third
 # parties is unsupported.
 
-from Queue import Queue
 import signal
 
 import cjson
@@ -16,14 +15,12 @@ from application.system import default_host_ip
 from application.process import process
 
 from sqlobject import sqlhub, connectionForURI, SQLObject, AND
-from sqlobject import StringCol, IntCol, BLOBCol, DateTimeCol, SOBLOBCol, Col
+from sqlobject import StringCol, IntCol, DateTimeCol, SOBLOBCol, Col
 from sqlobject import MultipleJoin, ForeignKey
 
 from zope.interface import implements
 from twisted.internet import reactor
-from twisted.python.failure import Failure
 from twisted.internet.defer import Deferred, maybeDeferred
-from twisted.internet.protocol import ClientFactory
 from twisted.cred.checkers import ICredentialsChecker
 from twisted.cred.credentials import IUsernamePassword, IUsernameHashedPassword
 from twisted.cred.error import UnauthorizedLogin
@@ -33,11 +30,11 @@ from thor.eventservice import EventServiceClient, ThorEvent
 from thor.entities import ThorEntitiesRoleMap, GenericThorEntity as ThorEntity
 
 from gnutls.interfaces.twisted import X509Credentials
-from gnutls.constants import *
+from gnutls.constants import COMP_DEFLATE, COMP_LZO, COMP_NULL
 
-from xcap.config import *
+from xcap.config import ConfigFile, ConfigSection
 from xcap.tls import Certificate, PrivateKey
-from xcap.interfaces.backend import IStorage, StatusResponse
+from xcap.interfaces.backend import StatusResponse
 from xcap.dbutil import generate_etag
 
 class ThorNodeConfig(ConfigSection):

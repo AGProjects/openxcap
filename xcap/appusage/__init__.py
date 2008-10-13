@@ -7,11 +7,9 @@ from cStringIO import StringIO
 from lxml import etree
 
 from application.configuration.datatypes import StringList
-from application.process import process
 from application import log
 
 from twisted.internet import defer
-from twisted.python import failure
 
 from xcap.config import *
 from xcap.errors import *

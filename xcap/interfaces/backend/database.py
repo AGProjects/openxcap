@@ -8,16 +8,14 @@ import re
 from application.python.util import Singleton
 
 from zope.interface import implements
-from twisted.cred import credentials, portal, checkers, error as credError
+from twisted.cred import credentials, checkers, error as credError
 from twisted.internet import defer
 from twisted.python.failure import Failure
-from twisted.enterprise import adbapi
 
 from _mysql_exceptions import IntegrityError
 
-from xcap.config import *
+from xcap.config import ConfigFile, ConfigSection
 from xcap.interfaces.backend import IStorage, StatusResponse
-from xcap.errors import ResourceNotFound
 from xcap.dbutil import connectionForURI, repeat_on_error, generate_etag
 
 class Config(ConfigSection):

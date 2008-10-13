@@ -19,7 +19,6 @@ a given user uri.
 
 from time import time
 from functools import wraps
-from twisted.internet import defer
 from twisted.internet import reactor
 
 def xml_xcapdiff(xcap_root, content):

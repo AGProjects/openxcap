@@ -1,3 +1,4 @@
+import os
 import re
 from StringIO import StringIO
 from twisted.web2 import responsecode
@@ -5,7 +6,7 @@ from twisted.python.logfile import LogFile
 from twisted.python.log import FileLogObserver, startLoggingWithObserver
 from application import log
 
-from xcap.config import *
+from xcap.config import ConfigFile, ConfigSection
 
 class ErrorCodeList(set):
     """

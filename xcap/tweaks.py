@@ -3,7 +3,7 @@ import md5
 from twisted.cred import credentials, error
 from twisted.web2.auth.digest import IUsernameDigestHash
 
-from zope.interface import implements, Interface
+from zope.interface import implements
 
 def makeHash(username, realm, password):
     s = '%s:%s:%s' % (username, realm, password)

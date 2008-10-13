@@ -16,15 +16,14 @@ from twisted.cred import credentials, portal, checkers, error as credError
 from twisted.web2 import http, server, stream, responsecode
 from twisted.web2.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 
-from application.configuration.datatypes import StringList, NetworkRangeList
+from application.configuration.datatypes import StringList
 from application import log
 
 from xcap import __version__
-from xcap.config import *
+from xcap.config import ConfigFile, ConfigSection
 from xcap.appusage import getApplicationForURI, namespaces
-from xcap.dbutil import connectionForURI
 from xcap.errors import ResourceNotFound
-from xcap.uri import XCAPUser, XCAPUri, NodeParsingError, Error as URIError
+from xcap.uri import XCAPUser, XCAPUri
 
 
 # body of 404 error message to render when user requests xcap-root
