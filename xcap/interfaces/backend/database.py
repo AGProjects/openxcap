@@ -165,10 +165,9 @@ class DeleteFailed(RaceError):
 class MultipleResultsError(Error):
     """This should never happen. If it did happen. that means either the table
     was corrupted or there's a logic error"""
-    msg = 'database request has more than one result: '
 
     def __init__(self, params):
-        Exception.__init__(self, msg + repr(params))
+        Exception.__init__(self, 'database request has more than one result: ' + repr(params))
 
 class Storage(DBBase):
     __metaclass__ = Singleton
