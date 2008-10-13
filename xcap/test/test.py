@@ -20,13 +20,17 @@ class TestHarness(object):
         self.import_errors = 0
         for testmod in self.tests:
             try:
+                self.import_errors += 1
                 m = __import__(testmod, globals(), locals())
                 suite = loadSuiteFromModule(m, option_parser)
                 suite.modname = testmod
                 self.test_suites.append(suite)
+                self.import_errors -= 1
+            except AssertionError, ex:
+                if str(ex)!='disabled':
+                    traceback.print_exc()
             except Exception:
                 traceback.print_exc()
-                self.import_errors = 1
     
     def run(self, options, args):
         run_suite(TestSuite(self.test_suites), options, args)
