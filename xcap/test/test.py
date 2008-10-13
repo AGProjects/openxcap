@@ -34,7 +34,8 @@ class TestHarness(object):
             sys.exit('there were import errors!')
 
 def all_tests():
-    lst = [x.strip('.py') for x in os.listdir('.') if x.startswith('test_') and x.endswith('.py')]
+    my_dir = os.path.dirname(os.path.abspath(__file__))
+    lst = [x.strip('.py') for x in os.listdir(my_dir) if x.startswith('test_') and x.endswith('.py')]
     return lst
 
 def run():
