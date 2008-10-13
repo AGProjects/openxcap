@@ -5,7 +5,7 @@
 
 # XXX this module should be either renamed or refactored as it does more then just auth.
 
-from xcap import tweaks
+from xcap import tweaks; tweaks.tweak_BasicCredentialFactory()
 
 import urlparse
 from zope.interface import Interface, implements

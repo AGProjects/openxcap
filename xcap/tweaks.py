@@ -36,10 +36,8 @@ def decode(self, response, request):
     else:
         raise error.LoginFailed('Invalid credentials')
 
-## Now we tweak what we need
-
-import new
-from twisted.web2.auth.basic import BasicCredentialFactory
-
-method = new.instancemethod(decode, None, BasicCredentialFactory)
-BasicCredentialFactory.decode = method
+def tweak_BasicCredentialFactory():
+    import new
+    from twisted.web2.auth.basic import BasicCredentialFactory
+    method = new.instancemethod(decode, None, BasicCredentialFactory)
+    BasicCredentialFactory.decode = method
