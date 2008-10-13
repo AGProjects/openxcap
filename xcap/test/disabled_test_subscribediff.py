@@ -19,10 +19,8 @@ from optparse import OptionParser, OptionValueError
 
 from common import *
 
-import simport; simport.setup()
 from pypjua import *
 from xcap.xcapdiff import xml_document, xml_xcapdiff
-simport.restore()
 
 
 expires=20
