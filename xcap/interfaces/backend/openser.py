@@ -9,7 +9,7 @@ from xcap.config import ConfigFile, ConfigSection
 from xcap.interfaces.backend import database
 from xcap.interfaces.openser import ManagementInterface
 from xcap.xcapdiff import Notifier
-from xcap import uri
+from xcap.root_uris import root_uris
 
 class Config(ConfigSection):
     xmlrpc_url = 'http://localhost:8080'
@@ -53,7 +53,7 @@ class NotifyingStorage(BaseStorage):
 
     def __init__(self):
         BaseStorage.__init__(self)
-        self.notifier = Notifier(uri.ServerConfig.root_uris[0], ManagementInterface().publish_xcapdiff)
+        self.notifier = Notifier(root_uris[0], ManagementInterface().publish_xcapdiff)
 
     def put_document(self, uri, document, check_etag):
         d = super(NotifyingStorage, self).put_document(uri, document, check_etag)

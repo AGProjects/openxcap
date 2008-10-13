@@ -7,7 +7,6 @@
 
 from xcap import tweaks; tweaks.tweak_BasicCredentialFactory()
 
-import urlparse
 from zope.interface import Interface, implements
 
 from twisted.internet import defer
@@ -17,13 +16,13 @@ from twisted.web2 import http, server, stream, responsecode
 from twisted.web2.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 
 from application.configuration.datatypes import StringList
-from application import log
 
 from xcap import __version__
 from xcap.config import ConfigFile, ConfigSection
 from xcap.appusage import getApplicationForURI, namespaces
 from xcap.errors import ResourceNotFound
 from xcap.uri import XCAPUser, XCAPUri
+from xcap.root_uris import root_uris
 
 
 # body of 404 error message to render when user requests xcap-root
@@ -46,47 +45,13 @@ class AuthenticationConfig(ConfigSection):
     trusted_peers = []
 
 configuration = ConfigFile()
-
-def list_contains_uri(uris, uri):
-    for u in uris:
-        if u == uri:
-            return True
-        if uri.startswith(u) or u.startswith(uri):
-            log.warn("XCAP Root URI rejected: %r (looks like %r)" % (uri, u))
-            return True
-
-class XCAPRootURIs(tuple):
-    """Configuration data type. A tuple of defined XCAP Root URIs is extracted from
-       the configuration file."""
-    def __new__(typ):
-        uris = []
-        def add(uri):
-            scheme, host, path, params, query, fragment = urlparse.urlparse(uri)
-            if not scheme or not host or scheme not in ("http", "https"):
-                log.warn("Invalid XCAP Root URI: %r" % uri)
-            elif not list_contains_uri(uris, uri):
-                uris.append(uri)
-        for uri in configuration.get_values_unique('Server', 'root'):
-            add(uri)
-        if not uris:
-            import socket
-            add('http://' + socket.getfqdn())
-        if not uris:
-            raise ResourceNotFound("At least one XCAP Root URI must be defined")
-        return tuple(uris)
-
-class ServerConfig:
-    root_uris = XCAPRootURIs()
-
 configuration.read_settings('Authentication', AuthenticationConfig)
-
-print 'Supported Root URIs: %s' % ', '.join(ServerConfig.root_uris)
 
 def parseNodeURI(node_uri, default_realm):
     """Parses the given Node URI, containing the XCAP root, document selector,
        and node selector, and returns an XCAPUri instance if succesful."""
     xcap_root = None
-    for uri in ServerConfig.root_uris:
+    for uri in root_uris:
         if node_uri.startswith(uri):
             xcap_root = uri
             break
