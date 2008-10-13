@@ -131,7 +131,7 @@ class ApplicationUsage(object):
         elif context == 'users':
             return self.get_document_local(uri, check_etag)
         else:
-            _not_implemented(context)
+            self._not_implemented(context)
 
     def get_document_global(self, uri, check_etag):
         self._not_implemented('global')
