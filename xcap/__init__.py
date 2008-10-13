@@ -7,7 +7,7 @@ __version__ = "1.0.4"
 __cfgfile__ = "config.ini"
 
 def extended_version():
-    patchlevel = globals.get('patchlevel')
+    patchlevel = globals().get('patchlevel')
     if patchlevel is None:
         return __version__
     elif patchlevel==1:
