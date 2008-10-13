@@ -16,4 +16,4 @@ def extended_version():
         return __version__ + ' (+ %s patches)' % patchlevel
     return __version__
 
-# patchlevel is appended by setup.py
+# patchlevel is appended by `setup.py set_patchlevel' command
