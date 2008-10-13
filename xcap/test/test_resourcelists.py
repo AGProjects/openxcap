@@ -100,11 +100,15 @@ class DocumentTest(XCAPTest):
     def test_operations(self):
         self.getputdelete('resource-lists', resource_lists_xml, 'application/resource-lists+xml')
 
-        self.put_rejected('resource-lists', resource_lists_xml_badformed)
-        # check body for <schema-validation-error>
+        r = self.put_rejected('resource-lists', resource_lists_xml_badformed)
+        self.assertInBody(r, '<not-well-formed')
 
-        self.put_rejected('resource-lists', resource_lists_xml_non_unique_list)
-        # check body for <uniqueness-failure>
+        r =  self.put_rejected('resource-lists', resource_lists_xml_non_unique_list)
+        xml = validate_xcaps_error(r.body)
+        namespaces={'d': 'urn:ietf:params:xml:ns:xcap-error'}
+        field = xml.xpath('/d:xcap-error/d:uniqueness-failure/d:exists/@field', namespaces=namespaces)
+        [name] = etree.fromstring(resource_lists_xml_non_unique_list).xpath(field[0])
+        assert name=='friends', name
 
 #TODO
 #        self.put_rejected('resource-lists', resource_lists_xml_baduri)
