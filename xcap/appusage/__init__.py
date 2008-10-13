@@ -11,8 +11,8 @@ from application import log
 
 from twisted.internet import defer
 
-from xcap.config import *
-from xcap.errors import *
+from xcap.config import ConfigFile, ConfigSection
+from xcap import errors
 from xcap.interfaces.backend import StatusResponse
 from xcap import element
 from xcap.dbutil import generate_etag
@@ -82,12 +82,12 @@ class ApplicationUsage(object):
     def _check_UTF8_encoding(self, xml_doc):
         """Check if the document is UTF8 encoded. Raise an NotUTF8Error if it's not."""
         if xml_doc.docinfo.encoding.lower() != 'utf-8':
-            raise NotUTF8Error(comment='document encoding is %s' % xml_doc.docinfo.encoding)
+            raise errors.NotUTF8Error(comment='document encoding is %s' % xml_doc.docinfo.encoding)
 
     def _check_schema_validation(self, xml_doc):
         """Check if the given XCAP document validates against the application's schema"""
         if not self.xml_schema(xml_doc):
-            raise SchemaValidationError(comment=self.xml_schema.error_log)
+            raise errors.SchemaValidationError(comment=self.xml_schema.error_log)
 
     def _check_additional_constraints(self, xml_doc):
         """Check additional validations constraints for this XCAP document. Should be 
@@ -100,10 +100,10 @@ class ApplicationUsage(object):
             xml_doc = etree.parse(StringIO(xcap_doc))
             # XXX do not use TreeBuilder here
         except etree.XMLSyntaxError, ex:
-            ex.http_error = NotWellFormedError(comment=str(ex))
+            ex.http_error = errors.NotWellFormedError(comment=str(ex))
             raise
         except Exception, ex:
-            ex.http_error = NotWellFormedError()
+            ex.http_error = errors.NotWellFormedError()
             raise
         self._check_UTF8_encoding(xml_doc)
         if ServerConfig.document_validation:
@@ -122,7 +122,7 @@ class ApplicationUsage(object):
     ## Document management
 
     def _not_implemented(self, context):
-        raise ResourceNotFound("Application %s does not implement %s context" % (self.id, context))
+        raise errors.ResourceNotFound("Application %s does not implement %s context" % (self.id, context))
 
     def get_document(self, uri, check_etag):
         context = uri.doc_selector.context
@@ -151,24 +151,24 @@ class ApplicationUsage(object):
     def _cb_put_element(self, response, uri, element_body, check_etag):
         """This is called when the document that relates to the element is retreived."""
         if response.code == 404:          ### XXX let the storate raise
-            raise NoParentError           ### catch error in errback and attach http_error
+            raise errors.NoParentError    ### catch error in errback and attach http_error
 
         fixed_element_selector = uri.node_selector.element_selector.fix_star(element_body)
 
         try:
             result = element.put(response.data, fixed_element_selector, element_body)
         except element.SelectorError, ex:
-            ex.http_error = NoParentError(comment=str(ex))
+            ex.http_error = errors.NoParentError(comment=str(ex))
             raise
 
         if result is None:
-            raise NoParentError
+            raise errors.NoParentError
 
         new_document, created = result
         get_result = element.get(new_document, uri.node_selector.element_selector)
 
         if get_result != element_body.strip():
-            raise CannotInsertError('PUT request failed GET(PUT(x))==x invariant')
+            raise errors.CannotInsertError('PUT request failed GET(PUT(x))==x invariant')
 
         d = self.put_document(uri, new_document, check_etag)
 
@@ -190,10 +190,10 @@ class ApplicationUsage(object):
             etree.parse(StringIO(element_body)).getroot()
             # verify if it has one element, if not should we throw the same exception?
         except etree.XMLSyntaxError, ex:
-            ex.http_error = NotXMLFragmentError(comment=str(ex))
+            ex.http_error = errors.NotXMLFragmentError(comment=str(ex))
             raise
         except Exception, ex:
-            ex.http_error = NotXMLFragmentError()
+            ex.http_error = errors.NotXMLFragmentError()
             raise
         d = self.get_document(uri, check_etag)
         return d.addCallbacks(self._cb_put_element, callbackArgs=(uri, element_body, check_etag))
@@ -201,10 +201,10 @@ class ApplicationUsage(object):
     def _cb_get_element(self, response, uri):
         """This is called when the document related to the element is retrieved."""
         if response.code == 404:     ## XXX
-            raise ResourceNotFound   ## XXX
+            raise errors.ResourceNotFound   ## XXX
         result = element.get(response.data, uri.node_selector.element_selector)
         if not result:
-            raise ResourceNotFound
+            raise errors.ResourceNotFound
         return StatusResponse(200, response.etag, result)
 
     def get_element(self, uri, check_etag):
@@ -213,13 +213,13 @@ class ApplicationUsage(object):
 
     def _cb_delete_element(self, response, uri, check_etag):
         if response.code == 404:
-            raise ResourceNotFound
+            raise errors.ResourceNotFound
         new_document = element.delete(response.data, uri.node_selector.element_selector)
         if not new_document:
-            raise ResourceNotFound
+            raise errors.ResourceNotFound
         get_result = element.find(new_document, uri.node_selector.element_selector)
         if get_result:
-            raise CannotDeleteError('DELETE request failed GET(DELETE(x))==404 invariant')
+            raise errors.CannotDeleteError('DELETE request failed GET(DELETE(x))==404 invariant')
         return self.put_document(uri, new_document, check_etag)
 
     def delete_element(self, uri, check_etag):
@@ -231,7 +231,7 @@ class ApplicationUsage(object):
     def _cb_get_attribute(self, response, uri):
         """This is called when the document that relates to the attribute is retreived."""
         if response.code == 404:
-            raise ResourceNotFound
+            raise errors.ResourceNotFound
         document = response.data
         xml_doc = etree.parse(StringIO(document))
         application = getApplicationForURI(uri)
@@ -240,12 +240,12 @@ class ApplicationUsage(object):
             xpath = uri.node_selector.replace_default_prefix()
             attribute = xml_doc.xpath(xpath, namespaces = ns_dict)
         except Exception, ex:
-            ex.http_error = ResourceNotFound()
+            ex.http_error = errors.ResourceNotFound()
             raise
         if not attribute:
-            raise ResourceNotFound
+            raise errors.ResourceNotFound
         elif len(attribute) != 1:
-            raise ResourceNotFound('XPATH expression is ambiguous')
+            raise errors.ResourceNotFound('XPATH expression is ambiguous')
         # TODO
         # The server MUST NOT add namespace bindings representing namespaces 
         # used by the element or its children, but declared in ancestor elements
@@ -257,7 +257,7 @@ class ApplicationUsage(object):
 
     def _cb_delete_attribute(self, response, uri, check_etag):
         if response.code == 404:
-            raise ResourceNotFound
+            raise errors.ResourceNotFound
         document = response.data
         xml_doc = etree.parse(StringIO(document))        
         application = getApplicationForURI(uri)
@@ -265,18 +265,18 @@ class ApplicationUsage(object):
         try:
             elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
         except Exception, ex:
-            ex.http_error = ResourceNotFound()
+            ex.http_error = errors.ResourceNotFound()
             raise
         if not elem:
-            raise ResourceNotFound
+            raise errors.ResourceNotFound
         if len(elem) != 1:
-            raise ResourceNotFound('XPATH expression is ambiguous')
+            raise errors.ResourceNotFound('XPATH expression is ambiguous')
         elem = elem[0]
         attribute = uri.node_selector.terminal_selector.attribute
         if elem.get(attribute):  ## check if the attribute exists XXX use KeyError instead
             del elem.attrib[attribute]
         else:
-            raise ResourceNotFound
+            raise errors.ResourceNotFound
         new_document = etree.tostring(xml_doc, encoding='UTF-8', xml_declaration=True)
         return self.put_document(uri, new_document, check_etag)
 
@@ -287,7 +287,7 @@ class ApplicationUsage(object):
     def _cb_put_attribute(self, response, uri, attribute, check_etag):
         """This is called when the document that relates to the element is retreived."""
         if response.code == 404:
-            raise NoParentError
+            raise errors.NoParentError
         document = response.data
         xml_doc = etree.parse(StringIO(document))
         application = getApplicationForURI(uri)
@@ -295,12 +295,12 @@ class ApplicationUsage(object):
         try:
             elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
         except Exception, ex:
-            ex.http_error = NoParentError()
+            ex.http_error = errors.NoParentError()
             raise
         if not elem:
-            raise NoParentError
+            raise errors.NoParentError
         if len(elem) != 1:
-            raise NoParentError('XPATH expression is ambiguous')
+            raise errors.NoParentError('XPATH expression is ambiguous')
         elem = elem[0]
         attr_name = uri.node_selector.terminal_selector.attribute
         elem.set(attr_name, attribute)
@@ -317,7 +317,7 @@ class ApplicationUsage(object):
     def _cb_get_ns_bindings(self, response, uri):
         """This is called when the document that relates to the element is retreived."""
         if response.code == 404:
-            raise ResourceNotFound
+            raise errors.ResourceNotFound
         document = response.data
         xml_doc = etree.parse(StringIO(document))
         application = getApplicationForURI(uri)
@@ -325,12 +325,12 @@ class ApplicationUsage(object):
         try:
             elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
         except Exception, ex:
-            ex.http_error =  ResourceNotFound()
+            ex.http_error =  errors.ResourceNotFound()
             raise
         if not elem:
-            raise ResourceNotFound
+            raise errors.ResourceNotFound
         elif len(elem)!=1:
-            raise ResourceNotFound('XPATH expression is ambiguous')
+            raise errors.ResourceNotFound('XPATH expression is ambiguous')
         elem = elem[0]
         namespaces = ''
         for prefix, ns in elem.nsmap.items():
@@ -377,26 +377,26 @@ class ResourceListsApplication(ApplicationUsage):
             if child.tag == list_tag:
                 name = child.get("name")
                 if name in name_attrs:
-                    raise UniquenessFailureError('attribute *name* is not unique')
+                    raise errors.UniquenessFailureError('attribute *name* is not unique')
                 else:
                     name_attrs.add(name)
             elif child.tag == entry_tag:
                 uri = child.get("uri")
                 if uri in uri_attrs:
-                    raise UniquenessFailureError('attribute *uri* is not unique')
+                    raise errors.UniquenessFailureError('attribute *uri* is not unique')
                 else:
                     uri_attrs.add(uri)
             elif child.tag == entry_ref_tag:
                 ref = child.get("ref")
                 if ref in ref_attrs:
-                    raise UniquenessFailureError('attribute *ref* is not unique')
+                    raise errors.UniquenessFailureError('attribute *ref* is not unique')
                 else:
                     # TODO check if it's a relative URI, else raise ConstraintFailure
                     ref_attrs.add(ref)
             elif child.tag == external_tag:
                 anchor = child.get("anchor")
                 if anchor in anchor_attrs:
-                    raise UniquenessFailureError('attribute *anchor* is not unique')
+                    raise errors.UniquenessFailureError('attribute *anchor* is not unique')
                 else:
                     # TODO check if it's a HTTP URL, else raise ConstraintFailure
                     anchor_attrs.add(anchor)
@@ -490,7 +490,7 @@ class WatchersApplication(ResourceListsApplication):
         return watchers_def
 
     def put_document(self, uri, document, check_etag):
-        raise ResourceNotFound("This application is read-only") # TODO: test and add better error
+        raise errors.ResourceNotFound("This application is read-only") # TODO: test and add better error
 
 theStorage = ServerConfig.backend.Storage()
 
