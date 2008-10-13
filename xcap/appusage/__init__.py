@@ -351,6 +351,24 @@ class PresenceRulesApplication(ApplicationUsage):
     schema_file = 'common-policy.xsd'
 
 
+def get_xpath(elem):
+    """Return XPATH expression to obtain elem in the document.
+
+    This could be done better, of course, not using stars, but the real tags.
+    But that would be much more complicated and I'm not sure if such effort is justified"""
+    res = ''
+    while elem is not None:
+        parent = elem.getparent()
+        if parent is None:
+            res = '/*' + res
+        else:
+            res = '/*[%s]' % parent.index(elem) + res
+        elem = parent
+    return res
+
+def attribute_not_unique(elem, attr):
+    raise errors.UniquenessFailureError(exists = get_xpath(elem) + '/@' + attr)
+
 class ResourceListsApplication(ApplicationUsage):
     ## RFC 4826
     id = "resource-lists"
@@ -377,26 +395,26 @@ class ResourceListsApplication(ApplicationUsage):
             if child.tag == list_tag:
                 name = child.get("name")
                 if name in name_attrs:
-                    raise errors.UniquenessFailureError('attribute *name* is not unique')
+                    attribute_not_unique(child, 'name')
                 else:
                     name_attrs.add(name)
             elif child.tag == entry_tag:
                 uri = child.get("uri")
                 if uri in uri_attrs:
-                    raise errors.UniquenessFailureError('attribute *uri* is not unique')
+                    attribute_not_unique(child, 'uri')
                 else:
                     uri_attrs.add(uri)
             elif child.tag == entry_ref_tag:
                 ref = child.get("ref")
                 if ref in ref_attrs:
-                    raise errors.UniquenessFailureError('attribute *ref* is not unique')
+                    attribute_not_unique(child, 'ref')
                 else:
                     # TODO check if it's a relative URI, else raise ConstraintFailure
                     ref_attrs.add(ref)
             elif child.tag == external_tag:
                 anchor = child.get("anchor")
                 if anchor in anchor_attrs:
-                    raise errors.UniquenessFailureError('attribute *anchor* is not unique')
+                    attribute_not_unique(child, 'anchor')
                 else:
                     # TODO check if it's a HTTP URL, else raise ConstraintFailure
                     anchor_attrs.add(anchor)

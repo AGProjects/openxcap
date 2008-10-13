@@ -125,49 +125,12 @@ class NoParentError(XCAPError):
         else:
             return ""
 
-class UniquenessFailureError(XCAPError): # TODO
+class UniquenessFailureError(XCAPError):
     tag = "uniqueness-failure"
 
-    #<xs:element name="uniqueness-failure"
-     #substitutionGroup="error-element">
-     #<xs:annotation>
-      #<xs:documentation>This indicates that the
-   #requested operation would result in a document that did not meet a
-   #uniqueness constraint defined by the application usage.
-      #</xs:documentation>
-     #</xs:annotation>
-     #<xs:complexType>
-      #<xs:sequence>
-       #<xs:element name="exists" maxOccurs="unbounded">
-        #<xs:annotation>
-         #<xs:documentation>For each URI,
-   #element or attribute specified by the client which is not unique,
-   #one of these is present.</xs:documentation>
-        #</xs:annotation>
-        #<xs:complexType>
-         #<xs:sequence minOccurs="0">
-          #<xs:element name="alt-value" type="xs:string"
-           #maxOccurs="unbounded">
-           #<xs:annotation>
-            #<xs:documentation>An optional set of alternate values can be
-   #provided.</xs:documentation>
-           #</xs:annotation>
-          #</xs:element>
-         #</xs:sequence>
-         #<xs:attribute name="field" type="xs:string" use="required"/>
-        #</xs:complexType>
-       #</xs:element>
-      #</xs:sequence>
-      #<xs:attribute name="description" type="xs:string" use="optional"/>
-     #</xs:complexType>
-    #</xs:element>
+    def __init__(self, **kwargs):
+        self.exists = kwargs.pop('exists')
+        XCAPError.__init__(self, **kwargs)
 
-
-   #<?xml version="1.0" encoding="UTF-8"?>
-   #<xcap-error xmlns="urn:ietf:params:xml:ns:xcap-error">
-    #<uniqueness-failure>
-     #<exists field="rls-services/service/@uri">
-       #<alt-value>sip:mybuddies@example.com</alt-value>
-     #</exists>
-    #</uniqueness-failure>
-   #</xcap-error>
+    def format_my_body(self):
+        return "<exists field=%s/>" % quoteattr(self.exists)
