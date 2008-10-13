@@ -3,8 +3,6 @@ High priority
 -------------
 
 - Log server messages to syslog
-- Test suite test.py must be able to run from any directory
-- Test suite and xcap cleint library must use .sipclient/config.ini configuration file
 - Add xcap-directory application
 - Log the whole HTTP URI as sent by the client
 - Validation after put/delete attribute
@@ -20,7 +18,7 @@ Low priority
   Make sure that when listening on non-default port valid URIs are logged (see prev. issue)
   Inside, always use xcap root with port (if non-default), i.e. put port in logs, xcap-diff docs
 
-- Test suite: validate after each GET, including error messages, test well-formedness of the received elements.
+- Test suite: validate after each GET, test well-formedness of the received elements.
 - Finish global/users: test that all possible combinations (global/users GET/PUT/DELETE each app)
   return reasonable error
   - global + digest auth = not implemented
