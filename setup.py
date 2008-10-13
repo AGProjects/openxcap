@@ -99,7 +99,8 @@ solution.""",
       ],
       packages = ['xcap', 'xcap.appusage', 'xcap.interfaces', 'xcap.interfaces.backend', 'xcap.test'],
       scripts  = ['openxcap'],
-      package_data = {'xcap': ['xml-schemas/*']},
+      package_data = {'xcap': ['xml-schemas/*'],
+                      'xcap.test': ['schemas/*']},
       cmdclass = {'set_patchlevel': UpdatePatchlevel,
                   'remove_patchlevel': RemovePatchlevel}
       )
