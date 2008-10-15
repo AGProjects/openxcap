@@ -115,7 +115,9 @@ class Request(server.Request):
                     return server.Request._processingFailed(self, failure.Failure(http_error))
                 elif isinstance(http_error, int):
                     s = get_response_body(exc)
-                    response = http.Response(http_error, stream=s)
+                    response = http.Response(http_error,
+                                             {'content-type': http_headers.MimeType('text','plain')},
+                                             stream=s)
                     fail = failure.Failure(http.HTTPError(response))
                     return server.Request._processingFailed(self, fail)
 
