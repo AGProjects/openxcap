@@ -7,7 +7,13 @@ class ErrorsTest(XCAPTest):
     def communicate(self, data):
         s = socket.socket()
         x = urlparse(self.options.xcap_root)
-        s.connect((x.hostname, x.port))
+        if x.port is None:
+            port = {'http': 80, 'https': 443}.get(x.scheme)
+        s.connect((x.hostname, x.port or port))
+        if x.scheme == 'https':
+            s = socket.ssl(s)
+            s.write(data)
+            return s.read(1024*8)
         s.send(data)
         return s.recv(1024*8)
 
