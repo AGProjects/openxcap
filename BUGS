@@ -2,14 +2,3 @@
 what's intentionally skipped:
 * global scope of uri attr in <service> and building /global/index (supposed
 to be used by rls, RLS module in openser doesn't use it)
-* The following exception is correct, the but message should be nicer (error code is changed to 404 already)
-2008-10-02 18:45:54+0200 [-] 76.243.226.198 'GET /xcap-root/resource-lists/users/alice@example.com/index.xml~~/resource-lists/list/entry HTTP/1.1' 500 0 201 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.3) Gecko/2008092510 Ubuntu/8.04 (hardy) Firefox/3.0.3' -
-                  File "/usr/lib/python2.5/site-packages/xcap/appusage/__init__.py", line 201, in _cb_get_element
-                    result = XCAPElement.get(response.data, uri.node_selector.element_selector)
-                  File "/usr/lib/python2.5/site-packages/xcap/element.py", line 328, in get
-                    location = cls.find(document, element_selector)
-                  File "/usr/lib/python2.5/site-packages/xcap/element.py", line 319, in find
-                    return LocatorError.generate_error(el, element_selector)
-                  File "/usr/lib/python2.5/site-packages/xcap/element.py", line 280, in generate_error
-                    raise SelectorError(element_selector, locator)
-                xcap.element.SelectorError: more than one element matches: [Step(('urn:ietf:params:xml:ns:resource-lists', 'resource-lists')), Step(('urn:ietf:params:xml:ns:resource-lists', 'list')), Step(('urn:ietf:params:xml:ns:resource-lists', 'entry'))]
