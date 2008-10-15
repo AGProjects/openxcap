@@ -315,7 +315,9 @@ def parse_node_selector(s, namespace=None, namespaces=None):
         namespaces = {}
     try:
         tokens = xpath_tokenizer(s)
-        return read_node_selector(tokens, namespace, namespaces)
+        element_selector, terminal_selector = read_node_selector(tokens, namespace, namespaces)
+        element_selector._original_string = s
+        return element_selector, terminal_selector
     except NodeParsingError, ex:
         ex.args = ('Failed to parse node: %r' % s,)
         raise
@@ -366,6 +368,7 @@ class NodeSelector(object):
     XMLNS_REGEXP = re.compile("xmlns\((?P<nsdata>.*?)\)")
     
     def __init__(self, selector, namespace=None):
+        self._original_string = selector
         sections = selector.split('?', 1)
 
         if len(sections) == 2: ## a query component is present
@@ -374,6 +377,9 @@ class NodeSelector(object):
             self.ns_bindings = {}
 
         self.element_selector, self.terminal_selector = parse_node_selector(selector, namespace, self.ns_bindings)
+
+    def __str__(self):
+        return self._original_string
 
     ## http://www.w3.org/TR/2003/REC-xptr-xmlns-20030325/
     def _parse_query(self, query):

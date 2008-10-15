@@ -302,7 +302,7 @@ class LocatorError(ValueError):
         if locator.state == 'LOOKING':
             return None
         elif locator.state == 'MANY':
-            raise SelectorError(element_selector, locator)
+            raise SelectorError(element_selector._original_string, locator)
         else:
             raise LocatorError('Internal error in %s' % locator.__class__.__name__, locator)
 
@@ -310,8 +310,8 @@ class LocatorError(ValueError):
 class SelectorError(LocatorError):
     http_error = 404
 
-    def __init__(self, msg, handler=None):
-        msg = 'more than one element matches: %s' % msg
+    def __init__(self, selector, handler=None):
+        msg = 'The request node selector %s matches more than one element' % selector
         LocatorError.__init__(self, msg, handler)
 
 
