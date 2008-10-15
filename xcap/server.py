@@ -198,6 +198,7 @@ class XCAPServer:
             cert, pKey = TLSConfig.certificate, TLSConfig.private_key
             if cert is None or pKey is None:
                 log.fatal("the TLS certificates or the private key could not be loaded")
+                sys.exit(1)
             credentials = X509Credentials(cert, pKey)
             reactor.listenTLS(ServerConfig.port, HTTPFactory(self.site), credentials, interface=ServerConfig.address)
             log.msg("TLS started")
