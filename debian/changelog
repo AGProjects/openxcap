@@ -2,6 +2,7 @@ openxcap (1.0.5) unstable; urgency=low
 
   * fixed: openxcap with 'openser' backend could be start if enable_publish_xcapdiff=yes
   * fixed a couple of potential Internal Server Errors
+  * added python-mysqldb to dependencies
   * added <entry> node to <uniqueness-failure> error as required by RFC
   * nicer error messages in several cases
 
