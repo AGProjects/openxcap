@@ -124,13 +124,11 @@ class Request(server.Request):
         return server.Request._processingFailed(self, reason)
 
     def renderHTTP_exception(self, req, reason):
-        body = ("<html><head><title>Internal Server Error</title></head>"
-                "<body><h1>Internal Server Error</h1>An error occurred rendering the requested page. More information is available in the server log.</body></html>")
-
         response = http.Response(
             responsecode.INTERNAL_SERVER_ERROR,
-            {'content-type': http_headers.MimeType('text','html')},
-            body)
+            {'content-type': http_headers.MimeType('text','plain')},
+            ("An error occurred while processing the request. "
+             "More information is available in the server log."))
 
         log_error(req, response, reason)
         return response
@@ -146,6 +144,7 @@ class HTTPChannelRequest(channel.http.HTTPChannelRequest):
     def createRequest(self):
         self._base.createRequest(self)
         self.request._initial_line = self._initial_line
+
 
 class HTTPChannel(channel.http.HTTPChannel):
     chanRequestFactory = HTTPChannelRequest
