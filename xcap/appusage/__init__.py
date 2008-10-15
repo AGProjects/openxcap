@@ -200,11 +200,12 @@ class ApplicationUsage(object):
 
     def _cb_get_element(self, response, uri):
         """This is called when the document related to the element is retrieved."""
-        if response.code == 404:     ## XXX
-            raise errors.ResourceNotFound   ## XXX
+        if response.code == 404:     ## XXX why not let the storage raise?
+            raise errors.ResourceNotFound("The requested document %s was not found on this server" % uri.doc_selector)
         result = element.get(response.data, uri.node_selector.element_selector)
         if not result:
-            raise errors.ResourceNotFound
+            msg = "The requested element %s was not found in the document %s" % (uri.node_selector, uri.doc_selector)
+            raise errors.ResourceNotFound(msg)
         return StatusResponse(200, response.etag, result)
 
     def get_element(self, uri, check_etag):
@@ -213,7 +214,7 @@ class ApplicationUsage(object):
 
     def _cb_delete_element(self, response, uri, check_etag):
         if response.code == 404:
-            raise errors.ResourceNotFound
+            raise errors.ResourceNotFound("The requested document %s was not found on this server" % uri.doc_selector)
         new_document = element.delete(response.data, uri.node_selector.element_selector)
         if not new_document:
             raise errors.ResourceNotFound
