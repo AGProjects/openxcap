@@ -67,64 +67,8 @@ OepnXCAP has been tested on Debian unstable with the following versions:
  - python-zopeinterface: 3.3.1-6
 
 
-Testing
--------
-
-A test suite for testing the functionality the server is located in
-/xcap/test directory. If the software has been installed as a Debian
-package, the test suite is found in /usr/lib/python2.5/site-packages/xcap/test
-
-To run the test suite add a user to the subscriber database
-(alice@example.com in the following example) and execute:
-
-./test.py --xcap-root 'https://xcap.example.com/xcap-root' --username alice --domain example.com --password 123
-
-You can also save the credentials and xcap root in ~/xcapclient.ini:
-
-[Account]
-username = alice
-password = 123
-domain = example.com
-xcap_root = https://xcap.example.com/xcap-root
-
-If the setup is correct, the output of the test will read:
-
-adigeo@ag-imac3:~/work/openxcap/xcap/test$./test.py 
-test_delete (test_attribute.AttributeTest) ... ok
-test_get (test_attribute.AttributeTest) ... ok
-test_put (test_attribute.AttributeTest) ... ok
-test_authorization (test_auth.AuthTest) ... ok
-test_delete (test_element.ElementTest) ... ok
-test_get (test_element.ElementTest) ... ok
-test_put_error (test_element.ElementTest) ... ok
-Testing different ways of inserting an element as described in examples from Section 8.2.3 ... ok
-Testing PUT requests of form '*[@att="some"]' which require looking into body of PUT ... ok
-test_replacement (test_element_put.PutElementTest) ... ok
-test_conditional_GET (test_etags.ETagTest) ... ok
-test_conditional_PUT (test_etags.ETagTest) ... ok
-test_conditional_GET (test_etags.ETagTest2) ... ok
-test_conditional_PUT (test_etags.ETagTest2) ... ok
-test_etag_parsing (test_etags.ETagTest2) ... ok
-test_ns_bindings (test_nsbindings.NSBindingsTest) ... ok
-test_pidf_manipulation (test_pidf.PIDFTest) ... ok
-test_pidf_manipulation (test_presrules.PresenceRulesTest) ... ok
-test_operations (test_resourcelists.DocumentTest) ... ok
-test_operations (test_rlsservices.DocumentTest) ... ok
-----------------------------------------------------------------------
-Ran 20 tests in 72.235s
-OK
-
-
-Notes
-
-- Running the test suite for a given user will result in the destruction of
-all xcap documents belonging to that user
-- Replacing 'test.py' with 'test_something.py' will run only the tests
-defined in test_something.py
-
-
-XCAP client
------------
+Testing with xcapclient
+-----------------------
 
 A command line client is available in the same download repository of
 OpenXCAP server. The client can be used to manipulate full or partial XML
@@ -132,3 +76,5 @@ documents on XCAP servers (not limited to OpenXCAP) and has a bash shell
 command line completion facility that makes it very easy to browse through
 the structure of XML documents based on XPATH.
 
+See README of python-xcaplib package for examples on how to create/retrieve
+a document.
