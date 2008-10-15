@@ -98,7 +98,10 @@ resource_lists_xml_baduri = """<?xml version="1.0" encoding="UTF-8"?>
 class DocumentTest(XCAPTest):
   
     def test_operations(self):
-        self.getputdelete('resource-lists', resource_lists_xml, 'application/resource-lists+xml')
+        self.getputdelete('resource-lists', resource_lists_xml,
+                          'application/resource-lists+xml')
+        self.getputdelete('resource-lists', resource_lists_xml.replace('UTF-8', 'utf-8'),
+                          'application/resource-lists+xml')
 
         r = self.put_rejected('resource-lists', resource_lists_xml_badformed)
         self.assertInBody(r, '<not-well-formed')
