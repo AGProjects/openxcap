@@ -57,7 +57,7 @@ class HTTPConnectionWrapper(xcaplib.client.HTTPConnectionWrapper):
             r.body = r.read()
         except HTTPError, e:
             r = e
-            r.body = r.read()
+            r.body = r.fp.read()
         except Exception, ex:
             print args, kwargs
             raise
