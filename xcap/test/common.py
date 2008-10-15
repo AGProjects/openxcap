@@ -7,7 +7,7 @@ from optparse import OptionParser
 from lxml import etree
 from copy import copy
 
-xcaplib_min_version = (1, 0, 3)
+xcaplib_min_version = (1, 0, 5)
 
 sys.path.append('../../../python-xcaplib')
 import xcaplib
@@ -21,7 +21,7 @@ if xcaplib.version_info[:3]<xcaplib_min_version:
                       (xcaplib_min_version + xcaplib.version_info[:3]))
 
 from xcaplib.client import HTTPError
-from xcaplib.xcapclient import setup_parser_client, make_xcapclient, read_xcapclient_cfg
+from xcaplib.xcapclient import setup_parser_client, make_xcapclient, update_options_from_config
 del sys.path[-1]
 
 
@@ -308,7 +308,7 @@ def run_suite(suite, options, args):
         unittest.TextTestRunner(verbosity=2).run(suite)
 
 def check_options(options):
-    xcaplib.xcapclient.check_options(options)
+
     if hasattr(options, 'debug') and options.debug:
         HTTPConnectionWrapper.debug = True
 
@@ -330,10 +330,10 @@ def validate_xcaps_error(document):
     return validate(document, xcaps_error_schema)
 
 def runSuiteFromModule(module='__main__'):
-    read_xcapclient_cfg()
     option_parser = OptionParser(conflict_handler='resolve')
     suite = loadSuiteFromModule(module, option_parser)
     option_parser.add_option('-d', '--debug', action='store_true', default=False)
     options, args = option_parser.parse_args()
+    update_options_from_config(options)
     check_options(options)
     run_suite(suite, options, args)

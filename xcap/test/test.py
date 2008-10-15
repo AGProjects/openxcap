@@ -43,7 +43,6 @@ def all_tests():
     return lst
 
 def run():
-    read_xcapclient_cfg()
     parser = OptionParser(conflict_handler='resolve')
     parser.add_option('-d', '--debug', action='store_true', default=False)
     parser.add_option("-l", "--list", action="store_true", help="Print list of all tests")
@@ -59,7 +58,7 @@ def run():
             print 
         return
 
-    check_options(options)   
+    update_options_from_config(options)
     t.run(options, args)
 
 if __name__ == '__main__':
