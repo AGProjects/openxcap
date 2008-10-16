@@ -32,13 +32,13 @@ if [ "$PID" != "/var/run/openxcap/openxcap.pid" ]; then
 fi
 
 start() {
-    echo -n "Starting $DESC: $NAME"
+    echo -n "Starting $DESC: $NAME "
     start-stop-daemon --start --quiet --pidfile $PID --exec $SERVER -- $OPTIONS
     echo "."
 }
 
 stop () {
-    echo -n "Stopping $DESC: $NAME"
+    echo -n "Stopping $DESC: $NAME "
     start-stop-daemon --stop --quiet --oknodo --signal 15 --pidfile $PID
     echo "."
 }
