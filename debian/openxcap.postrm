@@ -1,8 +1,0 @@
-#!/bin/sh
-
-if [ "$1" = "purge" ]; then
-    rm -f /etc/openxcap/config.ini
-fi
-
-#DEBHELPER#
-
