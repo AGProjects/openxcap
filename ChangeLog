@@ -1,6 +1,14 @@
+openxcap (1.0.6) unstable; urgency=low
+
+  * fixed: namespace bindings in the request weren't parsed correctly
+  * fixed: pid file was removed on package upgrade
+
+ -- Denis Bilenko <denis@ag-projects.com>  Thu, 16 Oct 2008 17:01:24 +0200
+
 openxcap (1.0.5) unstable; urgency=low
 
-  * fixed: openxcap with 'openser' backend could be start if enable_publish_xcapdiff=yes
+  * fixed: openxcap with 'openser' backend couldn't be started
+    if enable_publish_xcapdiff=yes
   * fixed a couple of potential Internal Server Errors
   * added python-mysqldb to dependencies
   * added <entry> node to <uniqueness-failure> error as required by RFC
