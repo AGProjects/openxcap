@@ -376,7 +376,7 @@ class NodeSelector(object):
         else:
             self.ns_bindings = {}
 
-        self.element_selector, self.terminal_selector = parse_node_selector(selector, namespace, self.ns_bindings)
+        self.element_selector, self.terminal_selector = parse_node_selector(sections[0], namespace, self.ns_bindings)
 
     def __str__(self):
         return self._original_string
