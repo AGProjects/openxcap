@@ -2,10 +2,19 @@
 High priority
 -------------
 
-- Log server messages to syslog
+- Check validity of service-uris and SIP URIs in service element of
+  rls-services documents
+- Add server configuration option to allow/deny insertion of external http
+  references in rls-services documents. RLS services document should contain
+  by default only individual sip uri entries. Allowing end-users to insert
+  external references into the system provides and easy back-doors for
+  mistakes or denial of service attacks.
+- Log all server and basic access messages to syslog, keep verbose logging (headers,bodies) in
+  /var/log/openxcap/
 - Add xcap-directory application
 - Log the whole HTTP URI as sent by the client
 - Validation after put/delete attribute
+
 
 Low priority
 ------------
