@@ -35,7 +35,7 @@ from gnutls.constants import COMP_DEFLATE, COMP_LZO, COMP_NULL
 from xcap.config import ConfigFile, ConfigSection
 from xcap.tls import Certificate, PrivateKey
 from xcap.interfaces.backend import StatusResponse
-from xcap.dbutil import generate_etag
+from xcap.dbutil import make_random_etag
 
 class ThorNodeConfig(ConfigSection):
     _datatypes = {'certificate': Certificate, 'private_key': PrivateKey, 'ca': Certificate}
@@ -422,7 +422,7 @@ class Storage(object):
 
     def put_document(self, uri, document, check_etag):
         self._normalize_document_path(uri)
-        etag = generate_etag(uri, document)
+        etag = make_random_etag(uri)
         result = self._database.put(uri, document, check_etag, etag)
         result.addCallback(self._cb_put, etag, "%s@%s" % (uri.user.username, uri.user.domain))
         result.addErrback(self._eb_not_found)

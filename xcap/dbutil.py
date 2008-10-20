@@ -3,6 +3,7 @@
 import os
 import md5
 import time
+import random
 import urllib
 
 from twisted.enterprise import adbapi
@@ -11,18 +12,11 @@ from twisted.python import reflect
 db_modules = {"mysql": "MySQLdb",
               "sqlite": "sqlite3"}
 
-def generate_etag(uri, document):
-    """Generate an etag for the given XCAP URI and document.
+def make_random_etag(uri):
+    return md5.new("%s%s%s" % (uri, time.time(), random.random())).hexdigest()
 
-    @param uri: an XCAP URI that contains the XCAP user and the document selector
-
-    @param document: an XCAP document
-    """
-    if hasattr(uri, 'xcap_root'):
-        return md5.new(uri.xcap_root + str(uri.doc_selector) + str(time.time())).hexdigest()
-    else:
-        return md5.new(uri + str(time.time())).hexdigest()
-
+def make_etag(uri, document):
+    return md5.new("%s%s" % (uri, document)).hexdigest()
 
 def parseURI(uri):
     """

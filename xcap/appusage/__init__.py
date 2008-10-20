@@ -15,7 +15,7 @@ from xcap.config import ConfigFile, ConfigSection
 from xcap import errors
 from xcap.interfaces.backend import StatusResponse
 from xcap import element
-from xcap.dbutil import generate_etag
+from xcap.dbutil import make_etag
 
 supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pres-rules',
                           'resource-lists', 'rls-services', 'pidf-manipulation', 'watchers')
@@ -475,7 +475,7 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
 </xcap-caps>""" % {"auids": auids,
                    "extensions": extensions,
                    "namespaces": namespaces}
-        self.etag = generate_etag('xcap-caps', self.doc)
+        self.etag = make_etag('xcap-caps', self.doc)
         return self.doc, self.etag
 
     def get_document_global(self, uri, check_etag):

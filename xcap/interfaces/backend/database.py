@@ -16,7 +16,7 @@ from _mysql_exceptions import IntegrityError
 
 from xcap.config import ConfigFile, ConfigSection
 from xcap.interfaces.backend import IStorage, StatusResponse
-from xcap.dbutil import connectionForURI, repeat_on_error, generate_etag
+from xcap.dbutil import connectionForURI, repeat_on_error, make_random_etag
 
 class Config(ConfigSection):
     _datatypes = {'authentication_db_uri' : str,
@@ -237,7 +237,7 @@ class Storage(DBBase):
             raise MultipleResultsError(params)
         elif not result:
             ## the document doesn't exist, create it
-            etag = generate_etag(uri, document)
+            etag = make_random_etag(uri)
             query = """INSERT INTO %(table)s (username, domain, doc_type, etag, doc, doc_uri)
  VALUES (%%(username)s, %%(domain)s, %%(doc_type)s, %%(etag)s, %%(document)s, %%(document_path)s)""" % {
                 "table":    Config.xcap_table }
@@ -256,7 +256,7 @@ class Storage(DBBase):
             ## first check the etag of the existing resource
             check_etag(old_etag)
             ## the document exists, replace it
-            etag = generate_etag(uri, document)
+            etag = make_random_etag(uri)
             query = """UPDATE %(table)s
                        SET doc = %%(document)s, etag = %%(etag)s
                        WHERE username = %%(username)s AND domain = %%(domain)s
