@@ -3,17 +3,14 @@ from common import *
 class AuthTest(XCAPTest):
     
     def test_users_auth(self):
-        for app in apps:
-            self.get(app, status=[200,404])
+        self.get(self.app, status=[200,404])
 
         self.options.password += 'x'
         self.update_client_options()
-        for app in apps:
-            self.get(app, status=[401])
+        self.get(self.app, status=[401])
 
     def test_global_auth(self):
-        for app in apps:
-            self.get_global(app, status=[200,404])
+        self.get_global(self.app, status=[200,404])
             
         #self.options.password += 'x'
         #self.update_client_options()
@@ -30,6 +27,13 @@ class AuthTest(XCAPTest):
         #self.account = "dummy" + self.account
         #r = self.get('resource-lists', status=401)
         #self.client.account = account
+
+for app in apps:
+    exec """class AuthTest_%s(AuthTest):
+    app = %r
+""" % (app.replace('-', '_').replace('.', '_'), app)
+
+del AuthTest
 
 if __name__ == '__main__':
     runSuiteFromModule()
