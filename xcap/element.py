@@ -311,7 +311,7 @@ class SelectorError(LocatorError):
     http_error = 404
 
     def __init__(self, selector, handler=None):
-        msg = 'The request node selector %s matches more than one element' % selector
+        msg = 'The requested node selector %s matches more than one element' % selector
         LocatorError.__init__(self, msg, handler)
 
 
