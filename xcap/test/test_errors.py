@@ -27,7 +27,7 @@ class ErrorsTest(XCAPTest):
     def check(self, code, message, *uris):
         for uri in uris:
             r = self.client.con.request('GET', uri)
-            self.assertEqual(r.code, code)
+            self.assertEqual(r.status, code)
             self.assertInBody(r, message)
 
     def test400(self):
@@ -56,10 +56,10 @@ class ErrorsTest(XCAPTest):
 
     def test405(self):
         r = self.client.con.request('POST', '')
-        self.assertEqual(r.code, 405)
+        self.assertEqual(r.status, 405)
 
         r = self.client.con.request('XXX', '')
-        self.assertEqual(r.code, 405) # but apache responds with 501
+        self.assertEqual(r.status, 405) # but apache responds with 501
 
     # 412: tested in test_etags.py
 

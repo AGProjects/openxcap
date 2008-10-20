@@ -57,7 +57,7 @@ class AttributeTest(XCAPTest):
         #self.put('resource-lists', 'coworkers', '/resource-lists/list[@name="friends"]/@name', status=409)
 
         # XXX parent's selector becomes invalid
-        r = self.client.put('resource-lists', 'coworkers', '/resource-lists/list[@name="friends"]/@name')
+        r = self.client._put('resource-lists', 'coworkers', '/resource-lists/list[@name="friends"]/@name')
         self.assertStatus(r, 200)
 
 if __name__ == '__main__':

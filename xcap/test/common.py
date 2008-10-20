@@ -7,7 +7,7 @@ from optparse import OptionParser
 from lxml import etree
 from copy import copy
 
-xcaplib_min_version = (1, 0, 5)
+xcaplib_min_version = (1, 0, 8)
 
 sys.path.append('../../../python-xcaplib')
 import xcaplib
@@ -34,52 +34,8 @@ apps = ['pres-rules',
         'test-app',
         'xcap-caps']
 
-
-def format_httperror(e):
-    try:
-        headers = e.hdrs
-    except AttributeError:
-        # HTTPError has hdrs method, but addinfourl has headers
-        headers = e.headers
-    return "%s %s\n%s\n%s" % (e.code, e.msg, headers, e.body)
-
-# the tests expect to receive reply object with 'body' attribute
-class HTTPConnectionWrapper(xcaplib.client.HTTPConnectionWrapper):
-    debug = False
-
-    def __init__(self, *args):
-        return xcaplib.client.HTTPConnectionWrapper.__init__(self, *args)
-
-    def request(self, *args, **kwargs):
-        r = None
-        try:
-            r = xcaplib.client.HTTPConnectionWrapper.request(self, *args, **kwargs)
-            r.body = r.read()
-        except HTTPError, e:
-            r = e
-            if getattr(r, 'read', None):
-                r.body = r.read()
-            else:
-                r.body = ""
-        except Exception, ex:
-            print args, kwargs
-            raise
-        finally:
-            if self.debug and r:
-                print r.req.format()
-                print
-                print format_httperror(r)
-                print
-
-        return r
-
-    def get(self, path, headers=None, etag=None):
-        return self.request('GET', path, headers, None, etag)
-
-xcaplib.client.XCAPClient.HTTPConnectionWrapper = HTTPConnectionWrapper
-
 def succeed(r):
-    return 200 <= r.code <= 299
+    return 200 <= r.status <= 299
 
 class XCAPTest(unittest.TestCase):
 
@@ -88,7 +44,7 @@ class XCAPTest(unittest.TestCase):
 
     @classmethod
     def setupOptionParser(cls, parser):
-        setup_parser_client(parser) # QQQ should it be there? it executes the same code multiple times
+        setup_parser_client(parser)
 
     def initialize(self, options, args = []):
         if not hasattr(self, '_options'):
@@ -111,15 +67,15 @@ class XCAPTest(unittest.TestCase):
         if status is None:
             return
         elif isinstance(status, int):
-            if r.code != status:
+            if r.status != status:
                 if msg is None:
-                    msg = 'Status (%s) != %s' % (r.code, status)
+                    msg = 'Status (%s) != %s' % (r.status, status)
                 raise self.failureException(msg)
         else:
             ## status is a tuple or a list
-            if r.code not in status:
+            if r.status not in status:
                 if msg is None:
-                    msg = 'Status (%s) not in %s' % (r.code, str(status))
+                    msg = 'Status (%s) not in %s' % (r.status, str(status))
                 raise self.failureException(msg)
 
     def assertHeader(self, r, key, value=None, msg=None):
@@ -138,7 +94,7 @@ class XCAPTest(unittest.TestCase):
 
     def assertETag(self, r):
         v = self.assertHeader(r, 'ETag')
-        return xcaplib.client.parse_etag_value(v)
+        return xcaplib.client.parse_etag_header(v)
 
     def assertNoHeader(self, r, key, msg=None):
         """Fail if key in r.headers."""
@@ -183,7 +139,7 @@ class XCAPTest(unittest.TestCase):
 
     def get(self, application, node=None, status=200, **kwargs):
         client = kwargs.pop('client', None) or self.client
-        r = client.get(application, node, **kwargs)
+        r = client._get(application, node, **kwargs)
         self.validate_error(r, application)
         self.assertStatus(r, status)
         if 200<=status<=299:
@@ -197,7 +153,7 @@ class XCAPTest(unittest.TestCase):
     def put(self, application, resource, node=None,
             status=[200,201], content_type_in_GET=None, client=None, **kwargs):
         client = client or self.client
-        r_put = client.put(application, resource, node, **kwargs)
+        r_put = client._put(application, resource, node, **kwargs)
         self.validate_error(r_put, application)
         self.assertStatus(r_put, status)
 
@@ -207,7 +163,7 @@ class XCAPTest(unittest.TestCase):
             r_get = self.get(application, node, status=None, client=client)
             self.assertStatus(r_get, 200,
                               'although PUT succeed, following GET on the same URI did not: %s %s' % \
-                              (r_get.code, r_get.msg))
+                              (r_get.status, r_get.reason))
             self.assertEqual(resource.strip(), r_get.body) # is body put equals to body got?
             if content_type_in_GET is not None:
                 self.assertHeader(r_get, 'content-type', content_type_in_GET)
@@ -222,16 +178,16 @@ class XCAPTest(unittest.TestCase):
 
     def delete(self, application, node=None, status=200, client=None, **kwargs):
         client = client or self.client
-        r = client.delete(application, node, **kwargs)
+        r = client._delete(application, node, **kwargs)
         self.validate_error(r, application)
         self.assertStatus(r, status)
 
         # if deleting succeed, GET should return 404
-        if self.invariant_check and succeed(r) or r.code == 404:
+        if self.invariant_check and succeed(r) or r.status == 404:
             r_get = self.get(application, node, status=None)
             self.assertStatus(r_get, 404,
                               'although DELETE succeed, following GET on the same URI did not return 404: %s %s' % \
-                              (r_get.code, r_get.msg))
+                              (r_get.status, r_get.reason))
         return r
 
     def put_rejected(self, application, resource, status=409, client=None):
@@ -253,7 +209,7 @@ class XCAPTest(unittest.TestCase):
         self.delete(application, status=404, client=client)
 
     def validate_error(self, r, application):
-        if r.code==409 or r.headers.gettype()=='application/xcap-error+xml':
+        if r.status==409 or r.headers.gettype()=='application/xcap-error+xml':
             self.assertEqual(r.headers.gettype(), 'application/xcap-error+xml')
             xml = validate_xcaps_error(r.body)
             if '<uniqueness-failure' in r.body:
