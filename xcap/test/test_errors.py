@@ -30,9 +30,11 @@ class ErrorsTest(XCAPTest):
             self.assertEqual(r.status, code)
             self.assertInBody(r, message)
 
-    def test400(self):
+    def test400_1(self):
 
         self.get('resource-lists', '/resource-lists/list[@name="friends"]/external[]/@anchor', status=400)
+
+    def test400_2(self):
 
         self.check(400, "to parse node",
                    'resource-lists/users/alice@example.com/index.xml~~')
