@@ -52,11 +52,3 @@ class IStorage(Interface):
         
         @param check_etag: a callable used to check the etag of the document to be deleted
         """
-
-    def generate_etag(self, uri, document):
-        """Generate an etag for the give XCAP URI and document.
-
-        @param uri: an XCAP URI that contains the XCAP user and the document selector
-
-        @param document: an XCAP document
-        """
