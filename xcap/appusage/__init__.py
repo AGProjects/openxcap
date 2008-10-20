@@ -492,7 +492,7 @@ class WatchersApplication(ResourceListsApplication):
     mime_type= "application/xml"
     schema_file = 'watchers.xsd'
 
-    def _watchers_to_xml(self, watchers):
+    def _watchers_to_xml(self, watchers, uri, check_etag):
         root = etree.Element("watchers", nsmap={None: self.default_ns})
         for watcher in watchers:
             watcher_elem = etree.SubElement(root, "watcher")
@@ -500,11 +500,13 @@ class WatchersApplication(ResourceListsApplication):
                 etree.SubElement(watcher_elem, name).text = value
         doc = etree.tostring(root, encoding="utf-8", pretty_print=True, xml_declaration=True)
         #self.validate_document(doc)
-        return StatusResponse(200, data=doc)
+        etag = make_etag(uri, doc)
+        check_etag(etag)
+        return StatusResponse(200, data=doc, etag=etag)
 
     def get_document_local(self, uri, check_etag):
         watchers_def = self.storage.get_watchers(uri)
-        watchers_def.addCallback(self._watchers_to_xml)
+        watchers_def.addCallback(self._watchers_to_xml, uri, check_etag)
         return watchers_def
 
     def put_document(self, uri, document, check_etag):
