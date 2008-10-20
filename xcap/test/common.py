@@ -286,9 +286,28 @@ def load_schema(filename):
 xcaps_error_schema = load_schema('xcap-error.xsd')
 
 def validate_xcaps_error(document):
-    return validate(document, xcaps_error_schema)
+    xml = validate(document, xcaps_error_schema)
+    root_tag = xml.xpath('/x:xcap-error', namespaces={'x': 'urn:ietf:params:xml:ns:xcap-error'})
+    assert len(root_tag)==1, root_tag
+    return xml
+
+def extract_client(argv):
+    if '--client' in argv:
+        i = argv.index('--client')
+        client = argv[i+1]
+        del argv[i]
+        del argv[i]
+    else:
+        return
+    if client == 'xcapclient':
+        import xcapclientwrap
+        XCAPTest.new_client = lambda self: xcapclientwrap.make_client(self.options)
+    else:
+        assert client == 'xcaplib', client
+
 
 def runSuiteFromModule(module='__main__'):
+    extract_client(sys.argv)
     option_parser = OptionParser(conflict_handler='resolve')
     suite = loadSuiteFromModule(module, option_parser)
     option_parser.add_option('-d', '--debug', action='store_true', default=False)

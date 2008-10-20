@@ -43,6 +43,7 @@ def all_tests():
     return lst
 
 def run():
+    extract_client(sys.argv)
     parser = OptionParser(conflict_handler='resolve')
     parser.add_option('-d', '--debug', action='store_true', default=False)
     parser.add_option("-l", "--list", action="store_true", help="Print list of all tests")
