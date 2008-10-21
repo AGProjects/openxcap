@@ -15,7 +15,7 @@ def get_output(cmd):
     return os.popen(cmd).read().strip()
 
 class UpdatePatchlevel(BaseCommand):
-    """Query darcs for number of patches since the lastest release and update
+    """Query darcs for number of patches since the latest release and update
     patchlevel in xcap/__init__.py.
 
     Do not commit patchlevel into the repository, use remove_patchlevel to clean up"""
