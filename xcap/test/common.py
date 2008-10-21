@@ -94,7 +94,7 @@ class XCAPTest(unittest.TestCase):
 
     def assertETag(self, r):
         v = self.assertHeader(r, 'ETag')
-        return xcaplib.client.parse_etag_header(v)
+        return r.etag
 
     def assertNoHeader(self, r, key, msg=None):
         """Fail if key in r.headers."""
