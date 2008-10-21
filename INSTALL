@@ -68,8 +68,84 @@ OepnXCAP has been tested on Debian unstable with the following versions:
  - python-zopeinterface: 3.3.1-6
 
 
+Test suite
+----------
+
+A test suite for testing the functionality the server is located in
+/xcap/test directory. If the software has been installed as a Debian
+package, the test suite is found in /usr/lib/python2.5/site-packages/xcap/test
+
+To run the test suite add a user to the XCAP subscriber database
+(alice@example.com in the following example), then create a configuration
+file with the credentials in ~/.sipclient/config.ini that reads:
+
+[Account]
+sip_address=alice@example.com
+password=123
+xcap_root = https://xcap.example.com/xcap-root
+
+Then run the test suite:
+
+$./test.py 
+test_delete (test_attribute.AttributeTest) ... ok
+test_get (test_attribute.AttributeTest) ... WARNING: test with URI in att_value is disabled ok
+test_put (test_attribute.AttributeTest) ... ok
+test_global_auth (test_auth.AuthTest_org_openmobilealliance_pres_rules) ... ok
+test_users_auth (test_auth.AuthTest_org_openmobilealliance_pres_rules) ... ok
+test_global_auth (test_auth.AuthTest_pidf_manipulation) ... ok
+test_users_auth (test_auth.AuthTest_pidf_manipulation) ... ok
+test_global_auth (test_auth.AuthTest_pres_rules) ... ok
+test_users_auth (test_auth.AuthTest_pres_rules) ... ok
+test_global_auth (test_auth.AuthTest_resource_lists) ... ok
+test_users_auth (test_auth.AuthTest_resource_lists) ... ok
+test_global_auth (test_auth.AuthTest_rls_services) ... ok
+test_users_auth (test_auth.AuthTest_rls_services) ... ok
+test_global_auth (test_auth.AuthTest_test_app) ... ok
+test_users_auth (test_auth.AuthTest_test_app) ... ok
+test_global_auth (test_auth.AuthTest_watchers) ... ok
+test_users_auth (test_auth.AuthTest_watchers) ... ok
+test_global_auth (test_auth.AuthTest_xcap_caps) ... ok
+test_users_auth (test_auth.AuthTest_xcap_caps) ... ok
+test_delete (test_element.ElementTest) ... ok
+test_get (test_element.ElementTest) ... WARNING: test with URI in att_value is disabled ok
+test_put_error (test_element.ElementTest) ... ok
+Testing different ways of inserting an element as described in examples from Section 8.2.3 ... ok
+Testing PUT requests of form '*[@att="some"]' which require looking into body of PUT ... ok
+test_replacement (test_element_put.PutElementTest) ... ok
+test400_1 (test_errors.ErrorsTest) ... ok
+test400_2 (test_errors.ErrorsTest) ... ok
+test404 (test_errors.ErrorsTest) ... ok
+test405 (test_errors.ErrorsTest) ... ok
+test409 (test_errors.ErrorsTest) ... ok
+test_gibberish (test_errors.ErrorsTest) ... ok
+test_conditional_GET (test_etags.ETagTest) ... ok
+test_conditional_PUT (test_etags.ETagTest) ... ok
+test_conditional_GET (test_etags.ETagTest2) ... ok
+test_conditional_PUT (test_etags.ETagTest2) ... ok
+test_etag_parsing (test_etags.ETagTest2) ... ok
+test_has_global (test_global.TestGlobal) ... ok
+test_no_global (test_global.TestGlobal) ... ok
+test_ns_bindings (test_nsbindings.NSBindingsTest) ... ok
+test_pidf_manipulation (test_pidf.PIDFTest) ... ok
+test_pidf_manipulation (test_presrules.PresenceRulesTest) ... ok
+test_operations (test_resourcelists.DocumentTest) ... ok
+test_operations (test_rlsservices.DocumentTest) ... ok
+test_get (test_watchers.Test) ... ok
+test_schema (test_xcap_caps.XCAPCaps) ... ok
+----------------------------------------------------------------------
+Ran 45 tests in 74.427s
+
+Notes
+
+- Running the test suite for a given user will result in the destruction of
+all xcap documents belonging to that user
+- Replacing 'test.py' with 'test_something.py' will run only the tests
+defined in test_something.py
+
+
 Testing with xcapclient
 -----------------------
+
 
 A command line client is available in the same download repository of
 OpenXCAP server. The client can be used to manipulate full or partial XML
@@ -79,3 +155,4 @@ the structure of XML documents based on XPATH.
 
 See README of python-xcaplib package for examples on how to create/retrieve
 a document.
+
