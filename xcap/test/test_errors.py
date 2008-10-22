@@ -1,17 +1,16 @@
-from common import *
-import socket
+import common as c
 from urlparse import urlparse
 
-class ErrorsTest(XCAPTest):
+class ErrorsTest(c.XCAPTest):
 
     def communicate(self, data):
-        s = socket.socket()
+        s = c.socket.socket()
         x = urlparse(self.options.xcap_root)
         if x.port is None:
             port = {'http': 80, 'https': 443}.get(x.scheme)
         s.connect((x.hostname, x.port or port))
         if x.scheme == 'https':
-            s = socket.ssl(s)
+            s = c.socket.ssl(s)
             s.write(data)
             return s.read(1024*8)
         s.send(data)
@@ -66,4 +65,4 @@ class ErrorsTest(XCAPTest):
     # 412: tested in test_etags.py
 
 if __name__ == '__main__':
-    runSuiteFromModule()
+    c.runSuiteFromModule()
