@@ -54,7 +54,7 @@ To enable TLS support:
  - GnuTLS library (http://www.gnu.org/software/gnutls)
  - python-gnutls (http://pypi.python.org/pypi/python-gnutls)
 
-OepnXCAP has been tested on Debian unstable with the following versions:
+OpenXCAP has been tested on Debian unstable with the following versions:
 
  - libxml2: 2.6.32.dfsg-2
  - python: 2.5.2-1
