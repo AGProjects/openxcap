@@ -2,9 +2,8 @@
 import sys
 import os
 import traceback
-from optparse import OptionParser
 
-from common import *
+import common as c
 
 class TestHarness(object):
     """A test harness for OpenXCAP."""
@@ -22,7 +21,7 @@ class TestHarness(object):
             try:
                 self.import_errors += 1
                 m = __import__(testmod, globals(), locals())
-                suite = loadSuiteFromModule(m, option_parser)
+                suite = c.loadSuiteFromModule(m, option_parser)
                 suite.modname = testmod
                 self.test_suites.append(suite)
                 self.import_errors -= 1
@@ -31,11 +30,10 @@ class TestHarness(object):
                     traceback.print_exc()
             except Exception:
                 traceback.print_exc()
-    
+
     def run(self, options, args):
-        run_suite(TestSuite(self.test_suites), options, args)
-        if self.import_errors:
-            sys.exit('there were import errors!')
+        c.run_suite(c.TestSuite(self.test_suites), options, args)
+
 
 def all_tests():
     my_dir = os.path.dirname(os.path.abspath(__file__))
@@ -43,11 +41,8 @@ def all_tests():
     return lst
 
 def run():
-    extract_client(sys.argv)
-    parser = OptionParser(conflict_handler='resolve')
-    parser.add_option('-d', '--debug', action='store_true', default=False)
+    parser = c.prepare_optparser()
     parser.add_option("-l", "--list", action="store_true", help="Print list of all tests")
-    
     t = TestHarness(all_tests(), parser)
     options, args = parser.parse_args()
 
@@ -56,11 +51,13 @@ def run():
             print x.modname
             for i in x:
                 print ' - ', i
-            print 
+            print
         return
 
-    update_options_from_config(options)
-    t.run(options, args)
+    c.process_options(options)
+    c.run_command(lambda : t.run(options, args), options)
+    if t.import_errors:
+        sys.exit('there were import errors!\n')
 
 if __name__ == '__main__':
     run()

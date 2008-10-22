@@ -3,9 +3,13 @@ import os
 import unittest
 import re
 import types
-from optparse import OptionParser
+import socket
+import time
+import traceback
+from optparse import OptionParser, SUPPRESS_HELP
 from lxml import etree
 from copy import copy
+from ConfigParser import SafeConfigParser as ConfigParser
 
 xcaplib_min_version = (1, 0, 8)
 
@@ -20,8 +24,7 @@ if xcaplib.version_info[:3]<xcaplib_min_version:
     raise ImportError('Need python-xcaplib of version at least %s.%s.%s, you have %s.%s.%s' % \
                       (xcaplib_min_version + xcaplib.version_info[:3]))
 
-from xcaplib.client import HTTPError
-from xcaplib.xcapclient import setup_parser_client, make_xcapclient, update_options_from_config
+from xcaplib import xcapclient
 del sys.path[-1]
 
 
@@ -44,7 +47,7 @@ class XCAPTest(unittest.TestCase):
 
     @classmethod
     def setupOptionParser(cls, parser):
-        setup_parser_client(parser)
+        xcapclient.setup_parser_client(parser)
 
     def initialize(self, options, args = []):
         if not hasattr(self, '_options'):
@@ -53,7 +56,7 @@ class XCAPTest(unittest.TestCase):
             self._args = copy(args)
 
     def new_client(self):
-        return make_xcapclient(self.options)
+        return xcapclient.make_xcapclient(self.options)
 
     def update_client_options(self):
         self.client = self.new_client()
@@ -266,11 +269,6 @@ def run_suite(suite, options, args):
     else:
         unittest.TextTestRunner(verbosity=2).run(suite)
 
-def check_options(options):
-
-    if hasattr(options, 'debug') and options.debug:
-        HTTPConnectionWrapper.debug = True
-
 
 def validate(document, schema):
     parser = etree.XMLParser(schema = schema)
@@ -291,27 +289,119 @@ def validate_xcaps_error(document):
     assert len(root_tag)==1, root_tag
     return xml
 
-def extract_client(argv):
-    if '--client' in argv:
-        i = argv.index('--client')
-        client = argv[i+1]
-        del argv[i]
-        del argv[i]
-    else:
-        return
-    if client == 'xcapclient':
+def prepare_optparser(option_parser=None):
+    if option_parser is None:
+        option_parser = OptionParser(conflict_handler='resolve')
+    option_parser = OptionParser(conflict_handler='resolve')
+    option_parser.add_option('-d', '--debug', action='store_true', default=False)
+    option_parser.add_option('-r', '--repeat', type='int', default=1, help='default is 1. use -1 to loop forever')
+
+    # Fix xcaplib to use non-blocking sockets from eventlet.green package
+    option_parser.add_option('-c', '--client', default='xcaplib', help=SUPPRESS_HELP)
+
+    # Start OpenXCAP server in-process. You should also use --eventlet option then.
+    option_parser.add_option('--start-server', metavar='CONFIG_FILE', help=SUPPRESS_HELP)
+    return option_parser
+
+def process_options(options):
+    xcapclient.update_options_from_config(options)
+    if options.client == 'xcapclient':
         import xcapclientwrap
         XCAPTest.new_client = lambda self: xcapclientwrap.make_client(self.options)
     else:
-        assert client == 'xcaplib', client
+        if options.client == 'eventlet':
+            enable_eventlet()
+        else:
+            assert options.client == 'xcaplib', `options.client`
+    if options.start_server is not None:
+        options.server = InProcessServer(options)
+    else:
+        options.server = RemoteServer(options)
 
+def run_command(command, options):
+    options.server.start()
+    try:
+        n = options.repeat
+        while n!=0:
+            n -= 1
+            try:
+                command()
+            except Exception:
+                traceback.print_exc()
+                if n==0:
+                    raise
+    finally:
+        options.server.stop()
 
 def runSuiteFromModule(module='__main__'):
-    extract_client(sys.argv)
-    option_parser = OptionParser(conflict_handler='resolve')
+    option_parser = prepare_optparser()
     suite = loadSuiteFromModule(module, option_parser)
-    option_parser.add_option('-d', '--debug', action='store_true', default=False)
     options, args = option_parser.parse_args()
-    update_options_from_config(options)
-    check_options(options)
-    run_suite(suite, options, args)
+    process_options(options)
+    run_command(lambda : run_suite(suite, options, args), options)
+
+
+class RemoteServer:
+
+    def __init__(self, options):
+        self.options = options
+
+    def start(self):
+        xcapclient.validate_client_configuration(self.options)
+
+    def stop(self):
+        pass
+
+class InProcessServer:
+
+    def __init__(self, options):
+        parser = ConfigParser()
+        self.config_filename = options.start_server
+        parser.read(self.config_filename)
+        self.root = parser.get('Server', 'root')
+        port = parser.get('Server', 'port')
+        if port is not None:
+            self.root += ':' + port
+        options.xcap_root = self.root
+        if not options.sip_address:
+            options.sip_address = 'alice@example.com'
+        if not options.password:
+            options.password = '123'
+
+    def start(self):
+        print 'STARTING SERVER on %s' % self.root
+        start_server(file(self.config_filename))
+
+    def stop(self):
+        from twisted.internet import reactor
+        reactor.callLater(0, reactor.stop)
+        from eventlet.api import get_hub
+        get_hub().switch()
+
+def enable_eventlet():
+    sys.path.append('../../../eventlet_twisted')
+    from eventlet.green import urllib2, socket as greensocket, time as greentime
+    from xcaplib import httpclient
+    # replacing all the references to the old urllib2 in xcaplib:
+    httpclient.urllib2 = urllib2
+    httpclient.HTTPRequest.__bases__ = (urllib2.Request,)
+    global socket, time
+    socket = greensocket
+    time = greentime
+
+
+def start_server(config_file):
+    from application import log # to print log.msg messages to stdout
+    sys.path = ['../..'] + sys.path
+    import xcap
+    xcap.__cfgfile__ = config_file
+    from xcap.logutil import start_log
+    start_log()
+    from xcap.server import XCAPServer
+    class Server(XCAPServer):
+        def run(self, reactor):
+            pass
+    server = Server()
+    server.start()
+    return server
+
