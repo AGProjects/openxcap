@@ -59,8 +59,8 @@ class XCAPTest(unittest.TestCase):
         self.client = self.new_client()
 
     def setUp(self):
-        self.options = self._options
-        self.args = self._args
+        self.options = copy(self._options)
+        self.args = copy(self._args)
         self.update_client_options()
 
     def assertStatus(self, r, status, msg=None):
