@@ -335,15 +335,16 @@ class Storage(DBBase):
                           3: "deny"}
         presentity_uri = "sip:%s@%s" % (uri.user.username, uri.user.domain)
         query = """SELECT watcher_username, watcher_domain, status FROM watchers
-                   WHERE presentity_uri = %s"""
-        trans.execute(query, presentity_uri)
+                   WHERE presentity_uri = %(puri)s"""
+        params = {'puri': presentity_uri}
+        trans.execute(*self.fixr(query, params))
         result = trans.fetchall()
         watchers = [{"id": "%s@%s" % (w_user, w_domain),
                      "status": status_mapping.get(subs_status, "unknown"),
                      "online": "false"} for w_user, w_domain, subs_status in result]
         query = """SELECT watcher_username, watcher_domain FROM active_watchers
-                   WHERE presentity_uri = %s AND event = 'presence'"""
-        trans.execute(query, presentity_uri)
+                   WHERE presentity_uri = %(puri)s AND event = 'presence'"""
+        trans.execute(query, params)
         result = trans.fetchall()
         active_watchers = set("%s@%s" % pair for pair in result)
         for watcher in watchers:
