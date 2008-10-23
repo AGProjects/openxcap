@@ -22,7 +22,8 @@ Low priority
 - Allow port in root= settings, thus making port= parameter unnecessary.
   Make sure that when listening on non-default port valid URIs are logged (see prev. issue)
   Inside, always use xcap root with port (if non-default), i.e. put port in logs, xcap-diff docs
-
+- change default port for https:// to 443 (currently is 8000). Keep the default port for http://
+  8000 for backward compatibility.
 - Test suite: validate after each GET, test well-formedness of the received elements.
 - Finish global/users: test that all possible combinations (global/users GET/PUT/DELETE each app)
   return reasonable error
