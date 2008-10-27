@@ -43,6 +43,45 @@ except ImportError:
         # comment the following line out if you don't need element operations
         sys.exit(1)
 
+class ThrowEventsAway(sax.ContentHandler):
+    pass
+
+def check_xml_fragment(element_str):
+    """Run SAX parser on element_str to check its well-formedness.
+    Ignore unbound namespaces prefixes.
+
+    >>> check_xml_fragment("<tag></tag>")
+
+    >>> check_xml_fragment('''<entry uri="sip:xxx@yyyyy.net">
+    ...   <gm:group>Test</gm:group>
+    ... </entry>''')
+
+    >>> check_xml_fragment("<tag></bag>")
+    Traceback (most recent call last):
+     ...
+    SAXParseException: <unknown>:1:7: mismatched tag
+
+    >>> check_xml_fragment("<ta g></ta g>")
+    Traceback (most recent call last):
+     ...
+    SAXParseException: <unknown>:1:5: not well-formed (invalid token)
+
+    >>> check_xml_fragment("<tag1/><tag2/>")
+    Traceback (most recent call last):
+     ...
+    SAXParseException: <unknown>:1:7: junk after document element
+
+    >>> check_xml_fragment("<tag\\></tag\\>")
+    Traceback (most recent call last):
+     ...
+    SAXParseException: <unknown>:1:4: not well-formed (invalid token)
+    """
+    parser = sax.make_parser()
+    # ignore namespaces and prefixes
+    parser.setFeature(sax.handler.feature_namespaces, 0)
+    parser.setFeature(sax.handler.feature_namespace_prefixes, 0)
+    parser.setContentHandler(ThrowEventsAway())
+    parser.parse(StringIO(element_str))
 
 class Step:
     # to be matched against uri.Step
@@ -823,6 +862,8 @@ class _test:
     <el2 att="2"/></root>""")
 
 if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
     from lxml import etree
     import traceback
     _test.test_get()
