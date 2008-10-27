@@ -3,8 +3,8 @@ from urlparse import urlparse
 
 document = """<?xml version="1.0" encoding="UTF-8"?>
 <resource-lists xmlns="urn:ietf:params:xml:ns:resource-lists">
-<list xmlns:gm="http://www.ekiga.org">
-<entry uri="sip:500@ekiga.net">
+<list xmlns:gm="http://www.yyyyy.org">
+<entry uri="sip:xxx@yyyyy.net">
 <gm:group>Foo</gm:group>
 </entry>
 </list>
