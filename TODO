@@ -14,7 +14,7 @@ High priority
 - Add xcap-directory application
 - Log the whole HTTP URI as sent by the client
 - Validation after put/delete attribute
-
+- change OpenSER to OpenSIPS
 
 Low priority
 ------------
