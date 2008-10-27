@@ -17,7 +17,6 @@ from xcap.config import ConfigFile, ConfigSection
 from xcap import authentication
 from xcap.appusage import getApplicationForURI, Backend
 from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute, XCAPNamespaceBinding
-from xcap.tls import Certificate, PrivateKey
 from xcap.uri import AttributeSelector, NamespaceSelector
 from xcap import __version__ as version
 from xcap.logutil import log_access, log_error
@@ -39,17 +38,11 @@ class ServerConfig(ConfigSection):
     root = 'http://127.0.0.1/'
     backend = Backend('Database')
 
-class TLSConfig(ConfigSection):
-    _datatypes = {'certificate': Certificate, 'private_key': PrivateKey}
-    certificate = None
-    private_key = None
-
 
 ## We use this to overwrite some of the settings above on a local basis if needed
 configuration = ConfigFile()
 configuration.read_settings('Authentication', AuthenticationConfig)
 configuration.read_settings('Server', ServerConfig)
-configuration.read_settings('TLS', TLSConfig)
 
 
 class XCAPRoot(resource.Resource, resource.LeafResource):
@@ -188,23 +181,35 @@ class XCAPServer:
                                                portal, (authentication.IAuthUser,))
         self.site = XCAPSite(root)
 
+    def start_https(self):
+        from xcap.tls import Certificate, PrivateKey
+        class TLSConfig(ConfigSection):
+            _datatypes = {'certificate': Certificate, 'private_key': PrivateKey}
+            certificate = None
+            private_key = None
+
+        configuration.read_settings('TLS', TLSConfig)
+
+        from gnutls.interfaces.twisted import X509Credentials
+        cert, pKey = TLSConfig.certificate, TLSConfig.private_key
+        if cert is None or pKey is None:
+            log.fatal("the TLS certificates or the private key could not be loaded")
+            sys.exit(1)
+        credentials = X509Credentials(cert, pKey)
+        reactor.listenTLS(ServerConfig.port, HTTPFactory(self.site), credentials, interface=ServerConfig.address)
+        log.msg("TLS started")
+
     def start(self):
         if 'twisted.internet.reactor' not in sys.modules:
             from twisted.internet import pollreactor; pollreactor.install()
         from twisted.internet import reactor
 
         if ServerConfig.root.startswith('https'):
-            from gnutls.interfaces.twisted import X509Credentials
-            cert, pKey = TLSConfig.certificate, TLSConfig.private_key
-            if cert is None or pKey is None:
-                log.fatal("the TLS certificates or the private key could not be loaded")
-                sys.exit(1)
-            credentials = X509Credentials(cert, pKey)
-            reactor.listenTLS(ServerConfig.port, HTTPFactory(self.site), credentials, interface=ServerConfig.address)
-            log.msg("TLS started")
+            self.start_https()
         else:
             reactor.listenTCP(ServerConfig.port, HTTPFactory(self.site), interface=ServerConfig.address)
         self.run(reactor)
 
     def run(self, reactor):
         reactor.run(installSignalHandlers=ServerConfig.backend.installSignalHandlers)
+
