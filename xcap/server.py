@@ -181,7 +181,7 @@ class XCAPServer:
                                                portal, (authentication.IAuthUser,))
         self.site = XCAPSite(root)
 
-    def start_https(self):
+    def _start_https(self, reactor):
         from xcap.tls import Certificate, PrivateKey
         class TLSConfig(ConfigSection):
             _datatypes = {'certificate': Certificate, 'private_key': PrivateKey}
@@ -205,7 +205,7 @@ class XCAPServer:
         from twisted.internet import reactor
 
         if ServerConfig.root.startswith('https'):
-            self.start_https()
+            self._start_https(reactor)
         else:
             reactor.listenTCP(ServerConfig.port, HTTPFactory(self.site), interface=ServerConfig.address)
         self.run(reactor)
