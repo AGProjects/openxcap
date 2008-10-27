@@ -187,9 +187,8 @@ class ApplicationUsage(object):
 
     def put_element(self, uri, element_body, check_etag):
         try:
-            etree.parse(StringIO(element_body)).getroot()
-            # verify if it has one element, if not should we throw the same exception?
-        except etree.XMLSyntaxError, ex:
+            element.check_xml_fragment(element_body)
+        except element.sax.SAXParseException, ex:
             ex.http_error = errors.NotXMLFragmentError(comment=str(ex))
             raise
         except Exception, ex:
