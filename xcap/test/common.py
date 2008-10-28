@@ -310,7 +310,10 @@ def process_options(options):
         XCAPTest.new_client = lambda self: xcapclientwrap.make_client(self.options)
     else:
         if options.client == 'eventlet':
-            enable_eventlet()
+            def new_client(self):
+                enable_eventlet()
+                return xcapclient.make_xcapclient(self.options)
+            XCAPTest.new_client = new_client
         else:
             assert options.client == 'xcaplib', `options.client`
     if options.start_server is not None:
