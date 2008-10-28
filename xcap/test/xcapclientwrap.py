@@ -1,3 +1,4 @@
+import os
 import re
 from subprocess import Popen, PIPE
 from xcaplib.httpclient import HTTPResponse
@@ -55,7 +56,7 @@ class XCAPClient(object):
 
     def _run(self, params, input=None):
         params = [self.XCAPCLIENT] + params
-        p = Popen(params, stdin=input and PIPE, stdout=PIPE, stderr=PIPE)
+        p = Popen(params, stdin=input and PIPE, stdout=PIPE, stderr=PIPE, env=os.environ)
         (stdout, stderr) = p.communicate(input=input)
         if DEBUG:
             print '\n______________'
