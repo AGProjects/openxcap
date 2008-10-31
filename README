@@ -5,7 +5,41 @@ OpenXCAP
 Copyright (c) 2007-2008 AG Projects 
 http://ag-projects.com
 
-Authors: Mircea Amarascu, Lucian Stanescu, Denis Bilenko
+Authors: 
+
+* Adrian Georgescu
+* Dan Pascu
+* Denis Bilenko
+* Lucian Stanescu
+* Mircea Amarascu
+* Ruud Klaver
+
+
+Description
+-----------
+
+OpenXCAP is an open source fully featured XCAP server. An XCAP server is
+used by SIP SIMPLE clients and servers to manage buddy lists and policy for
+subscriptions to presence or other types of events published using SIP
+protocol.
+
+XCAP protocol allows a client to read, write, and modify application
+configuration data stored in XML format on a server. XCAP maps XML document
+sub-trees and element attributes to HTTP URIs, so that these components can
+be directly accessed by HTTP. An XCAP server is used by the XCAP clients to
+store data like Presence policy in combination with a SIP Presence server
+that supports PUBLISH/SUBSCRIBE/NOTIFY methods to provide a complete SIP
+SIMPLE (http://www.tech-invite.com/Ti-sip-IDs-SIMPLE.html) server solution.
+
+The server is written in Python programming language and is based on the
+following RFCs:
+
+    - The Extensible Markup Language Configuration Access Protocol (RFC 4825)
+    - Formats for Representing Resource Lists (RFC 4826)
+    - Usage for Manipulating Presence Document Contents (RFC 4827)
+    - Presence Authorization Rules (draft-ietf-simple-presence-rules-10)
+    - XCAP-diff (draft-ietf-simple-xcap-diff-09.txt)
+    - xcap-caps (displays capabilities of the xcap server)
 
 
 License
@@ -15,42 +49,6 @@ This software is licensed according to the GNU General Public License
 version 2. See LICENSE file for more details.
 
 For other licensing options please contact sales-request@ag-projects.com
-
-
-Project description
--------------------
-
-XCAP protocol allows a client to read, write, and modify application
-configuration data stored in XML format on a server. XCAP maps XML document
-sub-trees and element attributes to HTTP URIs, so that these components can
-be directly accessed by HTTP. An XCAP server is used by the XCAP clients to
-store data like Presence policy in combination with a SIP Presence server
-that supports PUBLISH/SUBSCRIBE/NOTIFY methods to provide a complete
-[http://www.tech-invite.com/Ti-sip-WGs.html#wg-simple SIP SIMPLE] server
-solution.
-
-The XCAP server is used as a policy decision maker by the SIP Presence
-server to manage the subscriptions and notifications of presence information
-based on end-user controlled preferences. The XCAP server can also be used
-to publish to SIP devices information retrieved from external sources and
-using different APIs acting like a bridge between real-time communications
-based on SIP protocol and other web technologies like SOAP/XML.
-
-OpenXCAP is an open source, easy extensible, fully featured XCAP server with
-TLS security and support for multiple realms. The server is written in
-Python programming language and is based on the following RFCs:
-
-    - The Extensible Markup Language Configuration Access Protocol (RFC 4825)
-
-    - Formats for Representing Resource Lists (RFC 4826)
-
-    - Usage for Manipulating Presence Document Contents (RFC 4827)
-
-    - Presence Authorization Rules (draft-ietf-simple-presence-rules-10)
-
-    - XCAP-diff (draft-ietf-simple-xcap-diff-09.txt)
-
-    - xcap-caps (displays capabilities of the xcap server)
 
 
 Features
@@ -149,17 +147,18 @@ XCAP clients
 No server is useful without clients supporting their features. Here is list
 with XCAP clients known to be working with OpenXCAP:
 
-    - XCAP client from http://download.ag-projects.com/OpenXCAP/clients/
+    - OpenSIPS http://opensips.org
 
-    - XCAP client
-      http://download.ag-projects.com/OpenXCAP/clients
+    - XCAP client http://download.ag-projects.com/OpenXCAP/clients
+
+    - SIP SIMPLE client http://pypjua.org
 
     - soap-simple-proxy. This client allows publication of arbitrary
       information and policy management using an easy to use SOAP/XML
-      interface
+      interface:
       http://download.ag-projects.com/OpenXCAP/clients
 
-    - OpenSER from http://openser.org
+For an up to date list of supported clients see http://openxcap.org
 
 
 Free support
