@@ -2,42 +2,57 @@
 High priority
 -------------
 
-- Log all server and basic access messages to syslog, keep verbose logging (headers,bodies) in
-  /var/log/openxcap/
-- Log the whole HTTP URI as sent by the client
-- Check validity of service-uris and SIP URIs in service element of
-  rls-services documents
-- Add server configuration option to allow/deny insertion of external http
-  references in rls-services documents. RLS services document should contain
-  by default only individual sip uri entries. Allowing end-users to insert
-  external references into the system provides and easy back-doors for
-  mistakes or denial of service attacks.
-- Validation after put/delete attribute
+1. Log all server and basic access messages to syslog and keep verbose
+   logging (headers,bodies) in var/log/openxcap/
+
+2. Log the whole HTTP URI as seen by the client
+
+3. Add a server configuration option called safe_rls_documents default true
+   to check the sanity of RLS documents. To avoid loops and prevent dos
+   attacks, RLS documents uploaded by end-users must obbey these rules:
+
+   a) the service-uri must be formated as: sip:listname-buddies@domain.com
+   b) the one elements must not point to another service-uri
+   c) External references to resource-lists or other http URIs are not allowed
+   d) RLS services document must contain only individual sip uri entries
+
+4. Validation after put/delete attribute
+
+5. Add SIP client support to OpenXCAP to send PUBLISH for xcap-diff event. 
+   Modify OpenSIPS to perform refreshWatchers() when the PUBLISH is received.
 
 
 Low priority
 ------------
 
-- change OpenSER to OpenSIPS
-- Add xcap-directory application to list the documents for a given user
-- Allow port in root= settings, thus making port= parameter unnecessary.
-  Make sure that when listening on non-default port valid URIs are logged (see prev. issue)
-  Inside, always use xcap root with port (if non-default), i.e. put port in logs, xcap-diff docs
-- change default port for https:// to 443 (currently is 8000). Keep the default port for http://
-  8000 for backward compatibility.
-- Test suite: validate after each GET, test well-formedness of the received elements.
-- Finish global/users: test that all possible combinations (global/users GET/PUT/DELETE each app)
-  return reasonable error
-  - global + digest auth = not implemented
-- URIs in att_value. Should differently encoded be considered equal?
-  Note, that there're 2 encodings: percent-encoding, and xml attribute encoding (i.e. &quot; and friends)
-  Resource Lists RFC features example document with http URI that has percent-encoding in it.
-  Does that mean that to match against it, percents in the URI should be themselves percent-encoded?
-  Or XCAP server should use its knowledge about the app and figure out that URIs are equivalent.
-  This may be unreliable if it's unknown whether this URI was percent-encoded or not. Why
-  that URI was percent encoded in the first place, why not paste it in the documents as it is, using
-  XML escaping where necessary.
-  Make few simple xpath expressions that include that URI as att_value and post it SIMPLE mailing list.
-- Errors from twisted are text/html and from xcap are text/plain: use one (text/plain?)
+1. Add xcap-directory application to list the documents for a given user
+
+2. Allow port in root= settings, thus making port= parameter unnecessary.
+   Make sure that when listening on non-default port valid URIs are logged (see prev. issue)
+   Inside, always use xcap root with port (if non-default), i.e. put port in logs, xcap-diff docs
+
+3. Change default port for https:// to 443 (currently is 8000). Keep the
+   default port for http:// 8000 for backward compatibility.
+
+4. Test suite: validate after each GET, test well-formedness of the received
+   elements.
+
+5. Finish global/users: test that all possible combinations (global/users
+   GET/PUT/DELETE each app) return reasonable error
+
+6. global + digest auth = not implemented
+
+7. URIs in att_value. Should differently encoded be considered equal?
+   Note, that there're 2 encodings: percent-encoding, and xml attribute encoding (i.e. &quot; and friends)
+   Resource Lists RFC features example document with http URI that has percent-encoding in it.
+   Does that mean that to match against it, percents in the URI should be themselves percent-encoded?
+   Or XCAP server should use its knowledge about the app and figure out that URIs are equivalent.
+   This may be unreliable if it's unknown whether this URI was percent-encoded or not. Why
+   that URI was percent encoded in the first place, why not paste it in the documents as it is, using
+   XML escaping where necessary.
+   Make few simple xpath expressions that include that URI as att_value and post it SIMPLE mailing list.
+
+8. Errors from twisted are text/html and from xcap are text/plain: use one
+   (text/plain?)
 
 
