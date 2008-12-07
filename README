@@ -75,10 +75,10 @@ Supported XCAP applications
     application usage defines how XCAP is used to manipulate the contents of
     PIDF based presence documents.
 
-    - Presence Rules (auid = presence-rules). A Presence Rules application
-    is an application which uses authorization policies, also known as
-    authorization rules, to specify what presence information can be given
-    to which watchers, and when.
+    - Presence Rules (auid = pres-rules, org.openmobilealliance.pres-rules).
+    A Presence Rules application is an application which uses authorization
+    policies, also known as authorization rules, to specify what presence
+    information can be given to which watchers, and when.
 
     - Watchers (auid = watchers). This this a custom application that queries
     the sip proxy database for a list of presence watchers and their status.
