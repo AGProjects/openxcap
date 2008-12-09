@@ -485,11 +485,11 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
         self._not_implemented('users')
 
 
-class WatchersApplication(ResourceListsApplication):
+class WatchersApplication(ResourceListsApplication): # QQQ why does it inherit from ResourceLists?
     id = "watchers"
     default_ns = "http://openxcap.org/ns/watchers"
     mime_type= "application/xml"
-    schema_file = 'watchers.xsd'
+    schema_file = 'watchers.xsd' # who needs schema for readonly application?
 
     def _watchers_to_xml(self, watchers, uri, check_etag):
         root = etree.Element("watchers", nsmap={None: self.default_ns})
