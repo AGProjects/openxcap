@@ -177,9 +177,14 @@ class ElementLocator(ContentHandlerBase):
             self.skiplevel = 1
             return
 
-        if curstep.position is not None and curstep.position != parent.position:
-            self.skiplevel = 1
-            return
+        if parent is None:
+            if curstep.position not in [None, 1]:
+                self.skiplevel = 1
+                return
+        else:
+            if curstep.position is not None and curstep.position != parent.position:
+                self.skiplevel = 1
+                return
 
         if curstep.att_name is not None and attrs.get(curstep.att_name)!=curstep.att_value:
             self.skiplevel = 1
@@ -616,7 +621,12 @@ class _test:
             check(ezra, '/labels/*[4][@added="2003-06-10"]/name')
 
             check(uri.NodeParsingError, '')
-            check(cls.source1.split('\n', 1)[1].rstrip('\n'), '/labels')
+            labels = cls.source1.split('\n', 1)[1].rstrip('\n')
+            check(labels, '/labels')
+            check(labels, '/*')
+            check(None, '/*[0]')
+            check(None, '/*[2]')
+            check(labels, '/*[1]')
 
             check(yesterday, '/labels/label[@added="yesterday"]')
             check(yesterday, '/labels/label[3]')
