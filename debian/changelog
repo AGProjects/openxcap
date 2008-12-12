@@ -1,3 +1,9 @@
+openxcap (1.0.7) unstable; urgency=low
+
+  * Updated sipthor interface for SIPThor 1.0.1
+
+ -- Lucian Stanescu <luci@ag-projects.com>  Fri, 12 Dec 2008 09:38:35 +0000
+
 openxcap (1.0.6) unstable; urgency=low
 
   * fixed: namespace bindings in the request weren't parsed correctly

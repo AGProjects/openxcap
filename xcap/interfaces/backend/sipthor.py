@@ -20,18 +20,20 @@ from sqlobject import MultipleJoin, ForeignKey
 
 from zope.interface import implements
 from twisted.internet import reactor
+from twisted.internet import defer
 from twisted.internet.defer import Deferred, maybeDeferred
 from twisted.cred.checkers import ICredentialsChecker
 from twisted.cred.credentials import IUsernamePassword, IUsernameHashedPassword
 from twisted.cred.error import UnauthorizedLogin
 
-from thor.control import ControlLink, Notification, Request
+from thor.link import ControlLink, Notification, Request
 from thor.eventservice import EventServiceClient, ThorEvent
 from thor.entities import ThorEntitiesRoleMap, GenericThorEntity as ThorEntity
 
 from gnutls.interfaces.twisted import X509Credentials
 from gnutls.constants import COMP_DEFLATE, COMP_LZO, COMP_NULL
 
+from xcap import __version__
 from xcap.config import ConfigFile, ConfigSection
 from xcap.tls import Certificate, PrivateKey
 from xcap.interfaces.backend import StatusResponse
@@ -127,9 +129,18 @@ def sanitize_application_id(application_id):
     else:
         return application_id
 
-class GetOnlineDevices(Request):
+class ThorEntityAddress(str):
+    def __new__(cls, ip, control_port=None, version='unknown'):
+        instance = str.__new__(cls, ip)
+        instance.ip = ip
+        instance.version = version
+        instance.control_port = control_port
+        return instance
+
+
+class GetSIPWatchers(Request):
     def __new__(cls, account):
-        command = "get_watchers for %s" % account
+        command = "get sip_watchers for %s" % account
         instance = Request.__new__(cls, command)
         return instance
 
@@ -140,7 +151,7 @@ class XCAPProvisioning(EventServiceClient):
 
     def __init__(self):
         self._database = DatabaseConnection()
-        self.node = ThorEntity(default_host_ip, ['xcap_server'])
+        self.node = ThorEntity(default_host_ip, ['xcap_server'], version=__version__)
         self.networks = {}
         self.presence_message = ThorEvent('Thor.Presence', self.node.id)
         self.shutdown_message = ThorEvent('Thor.Leave', self.node.id)
@@ -173,13 +184,20 @@ class XCAPProvisioning(EventServiceClient):
     def notify(self, operation, entity_type, entity):
         node = self.lookup(entity)
         if node is not None:
-            self.control.send_request(Notification("notify %s %s %s" % (operation, entity_type, entity)), node)
+            if node.control_port is None:
+                log.error("Could not send notify because node %s has no control port" % node.ip)
+                return
+            self.control.send_request(Notification("notify %s %s %s" % (operation, entity_type, entity)), (node.ip, node.control_port))
 
     def get_watchers(self, key):
         node = self.lookup(key)
-        request = GetOnlineDevices(key)
+        if node is None:
+            return defer.fail("no nodes found when searching for key %s" % str(key))
+        if node.control_port is None:
+            return defer.fail("could not send notify because node %s has no control port" % node.ip)
+        request = GetSIPWatchers(key)
         request.deferred = Deferred()
-        self.control.send_request(request, node)
+        self.control.send_request(request, (node.ip, node.control_port))
         return request.deferred
 
     def handle_event(self, event):
@@ -199,12 +217,12 @@ class XCAPProvisioning(EventServiceClient):
                 network = networks[role] ## avoid setdefault here because it always evaluates the 2nd argument
             except KeyError:
                 from thor import network as thor_network
-                if role in ["thor_manager", "thor_monitor", "provisioning_server", "media_relay"]:
+                if role in ["thor_manager", "thor_monitor", "provisioning_server", "media_relay", "thor_database"]:
                     continue
                 else:
                     network = thor_network.new(ThorNetworkConfig.multiply)
                 networks[role] = network
-            new_nodes = set([node.ip for node in role_map.get(role, [])])
+            new_nodes = set([ThorEntityAddress(node.ip, getattr(node, 'control_port', None), getattr(node, 'version', 'unknown')) for node in role_map.get(role, [])])
             old_nodes = set(network.nodes)
             ## compute set differences
             added_nodes = new_nodes - old_nodes
@@ -212,7 +230,7 @@ class XCAPProvisioning(EventServiceClient):
             if removed_nodes:
                 for node in removed_nodes:
                     network.remove_node(node)
-                    self.control.discard_node(node)
+                    self.control.discard_link((node.ip, node.control_port))
                 plural = len(removed_nodes) != 1 and 's' or ''
                 log.msg("removed %s node%s: %s" % (role, plural, ', '.join(removed_nodes)))
             if added_nodes:
