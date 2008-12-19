@@ -7,14 +7,30 @@ High priority
 
 2. Log the whole HTTP URI as seen by the client
 
-3. Add a server configuration option called safe_rls_documents default true
-   to check the sanity of RLS documents. To avoid loops and prevent dos
-   attacks, RLS documents uploaded by end-users must obbey these rules:
+3. Add a server configuration option called 'check_rls_documents' to check
+   the sanity of the content of RLS documents. As these docuemnts are
+   expanded by the Presence agent is important that the end-user to not
+   provision unsafe data for the server.
+
+   if check_rls_documents is not defined or is 'none' do nothing
+
+   if check_rls_documents = 'safe' do the following checks
 
    a) the service-uri must be formated as: sip:listname-buddies@domain.com
-   b) the one elements must not point to another service-uri
+   b) the one elements must not point to another service-uri (do not contain -buddies@)
    c) External references to resource-lists or other http URIs are not allowed
-   d) RLS services document must contain only individual sip uri entries
+   d) The document must contain only individual sip uri entries user@domain
+
+   if check_rls_documents = 'OMA' do the following checks:
+
+   a) the service-uri must be formated as: sip:username@domain.com;pres-list=id
+   b) The service may contain only one <resource-list> element pointing
+      to an existing resource list document on the same server:
+      http://domain/xcap-root/resource-lists/users/sip:alice@domain/index/~~/resource-lists/list[@name="id"]
+   c) The XCAP root part of point b) must match the XCAP root used to access this
+      RLS services document 
+   d) The resource list named 'id' must exists
+    
 
 4. Validation after put/delete attribute
 
