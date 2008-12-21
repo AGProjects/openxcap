@@ -7,30 +7,35 @@ High priority
 
 2. Log the whole HTTP URI as seen by the client
 
-3. Add a server configuration option called 'check_rls_documents' to check
-   the sanity of the content of RLS documents. As these docuemnts are
-   expanded by the Presence agent is important that the end-user to not
-   provision unsafe data for the server.
+3. As XCAP rls documents are expanded by the Presence agent is important
+that the end-user to not provision unsafe data in the Presence server. This
+is to avoind pointing the server to external documents that might open the
+door for indirect Denial of Service attacks (the proxy will do HTTP request
+for every incomming SUBSCRIBE). An OpenXCAP server configuration option
+called 'check_rls_documents' should enable sanity checks for the content of
+RLS documents based as following rules:
 
-   if check_rls_documents is not defined or is 'none' do nothing
+The service-uri must be formated as: sip:username@domain.com;pres-list=id or sip:username@domain.com
 
-   if check_rls_documents = 'safe' do the following checks
+If a <resource-list> element exists:
 
-   a) the service-uri must be formated as: sip:listname-buddies@domain.com
-   b) the one elements must not point to another service-uri (do not contain -buddies@)
-   c) External references to resource-lists or other http URIs are not allowed
-   d) The document must contain only individual sip uri entries user@domain
+http://xcap.exmaple.com/xcap-root/resource-lists/users/sip:username@domain/index/~~/resource-lists/list[@name="id"]
 
-   if check_rls_documents = 'OMA' do the following checks:
+The XCAP root part of a resource list element must match the XCAP root used
+to access this rls-services document.
 
-   a) the service-uri must be formated as: sip:username@domain.com;pres-list=id
-   b) The service may contain only one <resource-list> element pointing
-      to an existing resource list document on the same server:
-      http://domain/xcap-root/resource-lists/users/sip:alice@domain/index/~~/resource-lists/list[@name="id"]
-   c) The XCAP root part of point b) must match the XCAP root used to access this
-      RLS services document 
-   d) The resource list named 'id' must exists
-    
+The SIP URI in the resource list URL must be the same with the username used
+for accessing the rls services document.
+
+If <resource-list> points to a resource list with name=id, this list must
+exist on the server.
+
+The Presence agent must combine the individual sip uri entries with the the
+list expanded from <resource-list> elements.
+If the Presence agent reads data directly from a database (like OpenSIPS
+does) it should not use HTTP get to fetch the document as the database is
+common for both rls-services and resource list documents are hosted on the
+same physical server.
 
 4. Validation after put/delete attribute
 
