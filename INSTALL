@@ -6,8 +6,8 @@ For Debian testing or unstable there is an official public repository
 provided by AG Projects. Install the AG Projects debian software signing
 key:
 
-wget http://download.ag-projects.com/agp-debian-gpg.key apt-key add
-agp-debian-gpg.key
+wget http://download.ag-projects.com/agp-debian-gpg.key 
+apt-key add agp-debian-gpg.key
 
 Add these lines in etc/apt/sources.list
 
@@ -33,12 +33,13 @@ install OpenXCAP:
  * Download the tarball from http://download.ag-projects.com.info/OpenXCAP/
  * Extract it using tar xzvf openxcap-version.tar.gz and change directory
    to the newly created openxcap directory
- * Run python setup.py install as root.[[BR]]
+ * Run python setup.py install as root
  * Copy the config.ini.sample file to /etc/openxcap/config.ini and edit it as needed.
  * Copy the startup script, debian/openxcap.init to /etc/init.d/openxcap,
    and start the service: /etc/init.d/openxcap start
 
-Prerequisites:
+Dependencies
+------------
 
  * LibXML (http://xmlsoft.org/downloads.html)
  * Python 2.5 or newer (www.python.org)
