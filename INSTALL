@@ -20,52 +20,52 @@ After that, run:
 apt-get update
 apt-get install openxcap python-xcaplib
 
-Following the same procedure you can install the xcap client and openser
+Following the same procedure you can install the xcap client and opensips
 integration packages using:
 
 apt-get install python-xcaplib
 apt-get install soap-simple-proxy
 apt-get install openser-mi-proxy
 
-
 For non Debian installations, you must perform the following steps to
 install OpenXCAP:
 
- - Download the tarball from http://download.ag-projects.com.info/OpenXCAP/
- - Extract it using tar -xzvf openxcap-version.tar.gz and change directory
+ * Download the tarball from http://download.ag-projects.com.info/OpenXCAP/
+ * Extract it using tar xzvf openxcap-version.tar.gz and change directory
    to the newly created openxcap directory
- - Run python setup.py install as root.[[BR]]
- - Copy the config.ini.sample file to /etc/openxcap/config.ini and edit it as needed.
- - Copy the startup script, debian/openxcap.init to /etc/init.d/openxcap,
+ * Run python setup.py install as root.[[BR]]
+ * Copy the config.ini.sample file to /etc/openxcap/config.ini and edit it as needed.
+ * Copy the startup script, debian/openxcap.init to /etc/init.d/openxcap,
    and start the service: /etc/init.d/openxcap start
 
 Prerequisites:
 
- - LibXML (http://xmlsoft.org/downloads.html)
- - Python 2.5 or newer (www.python.org)
- - Twisted framework (http://twistedmatrix.com) - Twisted Core, Twisted Web and Twisted Web 2
- - python-lxml (http://codespeak.net/lxml)
- - python-application
- - python-xml (_xmlplus package provided by pyxml library)
- - python-mysqldb
+ * LibXML (http://xmlsoft.org/downloads.html)
+ * Python 2.5 or newer (www.python.org)
+ * Twisted framework (http://twistedmatrix.com) 
+ * Twisted Core, Twisted Web and Twisted Web 2
+ * python-lxml (http://codespeak.net/lxml)
+ * python-application
+ * python-xml (_xmlplus package provided by pyxml library)
+ * python-mysqldb
 
 To enable TLS support:
 
- - GnuTLS library (http://www.gnu.org/software/gnutls)
- - python-gnutls (http://pypi.python.org/pypi/python-gnutls)
+ * GnuTLS library (http://www.gnu.org/software/gnutls)
+ * python-gnutls (http://pypi.python.org/pypi/python-gnutls)
 
 OpenXCAP has been tested on Debian unstable with the following versions:
 
- - libxml2: 2.6.32.dfsg-2
- - python: 2.5.2-1
- - python-application: 1.0.9-4
- - python-gnutls: 1.1.5-2
- - python-lxml: 2.0.5-1
- - python-sqlobject: 0.10.1-1
- - python-twisted-core: 8.0.1-1
- - python-twisted-web: 8.0.0-1
- - python-twisted-web2: 8.0.1-1
- - python-zopeinterface: 3.3.1-6
+ * libxml2: 2.6.32.dfsg-2
+ * python: 2.5.2-1
+ * python-application: 1.0.9-4
+ * python-gnutls: 1.1.5-2
+ * python-lxml: 2.0.5-1
+ * python-sqlobject: 0.10.1-1
+ * python-twisted-core: 8.0.1-1
+ * python-twisted-web: 8.0.0-1
+ * python-twisted-web2: 8.0.1-1
+ * python-zopeinterface: 3.3.1-6
 
 
 Test suite
@@ -145,7 +145,6 @@ defined in test_something.py
 
 Testing with xcapclient
 -----------------------
-
 
 A command line client is available in the same download repository of
 OpenXCAP server. The client can be used to manipulate full or partial XML
