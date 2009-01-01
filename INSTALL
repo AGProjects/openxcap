@@ -2,9 +2,8 @@
 Installation
 ------------
 
-For Debian testing or unstable there is an official public repository
-provided by AG Projects. Install the AG Projects debian software signing
-key:
+Binary packages are available for Debian or Ubuntu on i386 and amd64
+architectures. To install add the following lines to /etc/apt/sources.list:
 
 wget http://download.ag-projects.com/agp-debian-gpg.key 
 apt-key add agp-debian-gpg.key
@@ -15,31 +14,30 @@ Add these lines in etc/apt/sources.list
 deb http://ag-projects.com/debian unstable main
 deb-src http://ag-projects.com/debian unstable main
 
-After that, run:
+To install the software on the XCAP server machine:
 
 apt-get update
-apt-get install openxcap python-xcaplib
+apt-get install openxcap soap-simple-proxy
 
-Following the same procedure you can install the xcap client and opensips
-integration packages using:
+To install the software on the SIP Proxy machine:
 
-apt-get install python-xcaplib
-apt-get install soap-simple-proxy
+apt-get update
 apt-get install openser-mi-proxy
 
-For non Debian installations, you must perform the following steps to
-install OpenXCAP:
+To install the client library:
 
- * Download the tarball from http://download.ag-projects.com.info/OpenXCAP/
- * Extract it using tar xzvf openxcap-version.tar.gz and change directory
-   to the newly created openxcap directory
- * Run python setup.py install as root
- * Copy the config.ini.sample file to /etc/openxcap/config.ini and edit it as needed.
- * Copy the startup script, debian/openxcap.init to /etc/init.d/openxcap,
-   and start the service: /etc/init.d/openxcap start
+apt-get update
+apt-get install python-xcaplib
 
-Dependencies
-------------
+For non Debian installations you must perform the following steps:
+
+ * Download and install dependencies
+ * Download and install OpenXCAP
+
+Download and install dependencies
+---------------------------------
+
+The software has the following dependencies:
 
  * LibXML (http://xmlsoft.org/downloads.html)
  * Python 2.5 or newer (www.python.org)
@@ -67,6 +65,51 @@ OpenXCAP has been tested on Debian unstable with the following versions:
  * python-twisted-web: 8.0.0-1
  * python-twisted-web2: 8.0.1-1
  * python-zopeinterface: 3.3.1-6
+
+
+Download and install OpenXCAP
+-----------------------------
+
+The software can be downloaded as a tar archive from:
+
+http://download.ag-projects.com/OpenXCAP/
+
+Extract it using tar xzvf openxcap-version.tar.gz and change directory to
+the newly created openxcap directory.
+
+The source code is managed using darcs version control tool. The darcs
+repository can be fetched with:
+
+darcs get http://devel.ag-projects.com/repositories/openxcap
+
+Other packages like python-xcaplib, soap-simple-proxy and openser-mi-proxy
+can be retrieved in the same way. 
+
+To obtain the incremental changes after the initial get:
+
+cd openxcap
+darcs pull -a
+
+Install the software:
+
+cd openxcap
+python setup.py install
+
+
+Configure the server
+--------------------
+
+Copy the config.ini.sample file to /etc/openxcap/config.ini and edit it as
+needed
+
+
+Running the server
+------------------
+
+Copy the startup script, debian/openxcap.init to /etc/init.d/openxcap and
+start the service: /etc/init.d/openxcap start
+
+The server logs its messages to syslog.
 
 
 Test suite
