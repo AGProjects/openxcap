@@ -2,6 +2,24 @@
 Installation
 ------------
 
+This documentation is split in multiple sections that deal with the
+installation and configuration of several components:
+
+* OpenXCAP, the XCAP server itself
+* openser-mi-proxy, an optional component that replaces OpenSIPS xml-rpc
+  module that exhibits stability problems, is required to issue the
+  refreshWatchers command in OpenSIPS when the the policy stored in the
+  pres-rules XCAP document for a given presentity has been changed. The
+  proxy has also more features like being able to listen on a custom IP
+  address and provides an access list for the clients allowed to connect
+* soap-simple-proxy, an optional component that can access XCAP documents
+using SOAP/XML requests, it can be used to build a web page to perform XCAP
+requests for pres-rules and pidf-manipulation documents
+
+
+Debian or Ubuntu Linux
+----------------------
+
 Binary packages are available for Debian or Ubuntu on i386 and amd64
 architectures. To install add the following lines to /etc/apt/sources.list:
 
@@ -29,15 +47,20 @@ To install the client library:
 apt-get update
 apt-get install python-xcaplib
 
-For non Debian installations you must perform the following steps:
 
- * Download and install dependencies
- * Download and install OpenXCAP
+Other Linux OS
+--------------
 
-Download and install dependencies
----------------------------------
+You must perform the following steps:
 
-The software has the following dependencies:
+a. Download and install OpenXCAP
+b. Download and install openser-mi-proxy (optional)
+c. Download and install soap-simple-proxy (optional
+
+a. Download and install OpenXCAP
+
+The software has the following dependencies, which you must install on your
+operating system:
 
  * LibXML (http://xmlsoft.org/downloads.html)
  * Python 2.5 or newer (www.python.org)
@@ -66,16 +89,53 @@ OpenXCAP has been tested on Debian unstable with the following versions:
  * python-twisted-web2: 8.0.1-1
  * python-zopeinterface: 3.3.1-6
 
-
-Download and install OpenXCAP
------------------------------
-
-The software can be downloaded as a tar archive from:
+OpenXCAP can be downloaded as a tar archive from:
 
 http://download.ag-projects.com/OpenXCAP/
 
 Extract it using tar xzvf openxcap-version.tar.gz and change directory to
 the newly created openxcap directory.
+
+Install the software:
+
+cd openxcap
+python setup.py install
+
+Download and install openser-mi-proxy
+
+The software has the following dependencies, which you must install on your
+operating system:
+
+ * Python 2.4 or newer (http://www.python.org)
+ * Twisted framework (http://twistedmatrix.com)
+ * Twisted Core, Twisted Web and Twisted Web 2 (http://twistedmatrix.com)
+ * The software can be downloaded as a tar archive from:
+
+http://download.ag-projects.com/OpenXCAP/openser_integration
+
+Extract it using tar xzvf openser-mi-proxy-version.tar.gz and change
+directory to the newly created openser-mi-proxy directory.
+
+Install the software:
+
+cd openser-mi-proxy
+python setup.py install
+
+Download and install soap-simple-proxy
+
+The software can be downloaded as a tar archive from:
+
+http://download.ag-projects.com/OpenXCAP/
+
+Extract it using tar xzvf soap-simple-proxy-version.tar.gz and change
+directory to the newly created soap-simple-proxy directory.
+
+Install the software:
+
+cd soap-simple-proxy
+python setup.py install
+
+Downloading from the version control repository
 
 The source code is managed using darcs version control tool. The darcs
 repository can be fetched with:
@@ -83,33 +143,315 @@ repository can be fetched with:
 darcs get http://devel.ag-projects.com/repositories/openxcap
 
 Other packages like python-xcaplib, soap-simple-proxy and openser-mi-proxy
-can be retrieved in the same way. 
+can be obtained in the same way.
 
 To obtain the incremental changes after the initial get:
 
 cd openxcap
 darcs pull -a
 
-Install the software:
 
-cd openxcap
-python setup.py install
+Configuration
+-------------
+
+Configure OpenXCAP server
+
+If you have installed the debian package copy etc/openxcap/config.ini.sample
+/to /etc/openxcap/config.ini. For other Linux copy config.ini.sample from
+the tar archive to the same directory. Edit /config.ini with your settings.
+
+Database setup
+
+Both OpenXCAP backends (Database and OpenSIPS) depend on a database engine to
+store service subscribers and XCAP resources. The database creation scripts
+are found in the scripts/ directory, and involve 2 tables: subscriber, which
+is used to authenticate XCAP requests, and xcap, where XCAP documents are
+stored. The subscriber table is a subset of the subscriber table from
+OpenSIPS, xcap table is the same as the one from OpenSIPS.
+
+Configure openser-mi-proxy
+
+If you have installed the debian package copy
+/etc/openser-mi-proxy/config.ini.sample to /etc/openser-mi-proxy/config.ini.
+
+For other Linux OS copy config.ini.sample from the tar archive to the same
+/directory. Edit config.ini with your settings.
+
+[OpenSIPS]
+socket = /var/run/opensips/socket
+
+[MIProxy]
+;listen_url = http://<defaultIPAddress>:8080
+;trusted = any
+For more information see the README and INSTALL files that come together
+with the tar archive.
+
+Configure soap-simple-proxy
+
+If you have installed the debian package copy
+/etc/soap-simple-proxy/config.ini.sample to
+/etc/soap-simple-proxy/config.ini. For other Linux OS copy config.ini.sample
+/from the tar archive to the same directory. Edit config.ini with your
+/settings.
+
+[SOAP Server]
+address = 0.0.0.0
+port = 9300
+log_requests = Yes
+
+[WSDL]
+public_service_url = https://example.com/soap-simple-proxy/
+internal_service_url = http://private-address:9200/
+
+[XCAP]
+root_uri = http://xcap.example.com/xcap-root
+For more information see the README and INSTALL files that come together
+with the tar archive.
+
+Configure OpenSIPS
+
+The following sample configuration example enables OpenSIPS to act like a
+dedicated SIP Presence server that accepts messages from a trusted SIP Proxy
+with XCAP authorization enabled using OpenXCAP as policy server. The SIP
+Proxies defined as trusted peers must be configured to authenticate and
+authorize the PUBLISH and SUBSCRIBE methods.
+
+Is advisable to consult http://opensips.org web site, documentation section
+for the up to date configuration and settings.
+
+###################################
+listen       = 10.0.0.1:5060
+# --- module loading ---
+mpath = "/usr/lib/opensips/modules"
+loadmodule "mi_fifo.so"
+loadmodule "mi_datagram.so"
+loadmodule "mysql.so"
+loadmodule "sl.so"
+loadmodule "maxfwd.so"
+loadmodule "tm.so"
+loadmodule "rr.so"
+loadmodule "xlog.so"
+loadmodule "presence.so"
+loadmodule "presence_xml.so"
+loadmodule "presence_mwi.so"
+loadmodule "presence_xcapdiff.so"
+loadmodule "pua.so"
+loadmodule "pua_mi.so"
+loadmodule "rls.so"
+
+# ----------------- setting module-specific parameters ---------------
+
+# -- rr params --
+# add value to ;lr param to make some broken UAs happy
+modparam("rr", "enable_full_lr", 1)
+
+modparam("mi_datagram", "socket_name",       "/var/run/opensips/socket")
+modparam("mi_datagram", "unix_socket_user",  "opensips")
+modparam("mi_datagram", "unix_socket_group", "opensips")
+
+modparam("mi_fifo", "fifo_name", "/var/run/opensips/fifo")
+modparam("mi_fifo", "fifo_user",  "opensips")
+modparam("mi_fifo", "fifo_group", "opensips")
+
+# -- presence params --
+modparam("presence", "db_url", "mysql://opensips:password@db/opensips")
+modparam("presence", "server_address", "sip:presence@10.0.0.1")
+modparam("presence", "fallback2db", 1)
+modparam("presence", "clean_period",  30)
+
+# -- xcap params --
+modparam("presence_xml", "db_url", "mysql://opensips:password@db/opensips")
+modparam("presence_xml", "force_active", 0)
+modparam("presence_xml", "pidf_manipulation", 1)
+modparam("presence_xml", "integrated_xcap_server", 1)
+
+# -- rls params --
+
+modparam("rls", "db_url", "mysql://opensips:password@db/opensips")
+modparam("rls", "server_address",         "sip:rls@10.0.0.1")
+modparam("rls", "to_presence_code", 5)
+modparam("rls", "integrated_xcap_server", 1)
 
 
-Configure the server
---------------------
+# -------------------------  request routing logic -------------------
+ 
+# main routing logic
+ 
+route {
+    xlog("L_INFO", "----- Start routing");
 
-Copy the config.ini.sample file to /etc/openxcap/config.ini and edit it as
-needed
+    if ((method=="PUBLISH" || method=="SUBSCRIBE" || method=="NOTIFY")) {
+        xlog("L_INFO", "Presence event: $hdr(Event)\n");
+    }
+
+    if(is_method("PUBLISH")) {
+        if ((src_ip==10.0.0.1 && src_port==5060)) {  
+            sl_send_reply("404", "Domain not served here");
+            return;
+        }
+        if (is_from_local()) {
+            if (avp_check("$hdr(Event)", "fm/presence*/i") && ($au != $rU || $ar != $rd)) {
+                xlog("L_WARN", "Account $au@$ar tried to publish $hdr(Event) event for $ru\n");
+                sl_send_reply("403", "Publishing $hdr(Event) events for others is forbidden");
+               return; 
+            }
+       } else {
+            sl_send_reply("403", "PUBLISH forbidden for outside domains");
+            return;
+        }
+
+        if (t_newtran()) {  
+            handle_publish();
+            t_release();
+        } else {
+            sl_reply_error();
+        }
+        exit;
+    } else if( is_method("NOTIFY"))
+        if (has_totag()) {
+            if (!loose_route()) {
+                if (!t_newtran()) {
+                    sl_reply_error();
+                    exit;
+                }
+                rls_handle_notify();
+                switch ($retcode) {
+                case 1:
+                    # Notify processed by rls
+                    xlog("L_INFO", "$rm processed by RLS\n");
+                    t_release();
+                    exit;
+                    break;
+                case -1:
+                    # Error
+                    xlog("L_INFO", "$rm processed by RLS but has error\n");
+                    t_reply("500", "Server error while processing RLS NOTIFY");
+                    exit;
+                    break;
+                default:
+                    if (uri == "sip:rls@10.0.0.1") {
+                        xlog("L_ERR", "$rm should be processed by RLS but was not recognized\n");
+                        xlog("L_INFO", "Dropping $rm because it will loop\n");
+                        t_reply("500", "Server error while processing RLS NOTIFY");
+                        exit;  
+                    } else {   
+                        xlog("L_INFO", "$rm handled by presence\n");
+                        t_release();
+                    }
+                }
+            }
+        } else {
+            # Out-of-dialog NOTIFY
+            sl_send_reply("405", "Method Not Allowed");
+            exit;
+        }
+
+    } else if( is_method("SUBSCRIBE")) {
+        if (!has_totag()) {
+            if (loose_route()) {
+                xlog("L_ERR", "Incorrectly formatted $rm request. Rejected.\n");
+                sl_send_reply("400", "Incorrectly formatted request");
+                return;
+            }
+
+            if ((src_ip==10.0.0.1 && src_port==5060) && is_present_hf("Record-Route")) {
+                sl_send_reply("404", "Domain not served here");
+                return;
+            }
+
+            if (is_from_local()) {
+                   if (!(src_ip==10.0.0.1 && src_port==5060)) {
+                       xlog("L_INFO", "Request came directly from the subscriber\n");
+                        setflag(18);
+                   }
+
+                    if ((avp_check("$hdr(Event)", "fm/*.winfo/i") || avp_check("$hdr(Event)", "eq/message-summary/i")) &&
+                        ($au != $rU || $ar != $rd)) {
+                        xlog("L_WARN", "Account $au@$ar tried to subscribe
+                        to $ru for $hdr(Event)\n");
+                        sl_send_reply("403", "Subscription to others
+                        $hdr(Event) is forbidden");
+                        return;
+                    }
+                }
+            }
+
+            # Internal presence handling
+            if (!t_newtran()) {
+                sl_reply_error();
+                exit;
+            }
+
+            rls_handle_subscribe();
+
+            switch ($retcode) {
+            case 5:
+                # RLS indicated that message should be processed by presence
+
+                if (is_uri_host_local()) {
+                    if (does_uri_exist()) {
+                        handle_subscribe();
+                        t_release();
+                    } else {   
+                        t_reply("404", "User not found");
+                    }
+                    exit;
+                }
+                break;
+            default:
+                t_release();   
+                exit;
+            }
+        } else {
+            # In-dialog SUBSCRIBE
+            if (uri=="sip:presence@10.0.0.1" || uri=="sip:rls@10.0.0.1" || !loose_route()) {
+                # Internal presence handling
+                if (t_newtran()) {
+                    rls_handle_subscribe();
+                    if ($retcode==5) {
+                        handle_subscribe();
+                    }
+                    t_release();
+                } else {
+                    sl_reply_error();
+                }
+                exit;
+            }
+        }
+    } else {
+        xlog("L_INFO", "Method $rm Not Acceptable Here");
+        sl_send_reply("488", "Not Acceptable Here");
+        exit;
+    };
+}
+###################################
 
 
 Running the server
 ------------------
 
-Copy the startup script, debian/openxcap.init to /etc/init.d/openxcap and
-start the service: /etc/init.d/openxcap start
+For non Debian systems copy openxcap, soap-simple-proxy and openser-mi-proxy
+startup scripts from their debian directory present in each tar file to
+/etc/init.d/ and edit them to match your system.
 
-The server logs its messages to syslog.
+Start OpenXCAP server:
+
+/etc/init.d/openxcap start
+Start openser-mi-proxy:
+
+/etc/init.d/openser-mi-proxy start
+Start soap-simple-proxy:
+
+/etc/init.d/soap-simple-proxy start
+
+OpenXCAP logs its messages to /var/log/openxcap/. All other servers log
+/their messages to the system syslog. Check the log files for any startup or
+runtime errors.
+
+Creating user accounts
+
+The user accounts are stored in OpenSIPS subscriber table. You can add
+subscribers by using your favorite OpenSIPS subscriber management tool.
 
 
 Test suite
