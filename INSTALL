@@ -6,15 +6,17 @@ This documentation is split in multiple sections that deal with the
 installation and configuration of several components:
 
 * OpenXCAP, the XCAP server itself
+
 * openser-mi-proxy, an optional component that replaces OpenSIPS xml-rpc
   module that exhibits stability problems, is required to issue the
   refreshWatchers command in OpenSIPS when the the policy stored in the
   pres-rules XCAP document for a given presentity has been changed. The
   proxy has also more features like being able to listen on a custom IP
   address and provides an access list for the clients allowed to connect
+
 * soap-simple-proxy, an optional component that can access XCAP documents
-using SOAP/XML requests, it can be used to build a web page to perform XCAP
-requests for pres-rules and pidf-manipulation documents
+  using SOAP/XML requests, it can be used to build a web page to perform XCAP
+  requests for pres-rules and pidf-manipulation documents
 
 
 Debian or Ubuntu Linux
