@@ -7,7 +7,7 @@ installation and configuration of several components:
 
 * OpenXCAP, the XCAP server itself
 
-* openser-mi-proxy, an optional component that replaces OpenSIPS xml-rpc
+* opensips-mi-proxy, an optional component that replaces OpenSIPS xml-rpc
   module that exhibits stability problems, is required to issue the
   refreshWatchers command in OpenSIPS when the the policy stored in the
   pres-rules XCAP document for a given presentity has been changed. The
@@ -42,7 +42,7 @@ apt-get install openxcap soap-simple-proxy
 To install the software on the SIP Proxy machine:
 
 apt-get update
-apt-get install openser-mi-proxy
+apt-get install opensips-mi-proxy
 
 To install the client library:
 
@@ -56,7 +56,7 @@ Other Linux OS
 You must perform the following steps:
 
 a. Download and install OpenXCAP
-b. Download and install openser-mi-proxy (optional)
+b. Download and install opensips-mi-proxy (optional)
 c. Download and install soap-simple-proxy (optional
 
 a. Download and install OpenXCAP
@@ -103,7 +103,7 @@ Install the software:
 cd openxcap
 python setup.py install
 
-Download and install openser-mi-proxy
+Download and install opensips-mi-proxy
 
 The software has the following dependencies, which you must install on your
 operating system:
@@ -113,14 +113,14 @@ operating system:
  * Twisted Core, Twisted Web and Twisted Web 2 (http://twistedmatrix.com)
  * The software can be downloaded as a tar archive from:
 
-http://download.ag-projects.com/OpenXCAP/openser_integration
+http://download.ag-projects.com/OpenXCAP/
 
-Extract it using tar xzvf openser-mi-proxy-version.tar.gz and change
-directory to the newly created openser-mi-proxy directory.
+Extract it using tar xzvf opensips-mi-proxy-version.tar.gz and change
+directory to the newly created opensips-mi-proxy directory.
 
 Install the software:
 
-cd openser-mi-proxy
+cd opensips-mi-proxy
 python setup.py install
 
 Download and install soap-simple-proxy
@@ -144,7 +144,7 @@ repository can be fetched with:
 
 darcs get http://devel.ag-projects.com/repositories/openxcap
 
-Other packages like python-xcaplib, soap-simple-proxy and openser-mi-proxy
+Other packages like python-xcaplib, soap-simple-proxy and opensips-mi-proxy
 can be obtained in the same way.
 
 To obtain the incremental changes after the initial get:
@@ -171,10 +171,10 @@ is used to authenticate XCAP requests, and xcap, where XCAP documents are
 stored. The subscriber table is a subset of the subscriber table from
 OpenSIPS, xcap table is the same as the one from OpenSIPS.
 
-Configure openser-mi-proxy
+Configure opensips-mi-proxy
 
 If you have installed the debian package copy
-/etc/openser-mi-proxy/config.ini.sample to /etc/openser-mi-proxy/config.ini.
+/etc/opensips-mi-proxy/config.ini.sample to /etc/opensips-mi-proxy/config.ini.
 
 For other Linux OS copy config.ini.sample from the tar archive to the same
 /directory. Edit config.ini with your settings.
@@ -432,16 +432,18 @@ route {
 Running the server
 ------------------
 
-For non Debian systems copy openxcap, soap-simple-proxy and openser-mi-proxy
+For non Debian systems copy openxcap, soap-simple-proxy and opensips-mi-proxy
 startup scripts from their debian directory present in each tar file to
 /etc/init.d/ and edit them to match your system.
 
 Start OpenXCAP server:
 
 /etc/init.d/openxcap start
-Start openser-mi-proxy:
 
-/etc/init.d/openser-mi-proxy start
+Start opensips-mi-proxy:
+
+/etc/init.d/opensips-mi-proxy start
+
 Start soap-simple-proxy:
 
 /etc/init.d/soap-simple-proxy start
