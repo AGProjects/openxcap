@@ -1,4 +1,4 @@
-openxcap (1.0.8) unstable; urgency=low
+openxcap (1.0.7) unstable; urgency=low
 
   * Replace openser-mi-proxy with opensips-mi-proxy
   * Better text indentation
@@ -36,12 +36,6 @@ openxcap (1.0.8) unstable; urgency=low
   * Fixed typo in the http error response
 
  -- Adrian Georgescu <ag@ag-projects.com>  Fri, 30 Jan 2009 10:59:44 +0100
-
-openxcap (1.0.7) unstable; urgency=low
-
-  * Updated sipthor interface for SIPThor 1.0.1
-
- -- Lucian Stanescu <luci@ag-projects.com>  Fri, 12 Dec 2008 09:38:35 +0000
 
 openxcap (1.0.6) unstable; urgency=low
 
