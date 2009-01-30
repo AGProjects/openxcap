@@ -495,5 +495,13 @@ class XCAPUri(object):
         return self.xcap_root + self.resource_selector
 
 if __name__=='__main__':
-    import doctest
-    doctest.testmod()
+    from xcap import __version__
+    print __file__, __version__
+    import sys
+    if not sys.argv[1:]:
+        import doctest
+        doctest.testmod()
+    elif sys.argv[1]=='node':
+        for uri in sys.argv[2:]:
+            print '%r: %s' % (uri, parse_node_selector(uri))
+
