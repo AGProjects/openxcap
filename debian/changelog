@@ -1,39 +1,33 @@
 openxcap (1.0.7) unstable; urgency=low
 
-  * Replace openser-mi-proxy with opensips-mi-proxy
-  * Better text indentation
-  * Sync INSTALL with the wiki
-  * Updated README and INSTALL docs
-  * Updated sipthor interface for SIPThor 1.0.1
   * Use pysupport instead of pycentral for debian packaging
-  * Removed ./debian/openxcap.postinst (seems like auto generated and unnecessary)
-  * More tests for /*[1] case
-  * Fix for AttributeError for node selectors of type /*[1]
+  * Fixed parsing node selectors of type /*[1] and added tests for this case
+  * Fixed "unbound prefix" bug and added a test case. A new function is added
+    that checks well-formedness of the elements.
+  * Only import gnutls when TLS is used
+  * Fixed "watchers" application to generate and insert ETag header in the
+    response
+  * Added test for "watchers" application (test_watchers.py)
+  * Removed ./debian/openxcap.postinst
+  * Updated sipthor interface for SIPThor 1.0.1
+  * Replace openser-mi-proxy with opensips-mi-proxy in documentation
+  * Improved INSTALL and synced it with the wiki
+  * Updated README and TODO
   * Corrected name of pres-rules auid
-  * Test system: enable eventlet after the server was started (otherwise it may not select the right hub)
-  * xcapclientwrap.py: inherit PYTHONPATH from the parent process
-  * Added to do to rename OpenSER to OpenSIPS in source code and documentation
-  * Fix for "global name 'reactor' is not defined" when starting tls
-  * Added test for check_xml_fragment
-  * Use element.check_xml_fragment instead of lxml parser. this solves "unbound prefix" issue
-  * Added check_xml_fragment function: check that element is well-formed
-  * Only import gnutls when necessary
-  * Added simple config for --start-server
-  * Test_errors.py: removed "import *"
+  * Test system: updated to use python-xcaplib 1.0.8
+  * Test system: added -r, --repeat option
+  * Test system: added support for "--client eventlet"
+  * Test system: added support for "--start-server config_file"
+  * Test system: fixed to use original options for each test
   * Test system: added support for starting and using in-process server
-  * Added -r, --repeat option
-  * Added support for "--client eventlet"
-  * Added support for "--start-server config_file"
-  * Use original options for each test
-  * Test_etags.py: killed whitespace and added an assert
-  * Added test_watchers.py
+    (requires eventlet)
   * Test system: added undocumented '--client xcapclient' option. It makes
     test system to use xcapclient tool instead of xcaplib package. This is
     only useful for testing xcapclient.
-  * Test system: updated to use python-xcaplib 1.0.8
-  * Generate ETag headers for watchers application
   * More detailed report for test_auth.py
   * Fixed typo in the http error response
+  * Made xcap.uri module accept parameter of uri to parse when run as script
+    (for simple troubleshooting)
 
  -- Adrian Georgescu <ag@ag-projects.com>  Fri, 30 Jan 2009 10:59:44 +0100
 
@@ -96,7 +90,7 @@ openxcap (1.0.0) unstable; urgency=high
 
   * Added RLS services (RFC 4662 and RFC 4826)
   * Added support for xcap-diff based on draft-ietf-simple-xcap-diff-09
-  * Added partial get/put/delete of elements in the XCAP documents 
+  * Added partial get/put/delete of elements in the XCAP documents
   * Added test suite for rls-services, resource-lists and partial updates
   * Many bug fixes from field experiences
   * Development status from beta to production
