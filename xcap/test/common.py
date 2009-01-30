@@ -382,7 +382,6 @@ class InProcessServer:
         get_hub().switch()
 
 def enable_eventlet():
-    sys.path.append('../../../eventlet_twisted')
     from eventlet.green import urllib2, socket as greensocket, time as greentime
     from xcaplib import httpclient
     # replacing all the references to the old urllib2 in xcaplib:
