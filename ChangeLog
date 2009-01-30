@@ -1,3 +1,36 @@
+openxcap (1.0.7) unstable; urgency=low
+
+  * Use pysupport instead of pycentral for debian packaging
+  * Fixed parsing node selectors of type /*[1] and added tests for this case
+  * Fixed "unbound prefix" bug and added a test case. A new function is added
+    that checks well-formedness of the elements.
+  * Only import gnutls when TLS is used
+  * Fixed "watchers" application to generate and insert ETag header in the
+    response
+  * Added test for "watchers" application (test_watchers.py)
+  * Removed ./debian/openxcap.postinst
+  * Updated sipthor interface for SIPThor 1.0.1
+  * Replace openser-mi-proxy with opensips-mi-proxy in documentation
+  * Improved INSTALL and synced it with the wiki
+  * Updated README and TODO
+  * Corrected name of pres-rules auid
+  * Test system: updated to use python-xcaplib 1.0.8
+  * Test system: added -r, --repeat option
+  * Test system: added support for "--client eventlet"
+  * Test system: added support for "--start-server config_file"
+  * Test system: fixed to use original options for each test
+  * Test system: added support for starting and using in-process server
+    (requires eventlet)
+  * Test system: added undocumented '--client xcapclient' option. It makes
+    test system to use xcapclient tool instead of xcaplib package. This is
+    only useful for testing xcapclient.
+  * More detailed report for test_auth.py
+  * Fixed typo in the http error response
+  * Made xcap.uri module accept parameter of uri to parse when run as script
+    (for simple troubleshooting)
+
+ -- Adrian Georgescu <ag@ag-projects.com>  Fri, 30 Jan 2009 10:59:44 +0100
+
 openxcap (1.0.6) unstable; urgency=low
 
   * fixed: namespace bindings in the request weren't parsed correctly
@@ -57,7 +90,7 @@ openxcap (1.0.0) unstable; urgency=high
 
   * Added RLS services (RFC 4662 and RFC 4826)
   * Added support for xcap-diff based on draft-ietf-simple-xcap-diff-09
-  * Added partial get/put/delete of elements in the XCAP documents 
+  * Added partial get/put/delete of elements in the XCAP documents
   * Added test suite for rls-services, resource-lists and partial updates
   * Many bug fixes from field experiences
   * Development status from beta to production
