@@ -330,9 +330,9 @@ def run_command(command, options):
             try:
                 command()
             except Exception:
-                traceback.print_exc()
                 if n==0:
                     raise
+                traceback.print_exc()
     finally:
         options.server.stop()
 
