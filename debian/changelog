@@ -1,6 +1,7 @@
 openxcap (1.0.7) unstable; urgency=low
 
   * Use pysupport instead of pycentral for debian packaging
+  * Log errors to syslog unless log_error_to_file=yes in [Logging] section
   * Fixed parsing node selectors of type /*[1] and added tests for this case
   * Fixed "unbound prefix" bug and added a test case. A new function is added
     that checks well-formedness of the elements.
