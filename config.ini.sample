@@ -23,12 +23,12 @@ port = 443
 root = https://xcap.example.com/xcap-root
 
 ; The backend to be used for storage and authentication. Current supported
-; values are Database and OpenSER. OpenSER backend inherits all the settings
+; values are Database and OpenSIPS. OpenSIPS backend inherits all the settings
 ; from the Database backend but performs extra actions related to the
-; integration with OpenSER for which it read the settings from [OpenSER]
+; integration with OpenSIPS for which it read the settings from [OpenSIPS]
 ; section
 
-backend = OpenSER
+backend = OpenSIPS
 
 ; Validate XCAP documents against XML schemas
 document_validation = Yes
@@ -100,11 +100,11 @@ subscriber_table = subscriber
 xcap_table = xcap
 
 
-[OpenSER]
+[OpenSIPS]
 
 ; The address and port of the xml-rpc management interface
 xmlrpc_url = http://sip.example.com:8080
 
-; Publish xcap-diff event via OpenSER management interface 
+; Publish xcap-diff event via OpenSIPS management interface 
 ; enable_publish_xcapdiff = yes
 

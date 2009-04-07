@@ -20,8 +20,8 @@ def make_etag(uri, document):
 
 def parseURI(uri):
     """
-    >>> parseURI('mysql://username:123@localhost/openser')
-    ('mysql', 'username', '123', 'localhost', None, '/openser', {})
+    >>> parseURI('mysql://username:123@localhost/opensips')
+    ('mysql', 'username', '123', 'localhost', None, '/opensips', {})
     >>> parseURI('sqlite:/:memory:')
     ('sqlite', None, None, None, None, ':memory:', {})
     >>> parseURI('sqlite:///full/path/to/database')

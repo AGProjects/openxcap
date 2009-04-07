@@ -3,7 +3,7 @@
 
 """Interface to the backend subsystem"""
 
-__all__ = ['database', 'openser']
+__all__ = ['database', 'opensips']
 
 from zope.interface import Interface
 

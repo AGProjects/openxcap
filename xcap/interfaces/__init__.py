@@ -3,4 +3,4 @@
 
 """Interfaces between OpenXCAP and other components in the system"""
 
-__all__ = ['openser']
+__all__ = ['opensips']

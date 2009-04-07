@@ -1,13 +1,13 @@
 # Copyright (C) 2007 AG-Projects.
 #
 
-"""Implementation of an OpenSER backend."""
+"""Implementation of an OpenSIPS backend."""
 
 from application import log
 
 from xcap.config import ConfigFile, ConfigSection
 from xcap.interfaces.backend import database
-from xcap.interfaces.openser import ManagementInterface
+from xcap.interfaces.opensips import ManagementInterface
 from xcap.xcapdiff import Notifier
 from xcap.root_uris import root_uris
 
@@ -17,7 +17,7 @@ class Config(ConfigSection):
 
 ## We use this to overwrite some of the settings above on a local basis if needed
 configuration = ConfigFile()
-configuration.read_settings('OpenSER', Config)
+configuration.read_settings('OpenSIPS', Config)
 
 class PlainPasswordChecker(database.PlainPasswordChecker): pass
 class HashPasswordChecker(database.HashPasswordChecker): pass
@@ -30,7 +30,7 @@ class BaseStorage(database.Storage):
 
     def _notify_watchers(self, response, user_id, type):
         def _eb_mi(f):
-            log.error("Error while notifying OpenSER management interface for user %s: %s" % (user_id, f.getErrorMessage()))
+            log.error("Error while notifying OpenSIPS management interface for user %s: %s" % (user_id, f.getErrorMessage()))
             return response
         d = self._mi.notify_watchers('%s@%s' % (user_id.username, user_id.domain), type)
         d.addCallback(lambda x: response)
@@ -41,7 +41,7 @@ class BaseStorage(database.Storage):
         application_id = uri.application_id
         d = self.conn.runInteraction(super(BaseStorage, self)._put_document, uri, document, check_etag)
         if application_id in ('pres-rules', 'org.openmobilealliance.pres-rules', 'pidf-manipulation'):
-            ## signal OpenSER of the modification through the management interface
+            ## signal OpenSIPS of the modification through the management interface
             if application_id == 'pidf-manipulation':
                 type = 1
             else:

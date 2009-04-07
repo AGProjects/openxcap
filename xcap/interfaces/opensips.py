@@ -1,7 +1,7 @@
 # Copyright (C) 2007 AG Projects.
 #
 
-"""The OpenSER Management Interface"""
+"""The OpenSIPS Management Interface"""
 
 from twisted.web import xmlrpc
 
@@ -57,7 +57,7 @@ class ManagementInterface(object):
         self._etags = {}
 
     def notify_watchers(self, id, type=0):
-        """Instruct OpenSER to NOTIFY all the watchers of this presentity.
+        """Instruct OpenSIPS to NOTIFY all the watchers of this presentity.
            @type can be 0 to signal presence rules changes, or 1 for static PIDF changes."""
         d = self.proxy.callRemote('refreshWatchers', 'sip:' + id, 'presence', type)
         return d
