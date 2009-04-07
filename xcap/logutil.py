@@ -99,14 +99,14 @@ class Logging(ConfigSection):
     log_error_to_file = False
 
     # each log message is followed by the headers of the request
-    log_request_headers = []
+    log_request_headers = [500]
 
-    log_request_body = []
+    log_request_body = [500]
 
-    log_response_headers = []
+    log_response_headers = [500]
 
     # each log message is followed by the body of the response sent to the client
-    log_response_body = []
+    log_response_body = [500]
 
     # each log message is followed by the stacktrace if there was underlying exception
     log_stacktrace = [500]

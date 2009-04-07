@@ -51,10 +51,10 @@ document_validation = Yes
 ; * log stack trace (if available) for any error
 ;log_stacktrace=any
 
-; * log responses sent to the client for 400 and 409 errors (default is none)
+; * log responses sent to the client for 400 and 409 errors (default is 500)
 ;log_response_body=400,409
 
-; * log headers sent by the client for 401 errors (default is none)
+; * log headers sent by the client for 401 errors (default is 500)
 ;log_request_headers=401
 
 
