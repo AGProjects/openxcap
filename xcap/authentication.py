@@ -62,6 +62,8 @@ def parseNodeURI(node_uri, default_realm):
         raise ResourceNotFound(WELCOME)
     r = XCAPUri(xcap_root, resource_selector, namespaces)
     if r.user.domain is None:
+        if default_realm is None:
+            raise ResourceNotFound('No default realm is defined (domain part of "username@domain" part of the URI)')
         r.user.domain = default_realm
     return r
 
