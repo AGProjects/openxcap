@@ -17,7 +17,9 @@ __all__ = [
 class ResourceNotFound(HTTPError):
     def __init__(self, msg=""):
         self.msg = msg
-        HTTPError.__init__(self, Response(404, stream=msg))
+        response = Response(404, stream=msg)
+        response.headers.setHeader("content-type", http_headers.MimeType("text", "plain"))
+        HTTPError.__init__(self, response)
 
     def __str__(self):
         return self.msg
