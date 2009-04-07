@@ -72,7 +72,7 @@ class ITrustedPeerCredentials(credentials.ICredentials):
         pass
 
 
-class TrustedPeerCredentials:
+class TrustedPeerCredentials(object):
     implements(ITrustedPeerCredentials)
 
     def __init__(self, peer):
@@ -83,7 +83,7 @@ class TrustedPeerCredentials:
 
 ## credentials checkers
 
-class TrustedPeerChecker:
+class TrustedPeerChecker(object):
 
     implements(checkers.ICredentialsChecker)
     credentialInterfaces = (ITrustedPeerCredentials,)

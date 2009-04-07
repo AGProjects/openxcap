@@ -40,7 +40,7 @@ def xml_document(sel, old_etag, new_etag):
     return '<document%s sel="%s"%s/>' % (new_etag, sel, old_etag)
 
 
-class UserChanges:
+class UserChanges(object):
 
     MIN_WAIT = 5
 
@@ -69,7 +69,7 @@ class UserChanges:
         return self.changes.__nonzero__()
 
 
-class Notifier:
+class Notifier(object):
 
     def __init__(self, xcap_root, publish_xcapdiff):
         self.publish_xcapdiff = publish_xcapdiff

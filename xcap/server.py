@@ -154,7 +154,7 @@ class XCAPSite(server.Site):
         return Request(site=self, *args, **kwargs)
 
 
-class XCAPServer:
+class XCAPServer(object):
 
     def __init__(self):
         portal = Portal(authentication.XCAPAuthRealm())

@@ -286,7 +286,7 @@ def log_error(request, response, reason):
         log.error(msg)
 
 
-class ApacheLogObserver:
+class ApacheLogObserver(object):
 
     params = {
         'rotateLength': 2*1024*1024,

@@ -344,7 +344,7 @@ def runSuiteFromModule(module='__main__'):
     run_command(lambda : run_suite(suite, options, args), options)
 
 
-class RemoteServer:
+class RemoteServer(object):
 
     def __init__(self, options):
         self.options = options
@@ -355,7 +355,7 @@ class RemoteServer:
     def stop(self):
         pass
 
-class InProcessServer:
+class InProcessServer(object):
 
     def __init__(self, options):
         parser = ConfigParser()

@@ -83,7 +83,7 @@ def check_xml_fragment(element_str):
     parser.setContentHandler(ThrowEventsAway())
     parser.parse(StringIO(element_str))
 
-class Step:
+class Step(object):
     # to be matched against uri.Step
 
     def __init__(self, name, position = 0):
@@ -445,7 +445,7 @@ def put(document, element_selector, element_str):
 # I have no idea what does that mean, but probably something to do with parser's state becoming invalid
 # under some circumstances.
 
-class _test:
+class _test(object):
 
     source1 = """<?xml version="1.0" encoding="iso-8859-1"?>
 <labels>
