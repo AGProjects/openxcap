@@ -40,7 +40,7 @@ except ImportError:
     except sax._exceptions.SAXNotSupportedException:
         # no miracle today, complain about the original error
         log.fatal("Package _xmlplus was not found on your system. Please install pyxml library")
-        # comment the following line out if you don't need element operations
+        # comment out the following line out if you don't need element operations
         sys.exit(1)
 
 class ThrowEventsAway(sax.ContentHandler):

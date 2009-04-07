@@ -2,7 +2,7 @@
 
 Create a Notifier object:
 
-  >>> n = Notifier(publish_xcapdiff)
+  >>> n = Notifier(xcap_root, publish_xcapdiff_func)
 
 When a change occurs, call on_change
 
@@ -11,7 +11,7 @@ When a change occurs, call on_change
 (old_etag being None means the document was just created, new_etag being
 None means the document was deleted)
 
-Notifier will call publish_xcapdiff with 2 args: user's uri and xcap-diff document.
+Notifier will call publish_xcapdiff_func with 2 args: user's uri and xcap-diff document.
 Number of calls is limited to no more than 1 call per MIN_WAIT seconds for
 a given user uri.
 
@@ -71,8 +71,8 @@ class UserChanges(object):
 
 class Notifier(object):
 
-    def __init__(self, xcap_root, publish_xcapdiff):
-        self.publish_xcapdiff = publish_xcapdiff
+    def __init__(self, xcap_root, publish_xcapdiff_func):
+        self.publish_xcapdiff = publish_xcapdiff_func
         self.xcap_root = xcap_root
 
         # maps user_uri to UserChanges
@@ -140,7 +140,9 @@ class RateLimitedFun(RateLimit):
 
 
 def limit_rate(min_wait):
-    """resulting value for the function will become None
+    """Decorator for limiting rate of the function.
+    The resulting value of the new function will be None regardless of
+    what the wrapped function returned.
 
     >>> @limit_rate(1)
     ... def f(a, start = time()):
