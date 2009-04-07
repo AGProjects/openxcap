@@ -1,3 +1,9 @@
+openxcap (1.1.0) unstable; urgency=low
+
+  * Renamed OpenSER to OpenSIPS 
+
+ -- Adrian Georgescu <ag@ag-projects.com>  Tue, 07 Apr 2009 23:47:25 +0200
+
 openxcap (1.0.7) unstable; urgency=low
 
   * Use pysupport instead of pycentral for debian packaging
