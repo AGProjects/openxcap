@@ -53,7 +53,7 @@ class NotifyingStorage(BaseStorage):
 
     def __init__(self):
         BaseStorage.__init__(self)
-        self.notifier = Notifier(root_uris[0], ManagementInterface().publish_xcapdiff)
+        self.notifier = Notifier(root_uris[0], self._mi.publish_xcapdiff)
 
     def put_document(self, uri, document, check_etag):
         d = super(NotifyingStorage, self).put_document(uri, document, check_etag)
