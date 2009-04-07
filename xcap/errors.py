@@ -37,7 +37,7 @@ class XCAPError(HTTPError):
             self.comment = '<!--\n' + str(comment).replace('-->', '--&gt;') + '\n-->'
         else:
             self.comment = ''
-        self.response = ErrorResponse(self.code, self.build_xml_output())
+        self.response = XMLErrorResponse(self.code, self.build_xml_output())
         HTTPError.__init__(self, self.response)
 
     def build_xml_output(self):
@@ -68,7 +68,7 @@ class XCAPError(HTTPError):
             return ''
 
 
-class ErrorResponse(Response):
+class XMLErrorResponse(Response):
     """
     A L{Response} object which simply contains a status code and a description of
     what happened.
