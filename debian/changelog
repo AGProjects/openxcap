@@ -1,8 +1,15 @@
 openxcap (1.1.0) unstable; urgency=low
 
   * Renamed OpenSER to OpenSIPS 
+  * reply with 404 if no realm is provided and no default realm is defined
+  * add Content-Type: text/plain to ResourceNotFound error
+  * xcap.errors: rename ErrorResponse in XMLErrorResponse
+  * minor fixes in comments and docstrings
+  * fix openxcap.org/ticket/85: Singleton was called with different arguments
+  * log all the information available for 500 errors by default
+  * debian/control: demand python-lxml of version at least 2.0.7-1
 
- -- Adrian Georgescu <ag@ag-projects.com>  Tue, 07 Apr 2009 23:47:25 +0200
+ -- Adrian Georgescu <ag@ag-projects.com>  Wed, 08 Apr 2009 00:02:54 +0200
 
 openxcap (1.0.7) unstable; urgency=low
 
