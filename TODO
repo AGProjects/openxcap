@@ -2,12 +2,9 @@
 High priority
 -------------
 
-1. Log all server and basic access messages to syslog and keep verbose
-   logging (headers,bodies) in var/log/openxcap/
+1. Log the whole HTTP URI as seen by the client
 
-2. Log the whole HTTP URI as seen by the client
-
-3. As XCAP rls documents are expanded by the Presence agent is important
+2. As XCAP rls documents are expanded by the Presence agent is important
 that the end-user to not provision unsafe data in the Presence server. This
 is to avoind pointing the server to external documents that might open the
 door for indirect Denial of Service attacks (the proxy will do HTTP request
@@ -37,9 +34,9 @@ does) it should not use HTTP get to fetch the document as the database is
 common for both rls-services and resource list documents are hosted on the
 same physical server.
 
-4. Validation after put/delete attribute
+3. Validation after put/delete attribute
 
-5. Add SIP client support to OpenXCAP to send PUBLISH for xcap-diff event. 
+4. Add SIP client support to OpenXCAP to send PUBLISH for xcap-diff event. 
    Modify OpenSIPS to perform refreshWatchers() when the PUBLISH is received.
 
 
@@ -75,5 +72,4 @@ Low priority
 
 8. Errors from twisted are text/html and from xcap are text/plain: use one
    (text/plain?)
-
 
