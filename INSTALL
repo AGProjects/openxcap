@@ -93,7 +93,7 @@ OpenXCAP has been tested on Debian unstable with the following versions:
 
 OpenXCAP can be downloaded as a tar archive from:
 
-http://download.ag-projects.com/OpenXCAP/
+http://download.ag-projects.com/XCAP/
 
 Extract it using tar xzvf openxcap-version.tar.gz and change directory to
 the newly created openxcap directory.
@@ -113,7 +113,7 @@ operating system:
  * Twisted Core, Twisted Web and Twisted Web 2 (http://twistedmatrix.com)
  * The software can be downloaded as a tar archive from:
 
-http://download.ag-projects.com/OpenXCAP/
+http://download.ag-projects.com/XCAP/
 
 Extract it using tar xzvf opensips-mi-proxy-version.tar.gz and change
 directory to the newly created opensips-mi-proxy directory.
@@ -127,7 +127,7 @@ Download and install soap-simple-proxy
 
 The software can be downloaded as a tar archive from:
 
-http://download.ag-projects.com/OpenXCAP/
+http://download.ag-projects.com/XCAP/
 
 Extract it using tar xzvf soap-simple-proxy-version.tar.gz and change
 directory to the newly created soap-simple-proxy directory.
