@@ -25,14 +25,14 @@ Debian or Ubuntu Linux
 Binary packages are available for Debian or Ubuntu on i386 and amd64
 architectures. To install add the following lines to /etc/apt/sources.list:
 
-wget http://download.ag-projects.com/agp-debian-gpg.key 
-apt-key add agp-debian-gpg.key
-
-Add these lines in etc/apt/sources.list
-
 # AG Projects software 
 deb http://ag-projects.com/debian unstable main
 deb-src http://ag-projects.com/debian unstable main
+
+Install AG Projects debian signing key: 
+
+wget http://download.ag-projects.com/agp-debian-gpg.key
+sudo apt-key add agp-debian-gpg.key 
 
 To install the software on the XCAP server machine:
 
