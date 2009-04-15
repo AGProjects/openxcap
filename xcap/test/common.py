@@ -11,7 +11,7 @@ from lxml import etree
 from copy import copy
 from ConfigParser import SafeConfigParser as ConfigParser
 
-xcaplib_min_version = (1, 0, 8)
+xcaplib_min_version = (1, 0, 9)
 
 sys.path.append('../../../python-xcaplib')
 import xcaplib
