@@ -201,7 +201,10 @@ class XCAPServer(object):
 
     def start(self):
         if 'twisted.internet.reactor' not in sys.modules:
-            from twisted.internet import pollreactor; pollreactor.install()
+            for name in ('epollreactor', 'kqreactor', 'pollreactor', 'selectreactor'):
+                try:    __import__('twisted.internet.%s' % name, globals(), locals(), fromlist=[name]).install()
+                except: continue
+                else:   break
         from twisted.internet import reactor
 
         if ServerConfig.root.startswith('https'):
