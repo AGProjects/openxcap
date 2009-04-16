@@ -1,16 +1,16 @@
 openxcap (1.1.0) unstable; urgency=low
 
   * Renamed OpenSER to OpenSIPS (requires changes to openxcap configuration)
+  * Require python-lxml of version at least 2.0.7-1
+  * Require python-gnutls of version at least 1.1.8
+  * Require python-application of version at least 1.1.0
+  * Test suite: requires xcaplib of version at least 1.0.9
   * Reply with 404 if no realm is provided and no default realm is defined
   * Added Content-Type: text/plain to ResourceNotFound error
   * xcap.errors: rename ErrorResponse in XMLErrorResponse
-  * Minor fixes in comments and docstrings
   * Fixed openxcap.org/ticket/85: Singleton was called with different arguments
   * Log all the information available for 500 errors by default
-  * Require python-lxml of version at least 2.0.7-1
-  * Require python-gnutls of version at least 1.1.8
-  * Test system: require xcaplib 1.0.9
-  * Updated documentation and installation doc
+  * Updated documentation and installation documentation
   * Prefer epollreactor and kqreactor if available
 
  -- Adrian Georgescu <ag@ag-projects.com>  Wed, 08 Apr 2009 00:02:54 +0200
