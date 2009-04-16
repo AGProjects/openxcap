@@ -12,12 +12,14 @@ from xcap.xcapdiff import Notifier
 from xcap.root_uris import root_uris
 
 class Config(ConfigSection):
-    xmlrpc_url = 'http://localhost:8080'
+    _datatypes = {'xmlrpc_url' : str}
+    xmlrpc_url = None
     enable_publish_xcapdiff = False
 
-## We use this to overwrite some of the settings above on a local basis if needed
 configuration = ConfigFile()
 configuration.read_settings('OpenSIPS', Config)
+
+assert Config.xmlrpc_url, 'Option xmlrpc_url in section [OpenSIPS] must be set for opensips backend to run'
 
 class PlainPasswordChecker(database.PlainPasswordChecker): pass
 class HashPasswordChecker(database.HashPasswordChecker): pass
