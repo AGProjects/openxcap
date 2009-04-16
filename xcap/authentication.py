@@ -12,7 +12,7 @@ from zope.interface import Interface, implements
 from twisted.internet import defer
 from twisted.python import failure
 from twisted.cred import credentials, portal, checkers, error as credError
-from twisted.web2 import http, server, stream, responsecode
+from twisted.web2 import http, server, stream, responsecode, http_headers
 from twisted.web2.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 
 from application.configuration.datatypes import StringList
@@ -59,7 +59,7 @@ def parseNodeURI(node_uri, default_realm):
         raise ResourceNotFound("XCAP root not found for URI: %s" % node_uri)
     resource_selector = node_uri[len(xcap_root):]
     if not resource_selector or resource_selector=='/':
-        raise ResourceNotFound(WELCOME)
+        raise ResourceNotFound(WELCOME, http_headers.MimeType("text", "html"))
     r = XCAPUri(xcap_root, resource_selector, namespaces)
     if r.user.domain is None:
         if default_realm is None:
