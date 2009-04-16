@@ -2,7 +2,10 @@
 High priority
 -------------
 
-1. Log the whole HTTP URI as seen by the client
+1. Log the whole HTTP URI as seen by the client (i.e. with port)
+
+1. test.py uses the default account in sipclient/config.ini and overwrites its documents.
+   This may cause surprises.
 
 2. As XCAP rls documents are expanded by the Presence agent is important
 that the end-user to not provision unsafe data in the Presence server. This
@@ -46,7 +49,7 @@ Low priority
 1. Add xcap-directory application to list the documents for a given user
 
 2. Allow port in root= settings, thus making port= parameter unnecessary.
-   Make sure that when listening on non-default port valid URIs are logged (see prev. issue)
+   Make sure that when listening on non-default port valid URIs are logged
    Inside, always use xcap root with port (if non-default), i.e. put port in logs, xcap-diff docs
 
 3. Change default port for https:// to 443 (currently is 8000). Keep the
