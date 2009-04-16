@@ -306,8 +306,8 @@ def prepare_optparser(option_parser=None):
 def process_options(options):
     xcapclient.update_options_from_config(options)
     if options.client == 'eventlet':
+        enable_eventlet()
         def new_client(self):
-            enable_eventlet()
             return xcapclient.make_xcapclient(self.options)
         XCAPTest.new_client = new_client
     elif options.client == 'xcaplib':
@@ -317,6 +317,7 @@ def process_options(options):
         xcapclientwrap.XCAPClient.XCAPCLIENT = options.client
         XCAPTest.new_client = lambda self: xcapclientwrap.make_client(self.options)
     if options.start_server is not None:
+        enable_eventlet()
         options.server = InProcessServer(options)
     else:
         options.server = RemoteServer(options)
