@@ -62,8 +62,6 @@ def parseNodeURI(node_uri, default_realm):
         raise ResourceNotFound(WELCOME, http_headers.MimeType("text", "html"))
     r = XCAPUri(xcap_root, resource_selector, namespaces)
     if r.user.domain is None:
-        if default_realm is None:
-            raise ResourceNotFound('No default realm is defined (domain part of "username@domain" part of the URI)')
         r.user.domain = default_realm
     return r
 
@@ -164,6 +162,9 @@ class XCAPAuthResource(HTTPAuthResource):
         ## For each request the authentication realm must be
         ## dinamically deducted from the XCAP request URI
         realm = xcap_uri.user.domain
+
+        if realm is None:
+            raise ResourceNotFound('Unknown domain (the domain part of "username@domain" is required because this server has no default domain)')
 
         if not xcap_uri.user.username:
             # for 'global' requests there's no username@domain in the URI,
