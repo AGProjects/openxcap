@@ -25,9 +25,6 @@ class TestHarness(object):
                 suite.modname = testmod
                 self.test_suites.append(suite)
                 self.import_errors -= 1
-            except AssertionError, ex:
-                if str(ex)!='disabled':
-                    traceback.print_exc()
             except Exception:
                 traceback.print_exc()
 
