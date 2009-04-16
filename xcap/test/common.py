@@ -299,8 +299,9 @@ def prepare_optparser(option_parser=None):
     # Fix xcaplib to use non-blocking sockets from eventlet.green package
     option_parser.add_option('-c', '--client', default='xcaplib', help=SUPPRESS_HELP)
 
-    # Start OpenXCAP server in-process. You should also use --eventlet option then.
-    option_parser.add_option('--start-server', metavar='CONFIG_FILE', help=SUPPRESS_HELP)
+    # Start OpenXCAP server in-process.
+    option_parser.add_option('--start-server', metavar='CONFIG_FILE',
+                             help="Start an in-process OpenXCAP instance. Requires eventlet. Not very well tested.")
     return option_parser
 
 def process_options(options):
