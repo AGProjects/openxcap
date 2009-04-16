@@ -11,7 +11,10 @@ openxcap (1.1.0) unstable; urgency=low
   * Fixed openxcap.org/ticket/85: Singleton was called with different arguments
   * Log all the information available for 500 errors by default
   * Updated documentation and installation documentation
-  * Prefer epollreactor and kqreactor if available
+  * Prefer epollreactor or kqreactor to pollreactor if available
+  * Test suite: add --start-server option (requires eventlet)
+  * Remove hardcoded setting for xmlrpc_url; Don't start the server if it was
+    not specified for opensips backend
 
  -- Adrian Georgescu <ag@ag-projects.com>  Wed, 08 Apr 2009 00:02:54 +0200
 
