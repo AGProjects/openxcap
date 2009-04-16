@@ -37,7 +37,7 @@ class Backend(object):
         value = value.lower()
         try:
             return __import__('xcap.interfaces.backend.%s' % value, globals(), locals(), [''])
-        except ImportError, e:
+        except (ImportError, AssertionError), e:
             log.fatal("Cannot load '%s' backend module: %s" % (value, str(e)))
             sys.exit(1)
         except Exception, e:
