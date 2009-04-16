@@ -15,10 +15,12 @@ __all__ = [
     'UniquenessFailureError', 'ConstraintFailureError']
 
 class ResourceNotFound(HTTPError):
-    def __init__(self, msg=""):
+    def __init__(self, msg="", content_type=None):
         self.msg = msg
         response = Response(404, stream=msg)
-        response.headers.setHeader("content-type", http_headers.MimeType("text", "plain"))
+        if content_type is None:
+            content_type = http_headers.MimeType("text", "plain")
+        response.headers.setHeader("content-type", content_type)
         HTTPError.__init__(self, response)
 
     def __str__(self):
