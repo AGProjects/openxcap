@@ -78,8 +78,6 @@ Supported XCAP applications
    PIDF based presence documents.
  * Watchers (auid = watchers, proprietary application). This application
    returns the list of watchers from OpenSIPS presence agent.
- * XCAP caps (auid = xcap-caps). This application returns and xml document
-   with the current capabilities of the server
 
 
 Installation
