@@ -83,30 +83,6 @@ class ConfigFile(_ConfigFile):
             cls.instances[file] = instance
         return cls.instances[file]
 
-    def read_settings(self, section, cls):
-        """Update cls's attributes with values read from the given section"""
-        if not issubclass(cls, ConfigSection):
-            raise TypeError("cls must be a subclass of ConfigSection")
-        for prop in dir(cls):
-            if prop[0]=='_':
-                continue
-            ptype = cls._datatypes.get(prop, eval('cls.%s.__class__' % prop))
-            try:
-                val = self.parser.get(section, prop)
-            except Exception:
-                continue
-            else:
-                try:
-                    if ptype is bool:
-                        value = bool(datatypes.Boolean(val))
-                    else:
-                        value = ptype(val)
-                except Exception, why:
-                    msg = "ignoring invalid config value: %s.%s=%s (%s)." % (section, prop, val, why)
-                    log.warn(msg, **ConfigFile.log_context)
-                else:
-                    setattr(cls, prop, value)
-
     def get_values_unique(self, section, option):
         try:
             result = self.parser.get(section, option)
