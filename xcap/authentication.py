@@ -47,6 +47,29 @@ class AuthenticationConfig(ConfigSection):
 configuration = ConfigFile()
 configuration.read_settings('Authentication', AuthenticationConfig)
 
+def generateWWWAuthenticate(headers):
+    _generated = []
+    for seq in headers:
+        scheme, challenge = seq[0], seq[1]
+
+        # If we're going to parse out to something other than a dict
+        # we need to be able to generate from something other than a dict
+
+        try:
+            l = []
+            for k,v in dict(challenge).iteritems():
+                l.append("%s=%s" % (k, v if k in ("algorithm", "stale") else http_headers.quoteString(v)))
+
+            _generated.append("%s %s" % (scheme, ", ".join(l)))
+        except ValueError:
+            _generated.append("%s %s" % (scheme, challenge))
+
+    return _generated
+
+http_headers.generator_response_headers["WWW-Authenticate"] = (generateWWWAuthenticate,)
+http_headers.DefaultHTTPHandler.updateGenerators(http_headers.generator_response_headers)
+del generateWWWAuthenticate
+
 def parseNodeURI(node_uri, default_realm):
     """Parses the given Node URI, containing the XCAP root, document selector,
        and node selector, and returns an XCAPUri instance if succesful."""
