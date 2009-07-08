@@ -58,7 +58,7 @@ def generateWWWAuthenticate(headers):
         try:
             l = []
             for k,v in dict(challenge).iteritems():
-                l.append("%s=%s" % (k, v if k in ("algorithm", "stale") else http_headers.quoteString(v)))
+                l.append("%s=%s" % (k, k in ("algorithm", "stale") and v or http_headers.quoteString(v)))
 
             _generated.append("%s %s" % (scheme, ", ".join(l)))
         except ValueError:
