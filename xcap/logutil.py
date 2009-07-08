@@ -111,35 +111,31 @@ class Logging(ConfigSection):
     # each log message is followed by the stacktrace if there was underlying exception
     log_stacktrace = [500]
 
-    @classmethod
-    def format_request_headers(cls, code, r):
-        if matches(cls.log_request_headers, code):
-            return format_headers(r, 'REQUEST headers:\n')
-        return ''
 
-    @classmethod
-    def format_response_headers(cls, code, r):
-        if matches(cls.log_response_headers, code):
-            return format_headers(r, 'RESPONSE headers:\n')
-        return ''
+def log_format_request_headers(code, r):
+    if matches(Logging.log_request_headers, code):
+        return format_headers(r, 'REQUEST headers:\n')
+    return ''
 
-    @classmethod
-    def format_request_body(cls, code, request):
-        if matches(cls.log_request_body, code):
-            return format_request_body(request)
-        return ''
+def log_format_response_headers(code, r):
+    if matches(Logging.log_response_headers, code):
+        return format_headers(r, 'RESPONSE headers:\n')
+    return ''
 
-    @classmethod
-    def format_response_body(cls, code, response):
-        if matches(cls.log_response_body, code):
-            return format_response_body(response)
-        return ''
+def log_format_request_body(code, request):
+    if matches(Logging.log_request_body, code):
+        return format_request_body(request)
+    return ''
 
-    @classmethod
-    def format_stacktrace(cls, code, reason):
-        if reason is not None and matches(cls.log_stacktrace, code):
-            return format_stacktrace(reason)
-        return ''
+def log_format_response_body(code, response):
+    if matches(Logging.log_response_body, code):
+        return format_response_body(response)
+    return ''
+
+def log_format_stacktrace(code, reason):
+    if reason is not None and matches(Logging.log_stacktrace, code):
+        return format_stacktrace(reason)
+    return ''
 
 configuration = ConfigFile()
 configuration.read_settings('Logging', Logging)
@@ -257,11 +253,11 @@ def format_log_message(request, response, reason):
     try:
         msg = format_access_record(request, response)
         code = getattr(response, 'code', None)
-        info += Logging.format_request_headers(code, request)
-        info += Logging.format_request_body(code, request)
-        info += Logging.format_response_headers(code, response)
-        info += Logging.format_response_body(code, response)
-        info += Logging.format_stacktrace(code, reason)
+        info += log_format_request_headers(code, request)
+        info += log_format_request_body(code, request)
+        info += log_format_response_headers(code, response)
+        info += log_format_response_body(code, response)
+        info += log_format_stacktrace(code, reason)
     except Exception:
         log.error('Formatting log message failed')
         log.err()
