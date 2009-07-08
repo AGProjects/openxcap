@@ -13,6 +13,7 @@ from application import log
 from application.python.util import Singleton
 from application.system import default_host_ip
 from application.process import process
+from application.configuration import ConfigSetting
 
 from sqlobject import sqlhub, connectionForURI, SQLObject, AND
 from sqlobject import StringCol, IntCol, DateTimeCol, SOBLOBCol, Col
@@ -40,10 +41,9 @@ from xcap.interfaces.backend import StatusResponse
 from xcap.dbutil import make_random_etag
 
 class ThorNodeConfig(ConfigSection):
-    _datatypes = {'certificate': Certificate, 'private_key': PrivateKey, 'ca': Certificate}
-    certificate = None
-    private_key = None
-    ca = None
+    certificate = ConfigSetting(type=Certificate, value=None)
+    private_key = ConfigSetting(type=PrivateKey, value=None)
+    ca = ConfigSetting(type=Certificate, value=None)
 
 class ThorNetworkConfig(ConfigSection):
     domain = "sipthor.net"

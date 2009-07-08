@@ -12,7 +12,6 @@ from xcap.xcapdiff import Notifier
 from xcap.root_uris import root_uris
 
 class Config(ConfigSection):
-    _datatypes = {'xmlrpc_url' : str}
     xmlrpc_url = None
     enable_publish_xcapdiff = False
 

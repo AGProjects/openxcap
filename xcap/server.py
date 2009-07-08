@@ -6,6 +6,7 @@
 import sys
 
 from application.configuration.datatypes import StringList
+from application.configuration import ConfigSetting
 from application import log
 
 from twisted.web2 import channel, resource, http, responsecode, http_headers, server
@@ -24,19 +25,16 @@ from xcap.logutil import log_access, log_error
 server.VERSION = "OpenXCAP/%s" % version
 
 class AuthenticationConfig(ConfigSection):
-    _datatypes = {'trusted_peers': StringList,
-                  'default_realm': str}
     type = 'basic'
     cleartext_passwords = True
-    default_realm = None
-    trusted_peers = []
+    default_realm = ConfigSetting(type=str, value=None)
+    trusted_peers = ConfigSetting(type=StringList, value=[])
 
 class ServerConfig(ConfigSection):
-    _datatypes = {'backend': Backend}
     port = 8000
     address = '0.0.0.0'
     root = 'http://127.0.0.1/'
-    backend = Backend('Database')
+    backend = ConfigSetting(type=Backend, value='Database')
 
 
 ## We use this to overwrite some of the settings above on a local basis if needed
@@ -184,9 +182,8 @@ class XCAPServer(object):
     def _start_https(self, reactor):
         from xcap.tls import Certificate, PrivateKey
         class TLSConfig(ConfigSection):
-            _datatypes = {'certificate': Certificate, 'private_key': PrivateKey}
-            certificate = None
-            private_key = None
+            certificate = ConfigSetting(type=Certificate, value=None)
+            private_key = ConfigSetting(type=PrivateKey, value=None)
 
         configuration.read_settings('TLS', TLSConfig)
 

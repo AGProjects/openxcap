@@ -5,6 +5,7 @@ from twisted.web2 import responsecode
 from twisted.python.logfile import LogFile
 from twisted.python.log import FileLogObserver, startLoggingWithObserver
 from application import log
+from application.configuration import ConfigSetting
 
 from xcap.config import ConfigFile, ConfigSection
 
@@ -82,13 +83,6 @@ AnyErrorCode = AnyErrorCode('')
 
 
 class Logging(ConfigSection):
-    _datatypes = {'directory': str,
-                  'log_response_headers': ErrorCodeList,
-                  'log_response_body': ErrorCodeList,
-                  'log_request_headers': ErrorCodeList,
-                  'log_request_body': ErrorCodeList,
-                  'log_stacktrace': ErrorCodeList}
-
     # directory where access.log will be created
     # if directory is empty, everything (access and error) will be
     # printed to console
@@ -99,17 +93,17 @@ class Logging(ConfigSection):
     log_error_to_file = False
 
     # each log message is followed by the headers of the request
-    log_request_headers = [500]
+    log_request_headers = ConfigSetting(type=ErrorCodeList, value=[500])
 
-    log_request_body = [500]
+    log_request_body = ConfigSetting(type=ErrorCodeList, value=[500])
 
-    log_response_headers = [500]
+    log_response_headers = ConfigSetting(type=ErrorCodeList, value=[500])
 
     # each log message is followed by the body of the response sent to the client
-    log_response_body = [500]
+    log_response_body = ConfigSetting(type=ErrorCodeList, value=[500])
 
     # each log message is followed by the stacktrace if there was underlying exception
-    log_stacktrace = [500]
+    log_stacktrace = ConfigSetting(type=ErrorCodeList, value=[500])
 
 
 def log_format_request_headers(code, r):

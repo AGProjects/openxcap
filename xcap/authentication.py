@@ -16,6 +16,7 @@ from twisted.web2 import http, server, stream, responsecode, http_headers
 from twisted.web2.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 
 from application.configuration.datatypes import StringList
+from application.configuration import ConfigSetting
 
 from xcap import __version__
 from xcap.config import ConfigFile, ConfigSection
@@ -39,10 +40,8 @@ WELCOME = ('<html><head><title>Not Found</title></head>'
 
 
 class AuthenticationConfig(ConfigSection):
-    _datatypes = {'trusted_peers': StringList,
-                  'default_realm': str}
-    default_realm = None
-    trusted_peers = []
+    default_realm = ConfigSetting(type=str, value=None)
+    trusted_peers = ConfigSetting(type=StringList, value=[])
 
 configuration = ConfigFile()
 configuration.read_settings('Authentication', AuthenticationConfig)

@@ -7,6 +7,7 @@ from cStringIO import StringIO
 from lxml import etree
 
 from application.configuration.datatypes import StringList
+from application.configuration import ConfigSetting
 from application import log
 
 from twisted.internet import defer
@@ -45,9 +46,8 @@ class Backend(object):
             sys.exit(1)
 
 class ServerConfig(ConfigSection):
-    _datatypes = {'applications': EnabledApplications, 'backend': Backend}
-    applications = EnabledApplications("all")
-    backend = Backend('Database')
+    applications = ConfigSetting(type=EnabledApplications, value="all")
+    backend = ConfigSetting(type=Backend, value='Database')
     document_validation = True
 
 configuration = ConfigFile()

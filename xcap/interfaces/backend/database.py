@@ -19,8 +19,6 @@ from xcap.interfaces.backend import IStorage, StatusResponse
 from xcap.dbutil import connectionForURI, repeat_on_error, make_random_etag
 
 class Config(ConfigSection):
-    _datatypes = {'authentication_db_uri' : str,
-                  'storage_db_uri': str}
     authentication_db_uri = 'sqlite:/:memory:'
     storage_db_uri = 'sqlite:/:memory:'
     subscriber_table = 'subscriber'
