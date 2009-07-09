@@ -4,6 +4,7 @@
 """Implementation of an OpenSIPS backend."""
 
 from application import log
+from application.configuration import ConfigSetting
 
 from xcap.config import ConfigFile, ConfigSection
 from xcap.interfaces.backend import database
@@ -12,7 +13,7 @@ from xcap.xcapdiff import Notifier
 from xcap.root_uris import root_uris
 
 class Config(ConfigSection):
-    xmlrpc_url = None
+    xmlrpc_url = ConfigSetting(type=str, value=None)
     enable_publish_xcapdiff = False
 
 configuration = ConfigFile()
