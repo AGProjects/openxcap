@@ -1,3 +1,9 @@
+openxcap (1.1.1) unstable; urgency=low
+
+  *  
+
+ -- Adrian Georgescu <ag@ag-projects.com>  Sun, 12 Jul 2009 11:56:09 +0200
+
 openxcap (1.1.0) unstable; urgency=low
 
   * Renamed OpenSER to OpenSIPS (requires changes to openxcap configuration)

@@ -3,7 +3,7 @@
 
 """XCAP package"""
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 __cfgfile__ = "config.ini"
 
 def extended_version():
