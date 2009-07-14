@@ -108,7 +108,7 @@ Download and install opensips-mi-proxy
 The software has the following dependencies, which you must install on your
 operating system:
 
- * Python 2.4 or newer (http://www.python.org)
+ * Python 2.5 or newer (http://www.python.org)
  * Twisted framework (http://twistedmatrix.com)
  * Twisted Core, Twisted Web and Twisted Web 2 (http://twistedmatrix.com)
  * The software can be downloaded as a tar archive from:
