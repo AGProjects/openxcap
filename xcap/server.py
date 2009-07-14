@@ -9,7 +9,7 @@ except ImportError:
     raise ImportError("python-application of version 1.1.2 or higher not found")
 else:
     from application import __version__ as python_application_version
-    version_needed = Version(1,1,2)
+    version_needed = Version(1,1,3)
     if Version.parse(python_application_version) < version_needed:
         raise ImportError("python-application of version %s needed, found version %s" % (version_needed, python_application_version))
     del python_application_version, version_needed
