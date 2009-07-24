@@ -82,13 +82,13 @@ OpenXCAP has been tested on Debian unstable with the following versions:
 
  * libxml2: 2.6.32.dfsg-2
  * python: 2.5.2-1
- * python-application: 1.0.9-4
- * python-gnutls: 1.1.5-2
+ * python-application: 1.1.4
+ * python-gnutls: 1.1.8
  * python-lxml: 2.0.5-1
  * python-sqlobject: 0.10.1-1
- * python-twisted-core: 8.0.1-1
- * python-twisted-web: 8.0.0-1
- * python-twisted-web2: 8.0.1-1
+ * python-twisted-core: 8.1.0-1
+ * python-twisted-web: 8.1.0-1
+ * python-twisted-web2: 8.1.0-1
  * python-zopeinterface: 3.3.1-6
 
 OpenXCAP can be downloaded as a tar archive from:
