@@ -34,7 +34,7 @@ class ServerConfig(ConfigSection):
     port = 8000
     address = '0.0.0.0'
     root = 'http://127.0.0.1/'
-    backend = ConfigSetting(type=Backend, value='Database')
+    backend = ConfigSetting(type=Backend, value=Backend('database'))
 
 
 ## We use this to overwrite some of the settings above on a local basis if needed
