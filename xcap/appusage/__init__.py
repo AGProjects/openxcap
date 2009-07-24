@@ -46,7 +46,7 @@ class Backend(object):
             sys.exit(1)
 
 class ServerConfig(ConfigSection):
-    applications = ConfigSetting(type=EnabledApplications, value="all")
+    applications = ConfigSetting(type=EnabledApplications, value=EnabledApplications("all"))
     backend = ConfigSetting(type=Backend, value=Backend('database'))
     document_validation = True
 
