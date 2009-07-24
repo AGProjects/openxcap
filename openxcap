@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     pidFile = options.pidFile
 
-    process._system_config_directory = config_directory
+    process.system_config_directory = config_directory
     try:
         process.runtime_directory = runtime_directory
     except ProcessError, e:
