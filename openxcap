@@ -8,7 +8,6 @@ if __name__ == '__main__':
     from optparse import OptionParser
     from application.process import process, ProcessError
     from application import log
-
     import xcap
 
     name = 'openxcap'
@@ -28,6 +27,12 @@ if __name__ == '__main__':
                       metavar="File")
 
     (options, args) = parser.parse_args()
+
+    try:
+        xcap.dependencies.check()
+    except xcap.DependencyError, e:
+        log.fatal(str(e))
+        sys.exit(1)
 
     pidFile = options.pidFile
 

@@ -17,3 +17,22 @@ def extended_version():
     return __version__
 
 # patchlevel is appended by `setup.py set_patchlevel' command
+
+package_requirements = {'python-application': '1.1.4',
+                        'python-gnutls':      '1.1.8',
+                        'twisted':            '8.1.0'}
+
+try:
+    from application.dependency import ApplicationDependencies, DependencyError
+except ImportError:
+    class DependencyError(Exception): pass
+
+    class ApplicationDependencies(object):
+        def __init__(self, *args, **kw):
+            pass
+        def check(self):
+            required_version = package_requirements['python-application']
+            raise DependencyError("need python-application version %s or higher but it's not installed" % required_version)
+
+dependencies = ApplicationDependencies(**package_requirements)
+
