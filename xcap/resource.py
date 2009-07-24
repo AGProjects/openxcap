@@ -3,8 +3,6 @@
 
 """XCAP resources module"""
 
-from application import log
-
 from twisted.web2 import http, resource, responsecode
 from twisted.web2.http_headers import ETag, MimeType
 from twisted.web2.static import MetaDataMixin

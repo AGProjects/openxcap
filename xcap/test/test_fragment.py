@@ -1,5 +1,4 @@
-import common as c
-from urlparse import urlparse
+import common
 
 document = """<?xml version="1.0" encoding="UTF-8"?>
 <resource-lists xmlns="urn:ietf:params:xml:ns:resource-lists">
@@ -18,7 +17,7 @@ fragment = """<entry uri="sip:xxx@yyyyy.net">
 
 node = '/resource-lists/list/entry[@uri="sip:xxx@yyyyy.net"]'
 
-class FragmentTest(c.XCAPTest):
+class FragmentTest(common.XCAPTest):
 
     def test_success(self):
         self.put('resource-lists', document)
@@ -43,4 +42,4 @@ class FragmentTest(c.XCAPTest):
         self.assertInBody(r, 'not well-formed (invalid token)')
 
 if __name__ == '__main__':
-    c.runSuiteFromModule()
+    common.runSuiteFromModule()

@@ -1,8 +1,7 @@
 import os
 from ConfigParser import NoOptionError
-from application.configuration import ConfigFile as _ConfigFile, ConfigParser, ConfigSection, datatypes
+from application.configuration import ConfigFile as _ConfigFile, ConfigParser, ConfigSection
 from application.process import process
-from application import log
 
 from xcap import __cfgfile__
 

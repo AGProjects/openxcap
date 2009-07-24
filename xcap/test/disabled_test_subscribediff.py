@@ -13,9 +13,8 @@
 
 import re
 import time
-import unittest
 from Queue import Queue, Empty
-from optparse import OptionParser, OptionValueError
+from optparse import OptionValueError
 
 from common import *
 

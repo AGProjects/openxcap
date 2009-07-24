@@ -1,6 +1,4 @@
 from common import *
-from StringIO import StringIO
-from lxml import etree
 
 class XCAPCaps(XCAPTest):
 

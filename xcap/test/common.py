@@ -395,7 +395,6 @@ def enable_eventlet():
 
 
 def start_server(config_file):
-    from application import log # to print log.msg messages to stdout
     sys.path = ['../..'] + sys.path
     import xcap
     xcap.__cfgfile__ = config_file
