@@ -89,7 +89,8 @@ class ManagementInterface(object):
             return x
 
         def repeat_publish_if_wrong_etag(x):
-            if x.value[0] == '418' and etag != '.':
+            # a ValueError is raised for a negative response status code
+            if isinstance(x.value, ValueError) and x.value.args and x.value[0] == '418' and etag != '.':
                 # we used some etag which was not recognised by pua - repeat
                 # request with no etag at all
                 return self.publish_xcapdiff(user_uri, xcap_diff_body, False)
