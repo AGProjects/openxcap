@@ -37,9 +37,10 @@ document_validation = Yes
 ; if empty, like in the following line, logs will be printed to stdout
 ;directory=
 
-; The following log_* parameters control what information is logged for which errors.
-; Their format is comma-separated list of HTTP error codes that should enable the feature
-; currently implemented: log_request_headers, log_response_body, log_stacktrace
+; The following log_* parameters control what information is logged for
+; which errors. Their format is comma-separated list of HTTP error codes
+; that should enable the feature currently implemented: log_request_headers,
+; log_response_body, log_stacktrace
 
 ; Some examples:
 
@@ -59,7 +60,8 @@ document_validation = Yes
 [Authentication]
 
 ; The HTTP authentication type, this can be either 'basic' or 'digest'.
-; If you're using TLS, it's better to choose 'basic' because the data is encrypted anyway.
+; If you're using TLS, it's better to choose 'basic' because the data is
+; encrypted anyway.
 type = basic
 
 ; Specify if the passwords are stored as plain text - Yes
@@ -69,15 +71,17 @@ cleartext_passwords = Yes
 ; The default authentication realm
 default_realm = example.com
 
-; A list of trusted peers from where XCAP requests are accepted without HTTP authentication
-; e.g. trusted_peers = 10.0.0.0/24, 192.168.0.1
+; A list of trusted peers from where XCAP requests are accepted without HTTP
+; authentication e.g. trusted_peers = 10.0.0.0/24, 192.168.0.1
 trusted_peers =
 
 
 [TLS]
 
-; Location of X509 certificate and private key that identify this server. The path is
-; relative to /etc/openxcap, or it can be given as an absolute path.
+; Location of X509 certificate and private key that identify this server.
+; The path is relative to /etc/openxcap, or it can be given as an absolute
+; path.
+
 ; Server X509 certificate
 ;certificate = tls/server.crt
 
