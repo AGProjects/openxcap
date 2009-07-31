@@ -57,15 +57,13 @@ if __name__ == '__main__':
 
     print "Starting %s" % fullname
 
-    from xcap.server import XCAPServer
     try:
+        from xcap.server import XCAPServer
         server = XCAPServer()
-    except Exception, why:
-        print >>sys.stderr, "Failed to create %s: %s" % (fullname, why)
+        server.start()
+    except Exception, e:
+        log.fatal("failed to create %s: %s" % (fullname, e))
+        if e.__class__ is not RuntimeError:
+            log.err()
         sys.exit(1)
 
-    try:
-        server.start()
-    except Exception, why:
-        print >>sys.stderr, "Failed to start %s: %s" % (fullname, why)
-        sys.exit(1)
