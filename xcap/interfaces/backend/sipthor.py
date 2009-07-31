@@ -42,7 +42,7 @@ from xcap.dbutil import make_random_etag
 
 class ThorNodeConfig(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
-    __section__ = ('ThorNetwork', 'ThorNode')
+    __section__ = 'ThorNetwork'
 
     domain = "sipthor.net"
     multiply = 1000
