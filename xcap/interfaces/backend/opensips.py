@@ -4,22 +4,31 @@
 """Implementation of an OpenSIPS backend."""
 
 from application import log
-from application.configuration import ConfigSetting
+from application.configuration import ConfigSection, ConfigSetting
 
-from xcap.config import ConfigFile, ConfigSection
+import xcap
+from xcap.datatypes import XCAPRootURI
 from xcap.interfaces.backend import database
 from xcap.interfaces.opensips import ManagementInterface
 from xcap.xcapdiff import Notifier
-from xcap.root_uris import root_uris
+
+
+class ServerConfig(ConfigSection):
+    __cfgfile__ = xcap.__cfgfile__
+    __section__ = 'Server'
+
+    root = ConfigSetting(type=XCAPRootURI, value=None)
+
 
 class Config(ConfigSection):
+    __cfgfile__ = xcap.__cfgfile__
+    __section__ = 'OpenSIPS'
+
     xmlrpc_url = ConfigSetting(type=str, value=None)
     enable_publish_xcapdiff = False
 
-configuration = ConfigFile()
-configuration.read_settings('OpenSIPS', Config)
-
-assert Config.xmlrpc_url, 'Option xmlrpc_url in section [OpenSIPS] must be set for opensips backend to run'
+if Config.xmlrpc_url is None:
+    RuntimeError("the OpenSIPS.xmlrpc_url option is not set")
 
 class PlainPasswordChecker(database.PlainPasswordChecker): pass
 class HashPasswordChecker(database.HashPasswordChecker): pass
@@ -55,7 +64,7 @@ class NotifyingStorage(BaseStorage):
 
     def __init__(self):
         BaseStorage.__init__(self)
-        self.notifier = Notifier(root_uris[0], self._mi.publish_xcapdiff)
+        self.notifier = Notifier(ServerConfig.root, self._mi.publish_xcapdiff)
 
     def put_document(self, uri, document, check_etag):
         d = super(NotifyingStorage, self).put_document(uri, document, check_etag)

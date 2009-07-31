@@ -5,6 +5,7 @@
 
 import re
 
+from application.configuration import ConfigSection
 from application.python.util import Singleton
 
 from zope.interface import implements
@@ -14,11 +15,14 @@ from twisted.python.failure import Failure
 
 from _mysql_exceptions import IntegrityError
 
-from xcap.config import ConfigFile, ConfigSection
+import xcap
 from xcap.interfaces.backend import IStorage, StatusResponse
 from xcap.dbutil import connectionForURI, repeat_on_error, make_random_etag
 
 class Config(ConfigSection):
+    __cfgfile__ = xcap.__cfgfile__
+    __section__ = 'Database'
+
     authentication_db_uri = 'sqlite:/:memory:'
     storage_db_uri = 'sqlite:/:memory:'
     subscriber_table = 'subscriber'
@@ -28,8 +32,7 @@ class Config(ConfigSection):
     ha1_col = 'ha1'
     xcap_table = 'xcap'
 
-configuration = ConfigFile()
-configuration.read_settings('Database', Config)
+
 
 class DBBase(object):
 

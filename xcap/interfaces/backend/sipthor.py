@@ -13,7 +13,7 @@ from application import log
 from application.python.util import Singleton
 from application.system import default_host_ip
 from application.process import process
-from application.configuration import ConfigSetting
+from application.configuration import ConfigSection, ConfigSetting
 
 from sqlobject import sqlhub, connectionForURI, SQLObject, AND
 from sqlobject import StringCol, IntCol, DateTimeCol, SOBLOBCol, Col
@@ -34,20 +34,22 @@ from thor.entities import ThorEntitiesRoleMap, GenericThorEntity as ThorEntity
 from gnutls.interfaces.twisted import X509Credentials
 from gnutls.constants import COMP_DEFLATE, COMP_LZO, COMP_NULL
 
-from xcap import __version__
-from xcap.config import ConfigFile, ConfigSection
+import xcap
 from xcap.tls import Certificate, PrivateKey
 from xcap.interfaces.backend import StatusResponse
 from xcap.dbutil import make_random_etag
 
+
 class ThorNodeConfig(ConfigSection):
+    __cfgfile__ = xcap.__cfgfile__
+    __section__ = ('ThorNetwork', 'ThorNode')
+
+    domain = "sipthor.net"
+    multiply = 1000
     certificate = ConfigSetting(type=Certificate, value=None)
     private_key = ConfigSetting(type=PrivateKey, value=None)
     ca = ConfigSetting(type=Certificate, value=None)
 
-class ThorNetworkConfig(ConfigSection):
-    domain = "sipthor.net"
-    multiply = 1000
 
 
 class JSONValidator(validators.Validator):
@@ -119,10 +121,6 @@ class SipAccountData(SQLObject):
     profile  = JSONCol()
 
 
-configuration = ConfigFile()
-configuration.read_settings('ThorNode', ThorNodeConfig)
-configuration.read_settings('ThorNetwork', ThorNetworkConfig)
-
 def sanitize_application_id(application_id):
     if application_id == "org.openmobilealliance.pres-rules":
         return "pres-rules"
@@ -151,7 +149,7 @@ class XCAPProvisioning(EventServiceClient):
 
     def __init__(self):
         self._database = DatabaseConnection()
-        self.node = ThorEntity(default_host_ip, ['xcap_server'], version=__version__)
+        self.node = ThorEntity(default_host_ip, ['xcap_server'], version=xcap.__version__)
         self.networks = {}
         self.presence_message = ThorEvent('Thor.Presence', self.node.id)
         self.shutdown_message = ThorEvent('Thor.Leave', self.node.id)
@@ -159,7 +157,7 @@ class XCAPProvisioning(EventServiceClient):
         credentials.verify_peer = True
         credentials.session_params.compressions = (COMP_LZO, COMP_DEFLATE, COMP_NULL)
         self.control = ControlLink(credentials)
-        EventServiceClient.__init__(self, ThorNetworkConfig.domain, credentials)
+        EventServiceClient.__init__(self, ThorNodeConfig.domain, credentials)
         process.signals.add_handler(signal.SIGHUP, self._handle_SIGHUP)
         process.signals.add_handler(signal.SIGINT, self._handle_SIGINT)
         process.signals.add_handler(signal.SIGTERM, self._handle_SIGTERM)
@@ -220,7 +218,7 @@ class XCAPProvisioning(EventServiceClient):
                 if role in ["thor_manager", "thor_monitor", "provisioning_server", "media_relay", "thor_database"]:
                     continue
                 else:
-                    network = thor_network.new(ThorNetworkConfig.multiply)
+                    network = thor_network.new(ThorNodeConfig.multiply)
                 networks[role] = network
             new_nodes = set([ThorEntityAddress(node.ip, getattr(node, 'control_port', None), getattr(node, 'version', 'unknown')) for node in role_map.get(role, [])])
             old_nodes = set(network.nodes)

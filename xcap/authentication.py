@@ -16,14 +16,13 @@ from twisted.web2 import http, server, stream, responsecode, http_headers
 from twisted.web2.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 
 from application.configuration.datatypes import StringList
-from application.configuration import ConfigSetting
+from application.configuration import ConfigSection, ConfigSetting
 
-from xcap import __version__
-from xcap.config import ConfigFile, ConfigSection
+import xcap
+from xcap.datatypes import XCAPRootURI
 from xcap.appusage import getApplicationForURI, namespaces
 from xcap.errors import ResourceNotFound
 from xcap.uri import XCAPUser, XCAPUri
-from xcap.root_uris import root_uris
 
 
 # body of 404 error message to render when user requests xcap-root
@@ -36,15 +35,23 @@ WELCOME = ('<html><head><title>Not Found</title></head>'
            'directly under XCAP Root URL. You have to be more specific.'
            '<br><br>'
            '<address><a href="http://www.openxcap.org">OpenXCAP/%s</address>'
-           '</body></html>') % __version__
+           '</body></html>') % xcap.__version__
 
 
 class AuthenticationConfig(ConfigSection):
+    __cfgfile__ = xcap.__cfgfile__
+    __section__ = 'Authentication'
+
     default_realm = ConfigSetting(type=str, value=None)
     trusted_peers = ConfigSetting(type=StringList, value=[])
 
-configuration = ConfigFile()
-configuration.read_settings('Authentication', AuthenticationConfig)
+
+class ServerConfig(ConfigSection):
+    __cfgfile__ = xcap.__cfgfile__
+    __section__ = 'Server'
+
+    root = ConfigSetting(type=XCAPRootURI, value=None)
+
 
 def generateWWWAuthenticate(headers):
     _generated = []
@@ -73,7 +80,7 @@ def parseNodeURI(node_uri, default_realm):
     """Parses the given Node URI, containing the XCAP root, document selector,
        and node selector, and returns an XCAPUri instance if succesful."""
     xcap_root = None
-    for uri in root_uris:
+    for uri in ServerConfig.root.uris:
         if node_uri.startswith(uri):
             xcap_root = uri
             break

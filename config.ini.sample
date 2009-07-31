@@ -11,14 +11,12 @@
 address = 0.0.0.0
 port = 443
 
-; The XCAP Root URI; must not contain any port number. If it has the 'https' scheme,
-; the server will listen for requests in TLS mode.
+; The XCAP Root URI; must not contain any port number. If the scheme is
+; https, then the server will listen for requests in TLS mode.
 
-; Insert more "root=" lines here to create aliases for XCAP root.
-; The LAST 'root=' line sets the primary XCAP root, which will be
-; used when generating xcap-diff.
-; There's no way to find out which XCAP root a document belongs to,
-; as such information is not stored in the database.
+; This is a comma/space separated list of XCAP root URIs. The first is the
+; primary XCAP root URI, while the others (if specified) are aliases.
+; The primary root URI is used when generating xcap-diff
 
 root = https://xcap.example.com/xcap-root
 

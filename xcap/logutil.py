@@ -5,9 +5,10 @@ from twisted.web2 import responsecode
 from twisted.python.logfile import LogFile
 from twisted.python.log import FileLogObserver, startLoggingWithObserver
 from application import log
-from application.configuration import ConfigSetting
+from application.configuration import ConfigSection, ConfigSetting
 
-from xcap.config import ConfigFile, ConfigSection
+import xcap
+
 
 class ErrorCodeList(set):
     """
@@ -83,6 +84,9 @@ AnyErrorCode = AnyErrorCode('')
 
 
 class Logging(ConfigSection):
+    __cfgfile__ = xcap.__cfgfile__
+    __section__ = 'Logging'
+
     # directory where access.log will be created
     # if directory is empty, everything (access and error) will be
     # printed to console
@@ -131,8 +135,6 @@ def log_format_stacktrace(code, reason):
         return format_stacktrace(reason)
     return ''
 
-configuration = ConfigFile()
-configuration.read_settings('Logging', Logging)
 
 def matches(cfg, code):
     return cfg == '*' or code in cfg

@@ -7,15 +7,15 @@ from cStringIO import StringIO
 from lxml import etree
 
 from application.configuration.datatypes import StringList
-from application.configuration import ConfigSetting
+from application.configuration import ConfigSection, ConfigSetting
 from application import log
 
 from twisted.internet import defer
 
-from xcap.config import ConfigFile, ConfigSection
+import xcap
 from xcap import errors
-from xcap.interfaces.backend import StatusResponse
 from xcap import element
+from xcap.interfaces.backend import StatusResponse
 from xcap.dbutil import make_etag
 
 supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pres-rules',
@@ -24,7 +24,7 @@ supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pre
 class EnabledApplications(StringList):
     def __new__(typ, value):
         apps = StringList.__new__(typ, value)
-        if len(apps) == 1 and apps[0] == "all":
+        if apps == ["all"]:
             return supported_applications
         for app in apps:
             if app not in supported_applications:
@@ -46,12 +46,13 @@ class Backend(object):
             sys.exit(1)
 
 class ServerConfig(ConfigSection):
+    __cfgfile__ = xcap.__cfgfile__
+    __section__ = 'Server'
+
     applications = ConfigSetting(type=EnabledApplications, value=EnabledApplications("all"))
     backend = ConfigSetting(type=Backend, value=Backend('database'))
     document_validation = True
 
-configuration = ConfigFile()
-configuration.read_settings('Server', ServerConfig)
 
 schemas_directory = os.path.join(os.path.dirname(__file__), "../", "xml-schemas")
 

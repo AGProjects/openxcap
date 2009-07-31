@@ -6,7 +6,7 @@
 import sys
 
 from application.configuration.datatypes import StringList
-from application.configuration import ConfigSetting
+from application.configuration import ConfigSection, ConfigSetting
 from application import log
 
 from twisted.web2 import channel, resource, http, responsecode, http_headers, server
@@ -14,33 +14,45 @@ from twisted.cred.portal import Portal
 from twisted.web2.auth import digest, basic
 from twisted.python import failure
 
-from xcap.config import ConfigFile, ConfigSection
+import xcap
 from xcap import authentication
+from xcap.datatypes import XCAPRootURI
 from xcap.appusage import getApplicationForURI, Backend
 from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute, XCAPNamespaceBinding
 from xcap.uri import AttributeSelector, NamespaceSelector
-from xcap import __version__ as version
 from xcap.logutil import log_access, log_error
+from xcap.tls import Certificate, PrivateKey
 
-server.VERSION = "OpenXCAP/%s" % version
+server.VERSION = "OpenXCAP/%s" % xcap.__version__
 
 class AuthenticationConfig(ConfigSection):
+    __cfgfile__ = xcap.__cfgfile__
+    __section__ = 'Authentication'
+
     type = 'basic'
     cleartext_passwords = True
     default_realm = ConfigSetting(type=str, value=None)
     trusted_peers = ConfigSetting(type=StringList, value=[])
 
 class ServerConfig(ConfigSection):
-    port = 8000
+    __cfgfile__ = xcap.__cfgfile__
+    __section__ = 'Server'
+
     address = '0.0.0.0'
-    root = 'http://127.0.0.1/'
+    port = 8000
+    root = ConfigSetting(type=XCAPRootURI, value=None)
     backend = ConfigSetting(type=Backend, value=Backend('database'))
 
+class TLSConfig(ConfigSection):
+    __cfgfile__ = xcap.__cfgfile__
+    __section__ = 'TLS'
 
-## We use this to overwrite some of the settings above on a local basis if needed
-configuration = ConfigFile()
-configuration.read_settings('Authentication', AuthenticationConfig)
-configuration.read_settings('Server', ServerConfig)
+    certificate = ConfigSetting(type=Certificate, value=None)
+    private_key = ConfigSetting(type=PrivateKey, value=None)
+
+
+if ServerConfig.root is None:
+    raise RuntimeError("the XCAP root URI is not defined")
 
 
 class XCAPRoot(resource.Resource, resource.LeafResource):
@@ -180,13 +192,6 @@ class XCAPServer(object):
         self.site = XCAPSite(root)
 
     def _start_https(self, reactor):
-        from xcap.tls import Certificate, PrivateKey
-        class TLSConfig(ConfigSection):
-            certificate = ConfigSetting(type=Certificate, value=None)
-            private_key = ConfigSetting(type=PrivateKey, value=None)
-
-        configuration.read_settings('TLS', TLSConfig)
-
         from gnutls.interfaces.twisted import X509Credentials
         cert, pKey = TLSConfig.certificate, TLSConfig.private_key
         if cert is None or pKey is None:
