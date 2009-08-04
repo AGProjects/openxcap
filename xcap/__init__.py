@@ -18,7 +18,7 @@ def extended_version():
 
 # patchlevel is appended by `setup.py set_patchlevel' command
 
-package_requirements = {'python-application': '1.1.4',
+package_requirements = {'python-application': '1.1.5',
                         'python-gnutls':      '1.1.8',
                         'twisted':            '8.1.0'}
 

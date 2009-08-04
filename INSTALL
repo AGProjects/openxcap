@@ -82,7 +82,7 @@ OpenXCAP has been tested on Debian unstable with the following versions:
 
  * libxml2: 2.6.32.dfsg-2
  * python: 2.5.2-1
- * python-application: 1.1.4
+ * python-application: 1.1.5
  * python-gnutls: 1.1.8
  * python-lxml: 2.0.5-1
  * python-sqlobject: 0.10.1-1
