@@ -1,8 +1,35 @@
 openxcap (1.1.1) unstable; urgency=low
 
-  *  
+  * Merged the ThorNode section of the configuration file into ThorNetwork
+  * Fixed config.ini.sample to fit in 80 chars width
+  * Better TLS defaults in the sample configuration file
+  * Better logging of exceptions in the script
+  * Adapted code to the latest API changes in python-application 1.1.5
+  * Fixed handling of XMLRPC errors in publish_xcapdiff of OpenSIPS interface
+  * Fixed lintian warning about missing misc:Depends
+  * Fixed default value for ServerConfig.applications setting
+  * Removed unused config file
+  * Updated include and prune lists in MANIFEST.in
+  * Fixed backend config setting default type
+  * Removed unused imports
+  * Simplified and updated debian build dependencies
+  * Updated requirements in INSTALL
+  * Updated debian dependencies
+  * Simplified dependency checking by using the application.dependency module
+  * Changed how the system config directory is set to use latest API
+  * Updated Python dependency to 2.5 in INSTALL
+  * Moved todo items to wiki tickets
+  * Update copyright text
+  * Bumped standards version and version for python-application
+  * Fixed reading OpenSIPS xmplrpc_url config option
+  * Added version check for python-application on startup
+  * Removed _datatypes attribute from ConfigSection subsclasses
+  * Reverted classmethods of ConfigSection class to functions
+  * Removed ConfigFile.read_settings() overriden method
+  * Made "algorithm"/"stale" unquoting patch Python 2.4 compatible
+  * Make "algorithm" and "stale" header parameters not quoted
 
- -- Adrian Georgescu <ag@ag-projects.com>  Sun, 12 Jul 2009 11:56:09 +0200
+ -- Adrian Georgescu <ag@ag-projects.com>  Tue, 04 Aug 2009 13:11:25 +0200
 
 openxcap (1.1.0) unstable; urgency=low
 
