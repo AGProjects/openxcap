@@ -28,8 +28,9 @@ openxcap (1.1.1) unstable; urgency=low
   * Removed ConfigFile.read_settings() overriden method
   * Made "algorithm"/"stale" unquoting patch Python 2.4 compatible
   * Make "algorithm" and "stale" header parameters not quoted
+  * Restart software on debian upgrade
 
- -- Adrian Georgescu <ag@ag-projects.com>  Tue, 04 Aug 2009 13:11:25 +0200
+ -- Adrian Georgescu <ag@ag-projects.com>  Tue, 04 Aug 2009 13:25:19 +0200
 
 openxcap (1.1.0) unstable; urgency=low
 
