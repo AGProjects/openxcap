@@ -1,3 +1,10 @@
+openxcap (1.1.2) unstable; urgency=low
+
+  * Fixed debian/rules and added dependencies an newer cdbs and debhelper
+  * Bumped Standerds-Version to 3.8.3
+
+ -- Lucian Stanescu <luci@ag-projects.com>  Thu, 03 Sep 2009 11:04:01 +0300
+
 openxcap (1.1.1) unstable; urgency=low
 
   * Merged the ThorNode section of the configuration file into ThorNetwork
