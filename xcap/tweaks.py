@@ -1,7 +1,7 @@
 import md5
 
 from twisted.cred import credentials, error
-from twisted.web2.auth.digest import IUsernameDigestHash
+from twisted.web2.auth.digest import IUsernameDigestHash, DigestCredentialFactory
 
 from zope.interface import implements
 
@@ -41,3 +41,21 @@ def tweak_BasicCredentialFactory():
     from twisted.web2.auth.basic import BasicCredentialFactory
     method = new.instancemethod(decode, None, BasicCredentialFactory)
     BasicCredentialFactory.decode = method
+
+class tweak_DigestCredentialFactory(DigestCredentialFactory):
+
+    def generateOpaque(self, nonce, clientip):
+        """ 
+        Generate an opaque to be returned to the client.  This is a unique
+        string that can be returned to us and verified.
+        """
+        # Now, what we do is encode the nonce, client ip and a timestamp in the
+        # opaque value with a suitable digest.
+        now = str(int(self._getTime()))
+        if clientip is None:
+            clientip = ''
+        key = "%s,%s,%s" % (nonce, clientip, now)
+        digest = md5.new(key + self.privateKey).hexdigest()
+        ekey = key.encode('base64')
+        return "%s-%s" % (digest, ekey.replace('\n', ''))
+
