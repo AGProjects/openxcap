@@ -180,6 +180,7 @@ class Storage(DBBase):
                    "resource-lists"   : 1<<2,
                    "rls-services"     : 1<<3,
                    "pidf-manipulation": 1<<4,
+                   "dialog-rules"     : 1<<5,
                    "test-app"         : 0}
 
     def _db_connect(self):

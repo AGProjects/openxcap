@@ -19,7 +19,8 @@ from xcap.interfaces.backend import StatusResponse
 from xcap.dbutil import make_etag
 
 supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pres-rules',
-                          'resource-lists', 'rls-services', 'pidf-manipulation', 'watchers')
+                          'resource-lists', 'rls-services', 'pidf-manipulation', 'watchers', 
+                          'dialog-rules')
 
 class EnabledApplications(StringList):
     def __new__(typ, value):
@@ -351,6 +352,11 @@ class PresenceRulesApplication(ApplicationUsage):
     mime_type = "application/auth-policy+xml"
     schema_file = 'common-policy.xsd'
 
+class DialogRulesApplication(ApplicationUsage):
+    id = "dialog-rules"
+    default_ns = "urn:ietf:params:xml:ns:dialog-rules"
+    mime_type = "application/auth-policy+xml"
+    schema_file = 'dialog-rules.xsd'
 
 def get_xpath(elem):
     """Return XPATH expression to obtain elem in the document.
@@ -523,6 +529,7 @@ class TestApplication(ApplicationUsage):
 
 applications = {'xcap-caps': XCAPCapabilitiesApplication(),
                 'pres-rules': PresenceRulesApplication(theStorage),
+                'dialog-rules': DialogRulesApplication(theStorage),
                 'org.openmobilealliance.pres-rules': PresenceRulesApplication(theStorage),
                 'resource-lists': ResourceListsApplication(theStorage),
                 'pidf-manipulation': PIDFManipulationApplication(theStorage),
