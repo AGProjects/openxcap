@@ -56,10 +56,10 @@ class ManagementInterface(object):
         # maps presentity uri --> etag
         self._etags = {}
 
-    def notify_watchers(self, id, type=0):
+    def notify_watchers(self, id, event, type):
         """Instruct OpenSIPS to NOTIFY all the watchers of this presentity.
            @type can be 0 to signal presence rules changes, or 1 for static PIDF changes."""
-        d = self.proxy.callRemote('refreshWatchers', 'sip:' + id, 'presence', type)
+        d = self.proxy.callRemote('refreshWatchers', 'sip:' + id, event, type)
         return d
 
     def publish_xcapdiff(self, user_uri, xcap_diff_body, supply_etag = True):

@@ -39,11 +39,11 @@ class BaseStorage(database.Storage):
         database.Storage.__init__(self)
         self._mi = ManagementInterface(Config.xmlrpc_url)
 
-    def _notify_watchers(self, response, user_id, type):
+    def _notify_watchers(self, response, user_id, event, type):
         def _eb_mi(f):
             log.error("Error while notifying OpenSIPS management interface for user %s: %s" % (user_id, f.getErrorMessage()))
             return response
-        d = self._mi.notify_watchers('%s@%s' % (user_id.username, user_id.domain), type)
+        d = self._mi.notify_watchers('%s@%s' % (user_id.username, user_id.domain), event, type)
         d.addCallback(lambda x: response)
         d.addErrback(_eb_mi)
         return d
@@ -51,13 +51,10 @@ class BaseStorage(database.Storage):
     def put_document(self, uri, document, check_etag):
         application_id = uri.application_id
         d = self.conn.runInteraction(super(BaseStorage, self)._put_document, uri, document, check_etag)
-        if application_id in ('pres-rules', 'org.openmobilealliance.pres-rules', 'pidf-manipulation'):
-            ## signal OpenSIPS of the modification through the management interface
-            if application_id == 'pidf-manipulation':
-                type = 1
-            else:
-                type = 0
-            d.addCallback(self._notify_watchers, uri.user, type)
+        if application_id in ('pres-rules', 'org.openmobilealliance.pres-rules', 'pidf-manipulation', 'dialog-rules'):
+            type = 1 if application_id == 'pidf-manipulation' else 0
+            event = 'dialog' if application_id == 'dialog-rules' else 'presence'
+            d.addCallback(self._notify_watchers, uri.user, event, type)
         return d
 
 class NotifyingStorage(BaseStorage):
