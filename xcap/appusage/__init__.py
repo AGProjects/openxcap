@@ -463,23 +463,14 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
     def _get_document(self):
         if hasattr(self, 'doc'):
             return self.doc, self.etag
-        auids = ""
-        extensions = ""
-        namespaces = ""
+        root = etree.Element("xcap-caps", nsmap={None: self.default_ns})
+        auids = etree.SubElement(root, "auids")
+        extensions = etree.SubElement(root, "extensions")
+        namespaces = etree.SubElement(root, "namespaces")
         for (id, app) in applications.items():
-            auids += "<auid>%s</auid>\n" % id
-            namespaces += "<namespace>%s</namespace>\n" % app.default_ns
-        self.doc = """<?xml version='1.0' encoding='UTF-8'?>
-<xcap-caps xmlns='urn:ietf:params:xml:ns:xcap-caps'>
-<auids>
-%(auids)s</auids>
-<extensions>
-%(extensions)s</extensions>
-<namespaces>
-%(namespaces)s</namespaces>
-</xcap-caps>""" % {"auids": auids,
-                   "extensions": extensions,
-                   "namespaces": namespaces}
+            etree.SubElement(auids, "auid").text = id
+            etree.SubElement(namespaces, "namespace").text = app.default_ns
+        self.doc = etree.tostring(root, encoding="UTF-8", pretty_print=True, xml_declaration=True)
         self.etag = make_etag('xcap-caps', self.doc)
         return self.doc, self.etag
 
