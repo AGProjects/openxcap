@@ -330,7 +330,7 @@ class Storage(DBBase):
     def delete_document(self, uri, check_etag):
         return repeat_on_error(10, DeleteFailed, self.conn.runInteraction, self._delete_document, uri, check_etag)
 
-    # QQQ isn't this application-specific?
+    # Application-specific functions
     def _get_watchers(self, trans, uri):
         status_mapping = {1: "allow",
                           2: "confirm",
@@ -356,6 +356,21 @@ class Storage(DBBase):
 
     def get_watchers(self, uri):
         return self.conn.runInteraction(self._get_watchers, uri)
+
+    def _get_documents_list(self, trans, uri):
+        query = """SELECT doc_type, doc_uri, etag FROM %(table)s
+                    WHERE username = %%(username)s AND domain = %%(domain)s""" % {'table': Config.xcap_table}
+        params = {'username': uri.user.username, 'domain': uri.user.domain}
+        trans.execute(query, params)
+        result = trans.fetchall()
+        docs = {}
+        for r in result:
+            app = [k for k, v in self.app_mapping.iteritems() if v == r[0]][0]
+            docs[app] = [r[1], r[2]]  # Ex: {'pres-rules': ['index.html', '4564fd9c9a2a2e3e796310b00c9908aa']}
+        return docs
+
+    def get_documents_list(self, uri):
+        return self.conn.runInteraction(self._get_documents_list, uri)
 
 installSignalHandlers = True
 

@@ -277,6 +277,12 @@ class DatabaseConnection(object):
         reactor.callInThread(self.retrieve_profile, username, domain, lambda profile: profile, False, defer)
         return defer
 
+    def get_documents_list(self, uri):
+        defer = Deferred()
+        operation = lambda profile: self._get_documents_list_operation(uri, profile)
+        reactor.callInThread(self.retrieve_profile, uri.user.username, uri.user.domain, operation, False, defer)
+        return defer
+
     # Methods to be called in a separate thread:
     def _put_operation(self, uri, document, check_etag, new_etag, profile):
         application_id = sanitize_application_id(uri.application_id)
@@ -310,6 +316,16 @@ class DatabaseConnection(object):
         except KeyError:
             raise NotFound()
         return doc, etag
+
+    def _get_documents_list_operation(self, uri, profile):
+        try:
+            xcap_docs = profile["xcap"]
+            print xcap_docs
+            docs = xcap_docs
+            #doc, etag = xcap_docs[sanitize_application_id(uri.application_id)][uri.doc_selector.document_path]
+        except KeyError:
+            raise NotFound()
+        return docs
 
     def retrieve_profile(self, username, domain, operation, update, defer):
         transaction = None
@@ -477,5 +493,13 @@ class Storage(object):
             return watchers
         else:
             print "error: %s" % response
+
+    def get_documents_list(self, uri, check_etag):
+        result = self._database.get_documents_list(uri)
+        result.addCallback(self._got_documents_list)
+        return result
+
+    def _got_documents_list(self, docs):
+        return docs
 
 installSignalHandlers = False

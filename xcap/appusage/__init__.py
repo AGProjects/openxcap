@@ -20,7 +20,7 @@ from xcap.dbutil import make_etag
 
 supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pres-rules',
                           'resource-lists', 'rls-services', 'pidf-manipulation', 'watchers', 
-                          'dialog-rules')
+                          'dialog-rules', 'org.openmobilealliance.xcap-directory', 'xcap-directory')
 
 class EnabledApplications(StringList):
     def __new__(typ, value):
@@ -184,7 +184,7 @@ class ApplicationUsage(object):
 
         if created:
             d.addCallback(set_201_code)
-        
+
         return d
 
     def put_element(self, uri, element_body, check_etag):
@@ -508,6 +508,34 @@ class WatchersApplication(ResourceListsApplication): # QQQ why does it inherit f
     def put_document(self, uri, document, check_etag):
         raise errors.ResourceNotFound("This application is read-only") # TODO: test and add better error
 
+class XCAPDirectoryApplication(ApplicationUsage):
+    id = "xcap-directory"
+    default_ns = "urn:oma:xml:xdm:xcap-directory"
+    mime_type= "application/vnd.oma.xcap-directory+xml"
+    schema_file = "xcap-directory.xsd"
+
+    def _docs_to_xml(self, docs, uri):
+        sip_uri = "sip:%s@%s" % (uri.user.username, uri.user.domain)
+        root = etree.Element("xcap-directory", nsmap={None: self.default_ns})
+        if docs:
+            for k, v in docs.iteritems():
+                folder = etree.SubElement(root, "folder", attrib={'auid': k})
+                entry_uri = "%s/%s/users/%s/%s" % (uri.xcap_root, k, sip_uri, v[0])
+                entry = etree.SubElement(folder, "entry")
+                entry.set("uri", entry_uri)
+                entry.set("etag", v[1])
+        doc = etree.tostring(root, encoding="UTF-8", pretty_print=True, xml_declaration=True)
+        #self.validate_document(doc)
+        return defer.succeed(StatusResponse(200, etag=None, data=doc))
+
+    def get_document_local(self, uri, check_etag):
+        docs_def = self.storage.get_documents_list(uri)
+        docs_def.addCallback(self._docs_to_xml, uri)
+        return docs_def
+
+    def put_document(self, uri, document, check_etag):
+        raise errors.ResourceNotFound("This application is read-only") # TODO: test and add better error
+
 theStorage = ServerConfig.backend.Storage()
 
 class TestApplication(ApplicationUsage):
@@ -525,6 +553,8 @@ applications = {'xcap-caps': XCAPCapabilitiesApplication(),
                 'pidf-manipulation': PIDFManipulationApplication(theStorage),
                 'watchers': WatchersApplication(theStorage),
                 'rls-services': RLSServicesApplication(theStorage),
+                'xcap-directory': XCAPDirectoryApplication(theStorage),
+                'org.openmobilealliance.xcap-directory': XCAPDirectoryApplication(theStorage),
                 'test-app': TestApplication(theStorage)}
 
 namespaces = dict((k, v.default_ns) for (k, v) in applications.items())
