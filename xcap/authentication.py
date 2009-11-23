@@ -15,8 +15,11 @@ from twisted.cred import credentials, portal, checkers, error as credError
 from twisted.web2 import http, server, stream, responsecode, http_headers
 from twisted.web2.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 
-from application.configuration.datatypes import StringList
+from application.configuration.datatypes import NetworkRangeList, NetworkRange
 from application.configuration import ConfigSection, ConfigSetting
+
+import struct
+import socket
 
 import xcap
 from xcap.datatypes import XCAPRootURI
@@ -43,8 +46,10 @@ class AuthenticationConfig(ConfigSection):
     __section__ = 'Authentication'
 
     default_realm = ConfigSetting(type=str, value=None)
-    trusted_peers = ConfigSetting(type=StringList, value=[])
+    trusted_peers = ConfigSetting(type=NetworkRangeList, value=NetworkRangeList('any'))
 
+if AuthenticationConfig.trusted_peers is None:
+    AuthenticationConfig.trusted_peers = [NetworkRange('none')]
 
 class ServerConfig(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
@@ -108,7 +113,10 @@ class TrustedPeerCredentials(object):
         self.peer = peer
 
     def checkPeer(self, trusted_peers):
-        return self.peer in trusted_peers
+        for range in trusted_peers:
+            if struct.unpack('!L', socket.inet_aton(self.peer))[0] & range[1] == range[0]:
+                return True
+        return False
 
 ## credentials checkers
 

@@ -5,7 +5,7 @@
 
 import sys
 
-from application.configuration.datatypes import StringList
+from application.configuration.datatypes import NetworkRangeList, NetworkRange
 from application.configuration import ConfigSection, ConfigSetting
 from application import log
 
@@ -33,7 +33,10 @@ class AuthenticationConfig(ConfigSection):
     type = 'basic'
     cleartext_passwords = True
     default_realm = ConfigSetting(type=str, value=None)
-    trusted_peers = ConfigSetting(type=StringList, value=[])
+    trusted_peers = ConfigSetting(type=NetworkRangeList, value=NetworkRangeList('any'))
+
+if AuthenticationConfig.trusted_peers is None:
+    AuthenticationConfig.trusted_peers = [NetworkRange('none')]
 
 class ServerConfig(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
@@ -175,8 +178,6 @@ class XCAPServer(object):
             http_checker = ServerConfig.backend.HashPasswordChecker()
         portal.registerChecker(http_checker)
         trusted_peers = AuthenticationConfig.trusted_peers
-        if trusted_peers:
-            log.info("Trusted peers: %s" % ", ".join(trusted_peers))
         portal.registerChecker(authentication.TrustedPeerChecker(trusted_peers))
 
         auth_type = AuthenticationConfig.type

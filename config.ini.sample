@@ -71,8 +71,12 @@ cleartext_passwords = Yes
 ; The default authentication realm
 default_realm = example.com
 
-; A list of trusted peers from where XCAP requests are accepted without HTTP
-; authentication e.g. trusted_peers = 10.0.0.0/24, 192.168.0.1
+; A comma-separated list of hosts or networks to trust.
+; The elements can be an IP address in CIDR format, a
+; hostname or an IP address (in the latter 2 a mask of 32
+; is assumed), or the special keywords 'any' and 'none'
+; (being equivalent to 0.0.0.0/0 and 0.0.0.0/32
+; respectively).
 trusted_peers =
 
 
