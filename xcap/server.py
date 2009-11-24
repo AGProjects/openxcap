@@ -179,6 +179,7 @@ class XCAPServer(object):
         portal.registerChecker(http_checker)
         trusted_peers = AuthenticationConfig.trusted_peers
         portal.registerChecker(authentication.TrustedPeerChecker(trusted_peers))
+        portal.registerChecker(authentication.PublicGetApplicationChecker())
 
         auth_type = AuthenticationConfig.type
         if auth_type == 'basic':

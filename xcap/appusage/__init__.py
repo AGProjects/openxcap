@@ -22,6 +22,8 @@ supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pre
                           'resource-lists', 'rls-services', 'pidf-manipulation', 'watchers', 
                           'dialog-rules', 'org.openmobilealliance.xcap-directory', 'xcap-directory')
 
+public_get_applications = ('icon')
+
 class EnabledApplications(StringList):
     def __new__(typ, value):
         apps = StringList.__new__(typ, value)

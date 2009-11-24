@@ -23,7 +23,7 @@ import socket
 
 import xcap
 from xcap.datatypes import XCAPRootURI
-from xcap.appusage import getApplicationForURI, namespaces
+from xcap.appusage import getApplicationForURI, namespaces, public_get_applications
 from xcap.errors import ResourceNotFound
 from xcap.uri import XCAPUser, XCAPUri
 
@@ -101,10 +101,8 @@ def parseNodeURI(node_uri, default_realm):
 
 
 class ITrustedPeerCredentials(credentials.ICredentials):
-
     def checkPeer(self, trusted_peers):
         pass
-
 
 class TrustedPeerCredentials(object):
     implements(ITrustedPeerCredentials)
@@ -118,10 +116,19 @@ class TrustedPeerCredentials(object):
                 return True
         return False
 
+class IPublicGetApplicationCredentials(credentials.ICredentials):
+    def checkApplication(self):
+        pass
+
+class PublicGetApplicationCredentials(object):
+    implements(IPublicGetApplicationCredentials)
+
+    def checkApplication(self):
+        return True
+
 ## credentials checkers
 
 class TrustedPeerChecker(object):
-
     implements(checkers.ICredentialsChecker)
     credentialInterfaces = (ITrustedPeerCredentials,)
 
@@ -135,12 +142,26 @@ class TrustedPeerChecker(object):
             return defer.succeed(credentials.peer)
         return defer.fail(credError.UnauthorizedLogin())
 
+class PublicGetApplicationChecker(object):
+    implements(checkers.ICredentialsChecker)
+    credentialInterfaces = (IPublicGetApplicationCredentials,)
+
+    def requestAvatarId(self, credentials):
+        """We already know that the method is GET and the application is a 'public GET application',
+           we just need to say that the authentication succeeded."""
+        if credentials.checkApplication():
+            return defer.succeed(None)
+        return defer.fail(credError.UnauthorizedLogin())
+
 ## avatars
 
 class IAuthUser(Interface):
     pass
 
 class ITrustedPeer(Interface):
+    pass
+
+class IPublicGetApplication(Interface):
     pass
 
 class AuthUser(str):
@@ -150,6 +171,10 @@ class AuthUser(str):
 class TrustedPeer(str):
     """Trusted peer avatar."""
     implements(ITrustedPeer)
+
+class PublicGetApplication(str):
+    """Public get application avatar."""
+    implements(IPublicGetApplication)
 
 ## realm
 
@@ -164,6 +189,8 @@ class XCAPAuthRealm(object):
             return IAuthUser, AuthUser(avatarId)
         elif ITrustedPeer in interfaces:
             return ITrustedPeer, TrustedPeer(avatarId)
+        elif IPublicGetApplication in interfaces:
+            return IPublicGetApplication, PublicGetApplication(avatarId)
 
         raise NotImplementedError("Only IAuthUser and ITrustedPeer interfaces are supported")
 
@@ -209,6 +236,17 @@ class XCAPAuthResource(HTTPAuthResource):
             xcap_uri.user.username, xcap_uri.user.domain = get_cred(request, AuthenticationConfig.default_realm)
 
         self._updateRealm(realm)
+
+        # If we receive a GET to a 'public GET application' we will not authenticate it
+        if request.method == "GET" and xcap_uri.application_id in public_get_applications:
+            return self.portal.login(PublicGetApplicationCredentials(),
+                                     None,
+                                     IPublicGetApplication
+                                     ).addCallbacks(self._loginSucceeded,
+                                                    self._publicGetApplicationLoginFailed,
+                                                    (request,), None,
+                                                    (request,), None)
+
         remote_addr = request.remoteAddr.host
         if AuthenticationConfig.trusted_peers:
             return self.portal.login(TrustedPeerCredentials(remote_addr),
@@ -218,15 +256,19 @@ class XCAPAuthResource(HTTPAuthResource):
                                                     self._trustedPeerLoginFailed,
                                                     (request,), None,
                                                     (request,), None)
+
         return HTTPAuthResource.authenticate(self, request)
 
     def _trustedPeerLoginFailed(self, result, request):
         """If the peer is not trusted, fallback to HTTP basic/digest authentication."""
         return HTTPAuthResource.authenticate(self, request)
 
+    def _publicGetApplicationLoginFailed(self, result, request):
+        return HTTPAuthResource.authenticate(self, request)
+
     def _loginSucceeded(self, avatar, request):
         """Authorizes an XCAP request after it has been authenticated."""
-        
+
         interface, avatar_id = avatar ## the avatar is the authenticated XCAP User
         xcap_uri = request.xcap_uri
 
@@ -237,7 +279,7 @@ class XCAPAuthResource(HTTPAuthResource):
 
         if interface is IAuthUser and application.is_authorized(XCAPUser.parse(avatar_id), xcap_uri):
             return HTTPAuthResource._loginSucceeded(self, avatar, request)
-        elif interface is ITrustedPeer:
+        elif interface is ITrustedPeer or interface is IPublicGetApplication:
             return HTTPAuthResource._loginSucceeded(self, avatar, request)
         else:
             return failure.Failure(
