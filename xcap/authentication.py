@@ -46,7 +46,7 @@ class AuthenticationConfig(ConfigSection):
     __section__ = 'Authentication'
 
     default_realm = ConfigSetting(type=str, value=None)
-    trusted_peers = ConfigSetting(type=NetworkRangeList, value=NetworkRangeList('any'))
+    trusted_peers = ConfigSetting(type=NetworkRangeList, value=NetworkRangeList('none'))
 
 if AuthenticationConfig.trusted_peers is None:
     AuthenticationConfig.trusted_peers = [NetworkRange('none')]
