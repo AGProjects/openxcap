@@ -366,7 +366,10 @@ class Storage(DBBase):
         docs = {}
         for r in result:
             app = [k for k, v in self.app_mapping.iteritems() if v == r[0]][0]
-            docs[app] = [r[1], r[2]]  # Ex: {'pres-rules': ['index.html', '4564fd9c9a2a2e3e796310b00c9908aa']}
+            if docs.has_key(app):
+                docs[app].append((r[1], r[2]))
+            else:
+                docs[app] = [(r[1], r[2])]  # Ex: {'pres-rules': [('index.html', '4564fd9c9a2a2e3e796310b00c9908aa')]}
         return docs
 
     def get_documents_list(self, uri):

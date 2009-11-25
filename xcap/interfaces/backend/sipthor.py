@@ -320,12 +320,9 @@ class DatabaseConnection(object):
     def _get_documents_list_operation(self, uri, profile):
         try:
             xcap_docs = profile["xcap"]
-            print xcap_docs
-            docs = xcap_docs
-            #doc, etag = xcap_docs[sanitize_application_id(uri.application_id)][uri.doc_selector.document_path]
         except KeyError:
             raise NotFound()
-        return docs
+        return xcap_docs
 
     def retrieve_profile(self, username, domain, operation, update, defer):
         transaction = None
@@ -500,6 +497,11 @@ class Storage(object):
         return result
 
     def _got_documents_list(self, docs):
+        docs = {}
+        if xcap_docs:
+            for k, v in xcap_docs.iteritems():
+                path = v.keys()[0]
+                docs[k] = [path, v[path][1]]
         return docs
 
 installSignalHandlers = False

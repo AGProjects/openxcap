@@ -520,10 +520,12 @@ class XCAPDirectoryApplication(ApplicationUsage):
         if docs:
             for k, v in docs.iteritems():
                 folder = etree.SubElement(root, "folder", attrib={'auid': k})
-                entry_uri = "%s/%s/users/%s/%s" % (uri.xcap_root, k, sip_uri, v[0])
-                entry = etree.SubElement(folder, "entry")
-                entry.set("uri", entry_uri)
-                entry.set("etag", v[1])
+                for item in v:
+                    # We may have more than one document for the same application
+                    entry_uri = "%s/%s/users/%s/%s" % (uri.xcap_root, k, sip_uri, item[0])
+                    entry = etree.SubElement(folder, "entry")
+                    entry.set("uri", entry_uri)
+                    entry.set("etag", item[1])
         doc = etree.tostring(root, encoding="UTF-8", pretty_print=True, xml_declaration=True)
         #self.validate_document(doc)
         return defer.succeed(StatusResponse(200, etag=None, data=doc))
