@@ -6,17 +6,15 @@
 
 [Server]
 
-; IP address and port to listen for requests
+; IP address to listen for requests
 ; 0.0.0.0 means any address of this host
 address = 0.0.0.0
-port = 443
 
-; The XCAP Root URI; must not contain any port number. If the scheme is
-; https, then the server will listen for requests in TLS mode.
 
-; This is a comma/space separated list of XCAP root URIs. The first is the
+; This is a comma separated list of XCAP root URIs. The first is the
 ; primary XCAP root URI, while the others (if specified) are aliases.
 ; The primary root URI is used when generating xcap-diff
+; If the scheme is https, then the server will listen for requests in TLS mode.
 
 root = https://xcap.example.com/xcap-root
 

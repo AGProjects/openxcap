@@ -32,6 +32,7 @@ Meanwhile, the safe approach is to use &quot;
 
 import re
 from urllib import unquote
+from urlparse import urlparse
 
 from copy import copy
 from xml.sax.saxutils import quoteattr
@@ -325,9 +326,23 @@ def parse_node_selector(s, namespace=None, namespaces=None):
         log.error('internal error in parse_node_selector(%r)' % s)
         raise
 
+def get_port_from_root_uri(uri):
+    scheme, netloc, path, params, query, fragment = urlparse(uri)
+    if scheme and netloc:
+        if len(netloc.split(":")) == 2:
+            try:
+                port = int(netloc.split(":")[1])
+            except ValueError:
+                return None
+            else:
+                return port if port < 65536 else None
+        if scheme.lower() == "http":
+            return 80
+        if scheme.lower() == "https":
+            return 443
+        return None
 
 class ElementSelector(list):
-
     def __init__(self, lst, namespace, namespaces):
         list.__init__(self, lst)
         self.namespace = namespace
