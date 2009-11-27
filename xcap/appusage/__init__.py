@@ -314,7 +314,7 @@ class ApplicationUsage(object):
         return self.put_document(uri, new_document, check_etag)
 
     def put_attribute(self, uri, attribute, check_etag):
-        ## TODO verifica daca atributul e valid
+        ## TODO verify if the attribute is valid
         d = self.get_document(uri, check_etag)
         return d.addCallbacks(self._cb_put_attribute, callbackArgs=(uri, attribute, check_etag))
 
@@ -509,7 +509,7 @@ class WatchersApplication(ResourceListsApplication): # QQQ why does it inherit f
         return watchers_def
 
     def put_document(self, uri, document, check_etag):
-        raise errors.ResourceNotFound("This application is read-only") # TODO: test and add better error
+        raise errors.ResourceNotFound("This application does not support PUT method")
 
 class XCAPDirectoryApplication(ApplicationUsage):
     id = "xcap-directory"
@@ -539,7 +539,7 @@ class XCAPDirectoryApplication(ApplicationUsage):
         return docs_def
 
     def put_document(self, uri, document, check_etag):
-        raise errors.ResourceNotFound("This application is read-only") # TODO: test and add better error
+        raise errors.ResourceNotFound("This application does not support PUT method")
 
 class IconApplication(ApplicationUsage):
     id = "icon"
