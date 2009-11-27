@@ -491,17 +491,20 @@ class Storage(object):
         else:
             print "error: %s" % response
 
-    def get_documents_list(self, uri, check_etag):
+    def get_documents_list(self, uri):
         result = self._database.get_documents_list(uri)
         result.addCallback(self._got_documents_list)
         return result
 
-    def _got_documents_list(self, docs):
+    def _got_documents_list(self, xcap_docs):
         docs = {}
         if xcap_docs:
             for k, v in xcap_docs.iteritems():
-                path = v.keys()[0]
-                docs[k] = [path, v[path][1]]
+                for k2, v2 in v.iteritems():
+                    if docs.has_key(k):
+                        docs[k].append((k2, v2[1]))
+                    else:
+                        docs[k] = [(k2, v2[1])]
         return docs
 
 installSignalHandlers = False
