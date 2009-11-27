@@ -181,6 +181,7 @@ class Storage(DBBase):
                    "rls-services"     : 1<<3,
                    "pidf-manipulation": 1<<4,
                    "dialog-rules"     : 1<<5,
+                   "icon"             : 1<<6,
                    "test-app"         : 0}
 
     def _db_connect(self):
@@ -374,6 +375,44 @@ class Storage(DBBase):
 
     def get_documents_list(self, uri):
         return self.conn.runInteraction(self._get_documents_list, uri)
+
+    def put_icon(self, uri, document):
+        return repeat_on_error(10, (UpdateFailed, IntegrityError),
+                               self.conn.runInteraction, self._put_icon, uri, document)
+
+    def _put_icon(self, trans, uri, document):
+        username, domain = uri.user.username, uri.user.domain
+        doc_type = self.app_mapping[uri.application_id]
+        document_path = uri.doc_selector.document_path
+
+        query = """DELETE FROM %(table)s
+                   WHERE username = %%(username)s AND domain = %%(domain)s
+                   AND doc_type= %%(doc_type)s""" % {"table" : Config.xcap_table}
+        params = {"username": username,
+                  "domain"  : domain,
+                  "doc_type": doc_type}
+        trans.execute(*self.fixr(query, params))
+        deleted = getattr(trans._connection, 'affected_rows', lambda : 1)()
+        try:
+            if deleted:
+                pass
+        except NameError:
+            raise DeleteFailed
+
+        etag = make_random_etag(uri)
+        query = """INSERT INTO %(table)s (username, domain, doc_type, etag, doc, doc_uri)
+                 VALUES (%%(username)s, %%(domain)s, %%(doc_type)s, %%(etag)s, %%(document)s, %%(document_path)s)""" % {"table": Config.xcap_table}
+        params = {"username": username,
+                  "domain"  : domain,
+                  "doc_type": doc_type,
+                  "etag":     etag,
+                  "document": document,
+                  "document_path": document_path}
+        # may raise IntegrityError here, if the document was created in another connection
+        # will be catched by repeat_on_error
+        trans.execute(*self.fixr(query, params))
+        return StatusResponse(201, etag)
+
 
 installSignalHandlers = True
 

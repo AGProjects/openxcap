@@ -2,6 +2,8 @@
 
 import os
 import sys
+import base64
+import Image
 
 from cStringIO import StringIO
 from lxml import etree
@@ -20,7 +22,8 @@ from xcap.dbutil import make_etag
 
 supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pres-rules',
                           'resource-lists', 'rls-services', 'pidf-manipulation', 'watchers', 
-                          'dialog-rules', 'org.openmobilealliance.xcap-directory', 'xcap-directory')
+                          'dialog-rules', 'org.openmobilealliance.xcap-directory', 'xcap-directory',
+                          'oma_status-icon', 'icon')
 
 public_get_applications = ('icon')
 
@@ -65,7 +68,7 @@ class ApplicationUsage(object):
     default_ns = None        ## the default XML namespace
     mime_type = None         ## the MIME type
     schema_file = None       ## filename of the schema for the application
-    
+
     def __init__(self, storage):
         ## the XML schema that defines valid documents for this application
         if self.schema_file:
@@ -231,7 +234,6 @@ class ApplicationUsage(object):
         return d.addCallbacks(self._cb_delete_element, callbackArgs=(uri, check_etag))
 
     ## Attribute management
-    
     def _cb_get_attribute(self, response, uri):
         """This is called when the document that relates to the attribute is retreived."""
         if response.code == 404:
@@ -317,7 +319,6 @@ class ApplicationUsage(object):
         return d.addCallbacks(self._cb_put_attribute, callbackArgs=(uri, attribute, check_etag))
 
     ## Namespace Bindings
-    
     def _cb_get_ns_bindings(self, response, uri):
         """This is called when the document that relates to the element is retreived."""
         if response.code == 404:
@@ -540,6 +541,50 @@ class XCAPDirectoryApplication(ApplicationUsage):
     def put_document(self, uri, document, check_etag):
         raise errors.ResourceNotFound("This application is read-only") # TODO: test and add better error
 
+class IconApplication(ApplicationUsage):
+    id = "icon"
+    default_ns = "urn:oma:xml:prs:pres-content"
+    mime_type = "application/vnd.oma.pres-content+xml"
+
+    def _validate_icon(self, document):
+        allowed_mime_types = ['jpg', 'gif', 'png']
+        allowed_encodings = ['base64']
+        allowed_sizes = [(256, 256)]
+        try:
+            xml = StringIO(document)
+            tree = etree.parse(xml)
+            root = tree.getroot()
+            icon = None
+            ns = root.nsmap[None]
+            for element in root:
+                if element.tag == "{%s}mime-type" % ns:
+                    if not (len(element.text.split("/")) == 2 and element.text.split("/")[1].lower() in allowed_mime_types):
+                        raise errors.ConstraintFailureError(phrase="Unsupported MIME type")
+                if element.tag == "{%s}encoding" % root.nsmap[None]:
+                    if not element.text.lower() in allowed_encodings:
+                        raise errors.ConstraintFailureError(phrase="Unsupported encoding. Allowed enconding(s) %s" % allowed_encodings)
+                if element.tag == "{%s}data" % root.nsmap[None]:
+                    try:
+                        icon = base64.decodestring(element.text)
+                    except:
+                        raise errors.ConstraintFailureError(phrase="Unsupported encoding. Allowed enconding(s) %s" % allowed_encodings)
+        except etree.ParseError:
+            raise errors.NotWellFormedError()
+        else:
+            try:
+                img = Image.open(StringIO(icon))
+            except (IOError, TypeError):
+                raise errors.ConstraintFailureError(phrase="Can't detect an image in the payload.")
+            else:
+                if img.size not in allowed_sizes:
+                    raise errors.ConstraintFailureError(phrase="Image size error. Maximum allowed size is 256 pixels aspect ratio 1:1")
+                if img.format.lower() not in allowed_mime_types:
+                    raise errors.ConstraintFailureError(phrase="Unsupported MIME type")
+
+    def put_document(self, uri, document, check_etag):
+        self._validate_icon(document)
+        return self.storage.put_icon(uri, document)
+
 theStorage = ServerConfig.backend.Storage()
 
 class TestApplication(ApplicationUsage):
@@ -559,6 +604,8 @@ applications = {'xcap-caps': XCAPCapabilitiesApplication(),
                 'rls-services': RLSServicesApplication(theStorage),
                 'xcap-directory': XCAPDirectoryApplication(theStorage),
                 'org.openmobilealliance.xcap-directory': XCAPDirectoryApplication(theStorage),
+                'icon': IconApplication(theStorage),
+                'oma_status-icon': IconApplication(theStorage),
                 'test-app': TestApplication(theStorage)}
 
 namespaces = dict((k, v.default_ns) for (k, v) in applications.items())
