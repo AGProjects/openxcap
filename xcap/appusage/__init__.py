@@ -549,7 +549,7 @@ class IconApplication(ApplicationUsage):
     def _validate_icon(self, document):
         allowed_mime_types = ['jpg', 'gif', 'png']
         allowed_encodings = ['base64']
-        allowed_sizes = [(256, 256)]
+        allowed_max_size = 256
         try:
             xml = StringIO(document)
             tree = etree.parse(xml)
@@ -576,14 +576,14 @@ class IconApplication(ApplicationUsage):
             except (IOError, TypeError):
                 raise errors.ConstraintFailureError(phrase="Can't detect an image in the payload.")
             else:
-                if img.size not in allowed_sizes:
+                if not (img.size[0] == img.size[1] and img.size[0] <= allowed_max_size):
                     raise errors.ConstraintFailureError(phrase="Image size error. Maximum allowed size is 256 pixels aspect ratio 1:1")
                 if img.format.lower() not in allowed_mime_types:
                     raise errors.ConstraintFailureError(phrase="Unsupported MIME type")
 
     def put_document(self, uri, document, check_etag):
         self._validate_icon(document)
-        return self.storage.put_icon(uri, document)
+        return self.storage.put_document(uri, document, check_etag)
 
 theStorage = ServerConfig.backend.Storage()
 

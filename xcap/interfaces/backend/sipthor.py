@@ -283,11 +283,6 @@ class DatabaseConnection(object):
         reactor.callInThread(self.retrieve_profile, uri.user.username, uri.user.domain, operation, False, defer)
         return defer
 
-    def put_icon(self, uri, document, new_etag):
-        defer = Deferred()
-        operation = lambda profile: self._put_icon_operation(uri, document, new_etag, profile)
-        reactor.callInThread(self.retrieve_profile, uri.user.username, uri.user.domain, operation, True, defer)
-        return defer
 
     # Methods to be called in a separate thread:
     def _put_operation(self, uri, document, check_etag, new_etag, profile):
@@ -329,21 +324,6 @@ class DatabaseConnection(object):
         except KeyError:
             raise NotFound()
         return xcap_docs
-
-    def _put_icon_operation(self, uri, document, new_etag, profile):
-        application_id = sanitize_application_id(uri.application_id)
-        xcap_docs = profile.setdefault("xcap", {})
-        del(xcap_docs[application_id])
-        try:
-            etag = xcap_docs[application_id][uri.doc_selector.document_path][1]
-        except KeyError:
-            found = False
-        else:
-            found = True
-            check_etag(etag)
-        xcap_app = xcap_docs.setdefault(application_id, {})
-        xcap_app[uri.doc_selector.document_path] = (document, new_etag)
-        return found
 
     def retrieve_profile(self, username, domain, operation, update, defer):
         transaction = None
@@ -528,11 +508,5 @@ class Storage(object):
                         docs[k] = [(k2, v2[1])]
         return docs
 
-    def put_icon(self, uri, document):
-        etag = make_random_etag(uri)
-        result = self._database.put_icon(uri, document, etag)
-        result.addCallback(self._cb_put, etag, "%s@%s" % (uri.user.username, uri.user.domain))
-        result.addErrback(self._eb_not_found)
-        return result
 
 installSignalHandlers = False
