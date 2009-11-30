@@ -559,7 +559,7 @@ class IconApplication(ApplicationUsage):
             for element in root:
                 if element.tag == "{%s}mime-type" % ns:
                     if not (len(element.text.split("/")) == 2 and element.text.split("/")[1].lower() in allowed_mime_types):
-                        raise errors.ConstraintFailureError(phrase="Unsupported MIME type")
+                        raise errors.ConstraintFailureError(phrase="Unsupported MIME type. Allowed MIME type(s) %s" % allowed_mime_types)
                 if element.tag == "{%s}encoding" % ns:
                     if not element.text.lower() in allowed_encodings:
                         raise errors.ConstraintFailureError(phrase="Unsupported encoding. Allowed enconding(s) %s" % allowed_encodings)
@@ -579,7 +579,7 @@ class IconApplication(ApplicationUsage):
                 if not (img.size[0] == img.size[1] and img.size[0] <= allowed_max_size):
                     raise errors.ConstraintFailureError(phrase="Image size error. Maximum allowed size is 256 pixels aspect ratio 1:1")
                 if img.format.lower() not in allowed_mime_types:
-                    raise errors.ConstraintFailureError(phrase="Unsupported MIME type")
+                    raise errors.ConstraintFailureError(phrase="Unsupported MIME type. Allowed MIME type(s) %s" % allowed_mime_types)
 
     def put_document(self, uri, document, check_etag):
         self._validate_icon(document)
