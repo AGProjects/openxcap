@@ -560,10 +560,10 @@ class IconApplication(ApplicationUsage):
                 if element.tag == "{%s}mime-type" % ns:
                     if not (len(element.text.split("/")) == 2 and element.text.split("/")[1].lower() in allowed_mime_types):
                         raise errors.ConstraintFailureError(phrase="Unsupported MIME type")
-                if element.tag == "{%s}encoding" % root.nsmap[None]:
+                if element.tag == "{%s}encoding" % ns:
                     if not element.text.lower() in allowed_encodings:
                         raise errors.ConstraintFailureError(phrase="Unsupported encoding. Allowed enconding(s) %s" % allowed_encodings)
-                if element.tag == "{%s}data" % root.nsmap[None]:
+                if element.tag == "{%s}data" % ns:
                     try:
                         icon = base64.decodestring(element.text)
                     except:
@@ -584,6 +584,37 @@ class IconApplication(ApplicationUsage):
     def put_document(self, uri, document, check_etag):
         self._validate_icon(document)
         return self.storage.put_document(uri, document, check_etag)
+
+    def _extract_and_return_icon(self, status):
+        if status.code != 200:
+            return status
+        try:
+            xml = StringIO(status.data)
+            tree = etree.parse(xml)
+            root = tree.getroot()
+            ns = root.nsmap[None]
+            icon = None
+        except ParseError:
+            return StatusResponse(500)
+        else:
+            for element in root:
+                if element.tag == "{%s}data" % ns:
+                    try:
+                        icon = base64.decodestring(element.text)
+                    except:
+                        return StatusResponse(500)
+                    else:
+                        break
+            if icon:
+                return StatusResponse(200, etag=status.etag, data=icon)
+            else:
+                return StatusResponse(500)
+
+    def get_document_local(self, uri, check_etag):
+        doc_def = self.storage.get_document(uri, check_etag)
+        doc_def.addCallback(self._extract_and_return_icon)
+        return doc_def
+
 
 theStorage = ServerConfig.backend.Storage()
 
