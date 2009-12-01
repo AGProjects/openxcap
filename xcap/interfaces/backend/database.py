@@ -174,6 +174,7 @@ class Storage(DBBase):
                    "pidf-manipulation": 1<<4,
                    "dialog-rules"     : 1<<5,
                    "icon"             : 1<<6,
+                   "oma_status-icon"  : 1<<6,
                    "test-app"         : 0}
 
     def _db_connect(self):

@@ -25,7 +25,7 @@ supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pre
                           'dialog-rules', 'org.openmobilealliance.xcap-directory', 'xcap-directory',
                           'oma_status-icon', 'icon')
 
-public_get_applications = ('icon')
+public_get_applications = ('oma_status-icon', 'icon')
 
 class EnabledApplications(StringList):
     def __new__(typ, value):
@@ -542,7 +542,7 @@ class XCAPDirectoryApplication(ApplicationUsage):
         raise errors.ResourceNotFound("This application does not support PUT method")
 
 class IconApplication(ApplicationUsage):
-    id = "icon"
+    id = "oma_status-icon"
     default_ns = "urn:oma:xml:prs:pres-content"
     mime_type = "application/vnd.oma.pres-content+xml"
 
