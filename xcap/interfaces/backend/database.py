@@ -23,8 +23,8 @@ class Config(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
     __section__ = 'Database'
 
-    authentication_db_uri = 'sqlite:/:memory:'
-    storage_db_uri = 'sqlite:/:memory:'
+    authentication_db_uri = ''
+    storage_db_uri = ''
     subscriber_table = 'subscriber'
     user_col = 'username'
     domain_col = 'domain'
@@ -32,18 +32,14 @@ class Config(ConfigSection):
     ha1_col = 'ha1'
     xcap_table = 'xcap'
 
+if not Config.authentication_db_uri or not Config.storage_db_uri:
+    raise RuntimeError("You need to specify both authentication_db_uri and storage_db_uri")
 
 
 class DBBase(object):
-
     def __init__(self):
         self._db_connect()
 
-    def fixr(self, expr, params):
-        if self.conn.schema == 'sqlite':
-            return pyformat_to_qmark(expr, params)
-        else:
-            return expr, params
 
 class PasswordChecker(DBBase):
     """A credentials checker against a database subscriber table."""
@@ -101,7 +97,7 @@ class PlainPasswordChecker(PasswordChecker):
                     "table":    Config.subscriber_table }
         params = {"username": username,
                   "domain":   domain}
-        return self.conn.runQuery(*self.fixr(query, params)).addCallback(self._got_query_results, credentials)
+        return self.conn.runQuery(query, params).addCallback(self._got_query_results, credentials)
 
     def _authenticate_credentials(self, hash, credentials):
         return defer.maybeDeferred(
@@ -127,7 +123,7 @@ class HashPasswordChecker(PasswordChecker):
                     "table":    Config.subscriber_table}
         params = {"username": username,
                   "domain":   domain}
-        return self.conn.runQuery(*self.fixr(query, params)).addCallback(self._got_query_results, credentials)
+        return self.conn.runQuery(query, params).addCallback(self._got_query_results, credentials)
 
     def _authenticate_credentials(self, hash, credentials):
         return defer.maybeDeferred(
@@ -153,8 +149,7 @@ class RaceError(Error):
 
     This seems unnecessary convoluted and probably should be changed to
     'DELETE .. WHERE etag=ETAG'. We still need to find out whether DELETE was
-    actually performed. While mysql has affected_rows(), with sqlite it seems that
-    SELECT is necessary.
+    actually performed.
     """
 
 class UpdateFailed(RaceError):
@@ -207,7 +202,7 @@ class Storage(DBBase):
                   "domain"  : domain,
                   "doc_type": doc_type,
                   "document_path": uri.doc_selector.document_path}
-        trans.execute(*self.fixr(query, params))
+        trans.execute(query, params)
         result = trans.fetchall()
         if len(result)>1:
             raise MultipleResultsError(params)
@@ -234,7 +229,7 @@ class Storage(DBBase):
                   "domain"  : domain,
                   "doc_type": doc_type,
                   "document_path": document_path}
-        trans.execute(*self.fixr(query, params))
+        trans.execute(query, params)
         result = trans.fetchall()
         if len(result)>1:
             raise MultipleResultsError(params)
@@ -252,7 +247,7 @@ class Storage(DBBase):
                       "document_path": document_path}
             # may raise IntegrityError here, if the document was created in another connection
             # will be catched by repeat_on_error
-            trans.execute(*self.fixr(query, params))
+            trans.execute(query, params)
             return StatusResponse(201, etag)
         else:
             old_etag = result[0][0]
@@ -273,7 +268,7 @@ class Storage(DBBase):
                       "doc_type": doc_type,
                       "old_etag": old_etag,
                       "document_path": document_path}
-            trans.execute(*self.fixr(query, params))
+            trans.execute(query, params)
             # the request may not update anything (e.g. if etag was changed by another connection
             # after we did SELECT); if so, we should retry
             updated = getattr(trans._connection, 'affected_rows', lambda : 1)()
@@ -295,7 +290,7 @@ class Storage(DBBase):
                   "domain"  : domain,
                   "doc_type": doc_type,
                   "document_path": document_path}
-        trans.execute(*self.fixr(query, params))
+        trans.execute(query, params)
         result = trans.fetchall()
         if len(result)>1:
             raise MultipleResultsError(params)
@@ -311,7 +306,7 @@ class Storage(DBBase):
                       "doc_type": doc_type,
                       "document_path": document_path,
                       "etag": etag}
-            trans.execute(*self.fixr(query, params))
+            trans.execute(query, params)
             deleted = getattr(trans._connection, 'affected_rows', lambda : 1)()
             if not deleted:
                 # the document was replaced/removed after the SELECT but before the DELETE
@@ -340,7 +335,7 @@ class Storage(DBBase):
         query = """SELECT watcher_username, watcher_domain, status FROM watchers
                    WHERE presentity_uri = %(puri)s"""
         params = {'puri': presentity_uri}
-        trans.execute(*self.fixr(query, params))
+        trans.execute(query, params)
         result = trans.fetchall()
         watchers = [{"id": "%s@%s" % (w_user, w_domain),
                      "status": status_mapping.get(subs_status, "unknown"),
@@ -381,71 +376,20 @@ installSignalHandlers = True
 
 def auth_db_connection(uri):
     conn = connectionForURI(uri)
-    if conn.schema=='sqlite':
-        d = conn.runOperation(SQLITE_CREATE_SUBSCRIBER % Config.__dict__)
-        d.addErrback(Failure.printTraceback)
-        d.addCallback(lambda x: conn.runOperation(INSERT_ALICE % Config.__dict__))
     return conn
 
 def storage_db_connection(uri):
     conn = connectionForURI(uri)
-    if conn.schema=='sqlite':
-        conn.runOperation(SQLITE_CREATE_XCAP % Config.__dict__).addErrback(Failure.printTraceback)
-    else:
-        def cb(res):
-            if res[0:1][0:1] and res[0][0]:
-                print '%s xcap documents in the database' % res[0][0]
-            return res
-        def eb(fail):
-            fail.printTraceback()
-            return fail
-        # connect early, so database problem are detected early
-        d = conn.runQuery('SELECT count(*) from %s' % Config.xcap_table)
-        d.addCallback(cb)
-        d.addErrback(eb)
+    def cb(res):
+        if res[0:1][0:1] and res[0][0]:
+            print '%s xcap documents in the database' % res[0][0]
+        return res
+    def eb(fail):
+        fail.printTraceback()
+        return fail
+    # connect early, so database problem are detected early
+    d = conn.runQuery('SELECT count(*) from %s' % Config.xcap_table)
+    d.addCallback(cb)
+    d.addErrback(eb)
     return conn
 
-def pyformat_to_qmark(expr, params):
-    """
-    >>> params = {'username': 1, 'domain': 2, 'doc_type': 3, 'document_path': 4}
-    >>> pyformat_to_qmark('SELECT etag FROM xcap WHERE username = %(username)s AND domain = %(domain)s ' +
-    ... 'AND doc_type= %(doc_type)s AND doc_uri = %(document_path)s', params)
-    ('SELECT etag FROM xcap WHERE username = ? AND domain = ? AND doc_type= ? AND doc_uri = ?', [1, 2, 3, 4])
-    """
-    new_params = []
-    def repl(s):
-        param = s.group(0)[2:-2]
-        new_params.append(params[param])
-        return '?'
-    res = re.sub('%\\(\w+\\)s', repl, expr), new_params
-    return res
-
-SQLITE_CREATE_SUBSCRIBER = """
-CREATE TABLE IF NOT EXISTS %(subscriber_table)s (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    %(user_col)s TEXT NOT NULL,
-    %(domain_col)s TEXT NOT NULL,
-    %(password_col)s TEXT NOT NULL,
-    %(ha1_col)s TEXT NOT NULL,
-    UNIQUE (%(user_col)s, %(domain_col)s)
-);"""
-
-INSERT_ALICE = """INSERT INTO %(subscriber_table)s
-VALUES (1, 'alice', 'example.com', '123', 'e7e17aa8f41805bdf8ccc4d5520560d0')"""
-
-SQLITE_CREATE_XCAP = """
-CREATE TABLE IF NOT EXISTS %(xcap_table)s (
-  `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `username` TEXT NOT NULL,
-  `domain` TEXT NOT NULL,
-  `doc` TEXT NOT NULL,
-  `doc_type` INTEGER NOT NULL,
-  `etag` TEXT NOT NULL,
-  `source` INTEGER,
-  `doc_uri` TEXT NOT NULL,
-  `port` INTEGER,
-  UNIQUE (`username`,`domain`,`doc_type`,`doc_uri`)
-);
-"""
-
-#implement sqlite-aware classes in dbutil

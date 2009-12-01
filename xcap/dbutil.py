@@ -9,8 +9,7 @@ import urllib
 from twisted.enterprise import adbapi
 from twisted.python import reflect
 
-db_modules = {"mysql": "MySQLdb",
-              "sqlite": "sqlite3"}
+db_modules = {"mysql": "MySQLdb"}
 
 def make_random_etag(uri):
     return md5.new("%s%s%s" % (uri, time.time(), random.random())).hexdigest()
@@ -19,99 +18,64 @@ def make_etag(uri, document):
     return md5.new("%s%s" % (uri, document)).hexdigest()
 
 def parseURI(uri):
-    """
-    >>> parseURI('mysql://username:123@localhost/opensips')
-    ('mysql', 'username', '123', 'localhost', None, '/opensips', {})
-    >>> parseURI('sqlite:/:memory:')
-    ('sqlite', None, None, None, None, ':memory:', {})
-    >>> parseURI('sqlite:///full/path/to/database')
-    ('sqlite', None, None, None, None, '/full/path/to/database', {})
-    >>> parseURI('sqlite:/C|/full/path/to/database')
-    ('sqlite', None, None, None, None, '/C|/full/path/to/database', {})
-    """
     schema, rest = uri.split(':', 1)
-    assert rest.startswith('/'), "URIs must start with scheme:/ -- you did not include a / (in %r)" % rest
-    if rest.startswith('/') and not rest.startswith('//'):
-        host = None
-        rest = rest[1:]
-    elif rest.startswith('///'):
-        host = None
-        rest = rest[3:]
+    assert rest.startswith('//'), "DB URIs must start with scheme:// -- you did not include a / (in %r)" % rest
+    rest = rest[2:]
+    if rest.find('/') != -1:
+        host, rest = rest.split('/', 1)
     else:
-        rest = rest[2:]
-        if rest.find('/') == -1:
-            host = rest
-            rest = ''
-        else:
-            host, rest = rest.split('/', 1)
+        raise ValueError("You MUST specify a database in the DB URI.")
+
     if host and host.find('@') != -1:
-        user = host[:host.rfind('@')] # Python 2.3 doesn't have .rsplit()
-        host = host[host.rfind('@')+1:] # !!!
+        user, host = host.split('@', 1)
         if user.find(':') != -1:
             user, password = user.split(':', 1)
         else:
             password = None
+        if not user:
+            raise ValueError("You MUST specify a user in the DB URI.")
     else:
-        user = password = None
+        raise ValueError("You MUST specify a host in the DB URI.")
+
     if host and host.find(':') != -1:
-        _host, port = host.split(':')
+        host, port = host.split(':')
         try:
             port = int(port)
         except ValueError:
             raise ValueError, "port must be integer, got '%s' instead" % port
         if not (1 <= port <= 65535):
             raise ValueError, "port must be integer in the range 1-65535, got '%d' instead" % port
-        host = _host
     else:
         port = None
-    path = '/' + rest
-    if os.name == 'nt':
-        if (len(rest) > 1) and (rest[1] == '|'):
-            path = "%s:%s" % (rest[0], rest[2:])
-    args = {}
-    if path.find('?') != -1:
-        path, arglist = path.split('?', 1)
-        arglist = arglist.split('&')
-        for single in arglist:
-            argname, argvalue = single.split('=', 1)
-            argvalue = urllib.unquote(argvalue)
-            args[argname] = argvalue
-    if path == '/:memory:':
-        path = path[1:]
-    return schema, user, password, host, port, path, args
+    db = rest
+    return schema, user, password, host, port, db
 
 def connectionForURI(uri):
     """Return a Twisted adbapi connection pool for a given database URI."""
-    schema, user, password, host, port, path, args = parseURI(uri)
+    schema, user, password, host, port, db = parseURI(uri)
     try:
         module = db_modules[schema]
-    except Exception:
+    except KeyError:
         raise ValueError("Database scheme '%s' is not supported." % schema)
 
-    # reconnecting is safe since we don't use transactions.
+    # Reconnecting is safe since we don't use transactions.
     # the following code prefers MySQLdb native reconnect if it's available,
     # falling back to twisted's cp_reconnect.
     # mysql's reconnect is preferred because it's better tested than twisted's
+    # MySQLdb reconnect just works with version 1.2.2 it has been removed after
     kwargs = {}
     if module == 'MySQLdb':
         MySQLdb = reflect.namedModule(module)
-        if MySQLdb.version_info[:3] >= (1, 2, 2):
+        if MySQLdb.version_info[:3] == (1, 2, 2):
             kwargs.setdefault('reconnect', 1)
         kwargs.setdefault('host', host or 'localhost')
         kwargs.setdefault('user', user or '')
         kwargs.setdefault('passwd', password or '')
-        path = path.lstrip('/')
-        kwargs.setdefault('db', path)
+        kwargs.setdefault('db', db)
         args = ()
-    elif module == 'sqlite3':
-        if path == ':memory:':
-            # otherwise a database per connection is created
-            kwargs['cp_min'] = kwargs['cp_max'] = 1
-        args = (path, )
 
     if 'reconnect' not in kwargs:
-        # note that some versions of MySQLdb don't provide reconnect parameter,
-        # but set it to 1.
+        # note that versions other than 1.2.2 of MySQLdb don't provide reconnect parameter.
         # hopefully, if underlying reconnect was enabled, twisted will never see
         # a disconnect and its reconnection code won't interfere.
         kwargs.setdefault('cp_reconnect', 1)
@@ -123,11 +87,9 @@ def connectionForURI(uri):
     return pool
 
 def repeat_on_error(N, errorinfo, func, *args, **kwargs):
-    #print 'repeat_on_error', N, func.__name__
     d = func(*args, **kwargs)
     counter = [N]
     def try_again(error):
-        #print 'try_again!', func.__name__, counter[0], `error`
         if isinstance(error.value, errorinfo) and counter[0]>0:
             counter[0] -= 1
             d = func(*args, **kwargs)
@@ -171,4 +133,4 @@ if __name__=='__main__':
 
     d = repeat_on_error(1, Exception, bad_func)
     d.addCallbacks(*getcb('bad_func'))
-    
+
