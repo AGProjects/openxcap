@@ -32,9 +32,6 @@ class Config(ConfigSection):
     ha1_col = 'ha1'
     xcap_table = 'xcap'
 
-if not Config.authentication_db_uri or not Config.storage_db_uri:
-    raise RuntimeError("You need to specify both authentication_db_uri and storage_db_uri")
-
 
 class DBBase(object):
     def __init__(self):
