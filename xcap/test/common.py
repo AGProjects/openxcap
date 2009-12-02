@@ -305,6 +305,7 @@ def prepare_optparser(option_parser=None):
     return option_parser
 
 def process_options(options):
+    options.account_name = "test"
     xcapclient.update_options_from_config(options)
     if options.client == 'eventlet':
         enable_eventlet()
