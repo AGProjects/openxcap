@@ -12,7 +12,7 @@ CREATE TABLE `xcap` (
   `id` int(10) NOT NULL auto_increment,
   `username` varchar(66) NOT NULL,
   `domain` varchar(128) NOT NULL,
-  `doc` blob NOT NULL,
+  `doc` mediumblob NOT NULL,
   `doc_type` int(11) NOT NULL,
   `etag` varchar(64) NOT NULL,
   `source` int(11) NOT NULL,
