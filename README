@@ -77,9 +77,9 @@ Supported XCAP applications
  * PIDF manipulation (auid = pidf-manipulation). Pidf-manipulation
    application usage defines how XCAP is used to manipulate the contents of
    PIDF based presence documents.
- * XCAP directory (auid = xcap-directory, org.openmobilealliance.xcap-directory). 
+ * XCAP directory (auid = org.openmobilealliance.xcap-directory). 
    Lists the documents stored in the XCAP server for a given user.
- * icon (auid = icon, oma_status-icon). Manipulate the user icon for
+ * icon (auid = oma_status-icon). Manipulate the user icon for
    a given user and provide icon download capability from HTTP clients.
  * Dialog rules (auid = dialog-rules). Dialog Rules application is a
    custom application modeled after Presence rules that uses authorization 
