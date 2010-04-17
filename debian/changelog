@@ -1,3 +1,34 @@
+openxcap (1.2.0) unstable; urgency=low
+
+  * Removed python-xml dependency
+  * Use Account_test for running the test suite
+  * Changed MySQL scripts doc field to mediumblob
+  * Removed unused auids, keep only the standard ones
+  * Use OMA standard names for icon directory applications
+  * Dropped SQLite support which wasn't finished. 
+  * Make MySQLdb reconnect active only for version 1.2.2
+  * Updated readme
+  * Detail allowed MIME types in error response
+  * Icon application GET returns the image itself, not an XML
+  * Fixed size constraint and don't delete previous icons on PUT
+  * Made some error messages more clear
+  * Deprecated port parameter, now port should be specified in root URI
+  * Added icon application support
+  * Added 'public GET applications'. Public GET applications are not asked for
+    auth for GET requests, just for PUT
+  * Fixed xcap-directory listing in SIPThor backend
+  * Support for listing more than one document of the same type in xcap-directory
+  * Added xcap-directory application (OMA TS XDM Core)
+  * If no trusted_peers is specified default to none instead of any
+  * Fixed allow subnets in trusted_peers
+  * Reworked xcap-caps using etree
+  * Use common-policy schema for validating dialog-rules documents
+  * Fixed refresh of OpenSIPS watchers when using dialog-rules
+  * Made presence rules use presence-rules.xsd schema
+  * Added support for dialog-rules
+
+ -- Adrian Georgescu <ag@ag-projects.com>  Sat, 17 Apr 2010 12:51:04 +0200
+
 openxcap (1.1.3) unstable; urgency=low
 
   * Fixed digest authentication bug related to the opaque attribute
