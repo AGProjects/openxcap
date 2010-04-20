@@ -33,6 +33,7 @@ document_validation = Yes
 [Logging]
 ; directory where to put log files, default is /var/log/openxcap
 ; if empty, like in the following line, logs will be printed to stdout
+; if in no-fork mode or to syslog if in forked mode
 ;directory=
 
 ; The following log_* parameters control what information is logged for

@@ -92,10 +92,6 @@ class Logging(ConfigSection):
     # printed to console
     directory = '/var/log/openxcap'
 
-    # if True errors will be logged to directory/error.log
-    # if False (default) they will be logged to syslog
-    log_error_to_file = False
-
     # each log message is followed by the headers of the request
     log_request_headers = ConfigSetting(type=ErrorCodeList, value=[500])
 
@@ -287,11 +283,8 @@ class ApacheLogObserver(object):
     def __init__(self, directory):
         access_file = LogFile('access.log', directory, **self.params)
         self.access = FileLogObserver(access_file)
-        if Logging.log_error_to_file:
-            error_file = LogFile('error.log', directory, **self.params)
-            self.error  = FileLogObserver(error_file)
-        else:
-            self.error = log.SyslogObserver('openxcap')
+        error_file = LogFile('error.log', directory, **self.params)
+        self.error  = FileLogObserver(error_file)
 
     def emit(self, eventDict):
         if eventDict.get('access_log'):
@@ -306,6 +299,8 @@ def start_log(setStdout=True):
             os.mkdir(Logging.directory)
         obs = ApacheLogObserver(Logging.directory)
         startLoggingWithObserver(obs.emit, setStdout=setStdout)
+    else:
+        log.start_syslog('openxcap')
 
 
 if __name__=='__main__':
