@@ -1,5 +1,5 @@
-import md5
 
+from hashlib import md5
 from twisted.cred import credentials, error
 from twisted.web2.auth.digest import IUsernameDigestHash, DigestCredentialFactory
 
@@ -7,7 +7,7 @@ from zope.interface import implements
 
 def makeHash(username, realm, password):
     s = '%s:%s:%s' % (username, realm, password)
-    return md5.new(s).hexdigest()
+    return md5(s).hexdigest()
 
 class BasicCredentials(credentials.UsernamePassword):
     """Custom Basic Credentials, which support both plain and hashed checks."""
@@ -55,7 +55,7 @@ class tweak_DigestCredentialFactory(DigestCredentialFactory):
         if clientip is None:
             clientip = ''
         key = "%s,%s,%s" % (nonce, clientip, now)
-        digest = md5.new(key + self.privateKey).hexdigest()
+        digest = md5(key + self.privateKey).hexdigest()
         ekey = key.encode('base64')
         return "%s-%s" % (digest, ekey.replace('\n', ''))
 

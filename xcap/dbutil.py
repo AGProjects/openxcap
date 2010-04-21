@@ -1,10 +1,10 @@
 """Database utilities"""
 
 import os
-import md5
 import time
 import random
 import urllib
+from hashlib import md5
 
 from twisted.enterprise import adbapi
 from twisted.python import reflect
@@ -12,10 +12,10 @@ from twisted.python import reflect
 db_modules = {"mysql": "MySQLdb"}
 
 def make_random_etag(uri):
-    return md5.new("%s%s%s" % (uri, time.time(), random.random())).hexdigest()
+    return md5("%s%s%s" % (uri, time.time(), random.random())).hexdigest()
 
 def make_etag(uri, document):
-    return md5.new("%s%s" % (uri, document)).hexdigest()
+    return md5("%s%s" % (uri, document)).hexdigest()
 
 def parseURI(uri):
     schema, rest = uri.split(':', 1)
