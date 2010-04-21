@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
     name = 'openxcap'
     description = 'An open source XCAP Server'
-    version = xcap.extended_version()
+    version = xcap.__version__
     fullname = 'OpenXCAP %s' % version
 
     config_directory = '/etc/openxcap'

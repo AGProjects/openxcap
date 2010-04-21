@@ -858,8 +858,8 @@ class _test(object):
     <el2 att="2"/></root>""")
 
 if __name__ == "__main__":
-    from xcap import extended_version
-    print __file__, extended_version()
+    from xcap import __version__ as xcap_version
+    print __file__, xcap_version
     import doctest
     doctest.testmod()
     from lxml import etree
