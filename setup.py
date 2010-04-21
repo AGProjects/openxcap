@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+
 import os
 import re
 from distutils.core import setup, Command
