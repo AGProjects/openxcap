@@ -594,7 +594,7 @@ class IconApplication(ApplicationUsage):
             root = tree.getroot()
             ns = root.nsmap[None]
             icon = None
-        except ParseError:
+        except etree.ParseError:
             return StatusResponse(500)
         else:
             for element in root:
