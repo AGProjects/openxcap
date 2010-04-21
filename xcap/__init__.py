@@ -43,3 +43,11 @@ except ImportError:
 package_dependencies = [PackageDependency('python-mysqldb', '1.2.2', 'MySQLdb.__version__')]
 dependencies = ApplicationDependencies(*package_dependencies, **package_requirements)
 
+# web2 is not included anymore with twisted tarballs, but it's still on svn
+# and all functionality hasn't been migrated to web yet. -Saul
+try:
+    import twisted.web2
+except ImportError:
+    raise DependencyError("Twisted's web2 component is missing. Check http://twistedmatrix.com/trac/wiki/Downloads")
+del twisted.web2
+
