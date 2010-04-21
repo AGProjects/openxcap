@@ -1,9 +1,6 @@
 ;
 ; Configuration file for OpenXCAP
 ;
-; Copyright (c) 2007-2009 AG Projects
-; http://ag-projects.com
-
 [Server]
 
 ; IP address to listen for requests
@@ -61,7 +58,7 @@ document_validation = Yes
 ; The HTTP authentication type, this can be either 'basic' or 'digest'.
 ; If you're using TLS, it's better to choose 'basic' because the data is
 ; encrypted anyway.
-type = basic
+type = digest
 
 ; Specify if the passwords are stored as plain text - Yes
 ; or in a hashed format MD5('username:domain:password') - No
