@@ -21,7 +21,6 @@ def extended_version():
 # python-lxml and python-sqlobject don't provide any usable version attribute.
 package_requirements = {'python-application': '1.2.0',
                         'python-gnutls':      '1.1.8',
-                        'python-xml':         '0.8.4',
                         'twisted':            '8.1.0'}
 
 try:

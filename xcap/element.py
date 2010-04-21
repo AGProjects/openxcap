@@ -15,33 +15,16 @@ For element selectors of type *[@att="value"] insertion point depends on
 the content of a new element. For RFC compliant behavior, fix such requests
 by replacing '*' with the root tag of the new element.
 """
-import sys
 from StringIO import StringIO
-from application import log
 from xcap import uri
+from xml import sax
 
 
 def make_parser():
-    parser = sax.make_parser()
+    parser = sax.make_parser(['xcap.sax.expatreader'])
     parser.setFeature(sax.handler.feature_namespaces, 1)
     parser.setFeature(sax.handler.feature_namespace_prefixes, 1)
     return parser
-
-try:
-    # we need feature_namespace_prefixes that is implemented in _xmlplus's expat
-    # parser, but not in the stock xml package
-    from _xmlplus import sax
-except ImportError:
-
-    # let's hope for a miracle
-    from xml import sax
-    try:
-        make_parser()
-    except sax._exceptions.SAXNotSupportedException:
-        # no miracle today, complain about the original error
-        log.fatal("Package _xmlplus was not found on your system. Please install pyxml library")
-        # comment out the following line out if you don't need element operations
-        sys.exit(1)
 
 class ThrowEventsAway(sax.ContentHandler):
     pass
@@ -76,7 +59,7 @@ def check_xml_fragment(element_str):
      ...
     SAXParseException: <unknown>:1:4: not well-formed (invalid token)
     """
-    parser = sax.make_parser()
+    parser = sax.make_parser(['xcap.sax.expatreader'])
     # ignore namespaces and prefixes
     parser.setFeature(sax.handler.feature_namespaces, 0)
     parser.setFeature(sax.handler.feature_namespace_prefixes, 0)
