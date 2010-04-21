@@ -19,7 +19,7 @@ def extended_version():
 # patchlevel is appended by `setup.py set_patchlevel' command
 
 # python-lxml and python-sqlobject don't provide any usable version attribute.
-package_requirements = {'python-application': '1.1.5',
+package_requirements = {'python-application': '1.2.0',
                         'python-gnutls':      '1.1.8',
                         'python-xml':         '0.8.4',
                         'twisted':            '8.1.0'}
@@ -36,5 +36,11 @@ except ImportError:
             required_version = package_requirements['python-application']
             raise DependencyError("need python-application version %s or higher but it's not installed" % required_version)
 
+    class PackageDependency(object):
+        def __init__(self, name, required_version, version_attribute=None):
+            required_version = package_requirements['python-application']
+            raise DependencyError("need python-application version %s or higher but it's not installed" % required_version)
+
 package_dependencies = [PackageDependency('python-mysqldb', '1.2.2', 'MySQLdb.__version__')]
 dependencies = ApplicationDependencies(*package_dependencies, **package_requirements)
+
