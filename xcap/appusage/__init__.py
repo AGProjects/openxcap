@@ -489,7 +489,7 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
         self._not_implemented('users')
 
 
-class WatchersApplication(ResourceListsApplication): # QQQ why does it inherit from ResourceLists?
+class WatchersApplication(ApplicationUsage):
     id = "watchers"
     default_ns = "http://openxcap.org/ns/watchers"
     mime_type= "application/xml"
