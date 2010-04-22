@@ -28,7 +28,7 @@ solution.""",
       ],
       packages = ['xcap', 'xcap.appusage', 'xcap.interfaces', 'xcap.interfaces.backend', 'xcap.sax', 'xcap.test'],
       scripts  = ['openxcap'],
-      package_data = {'xcap': ['xml-schemas/*'],
+      package_data = {'xcap.appusage': ['xml-schemas/*'],
                       'xcap.test': ['schemas/*']},
       )
 

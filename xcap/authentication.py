@@ -242,7 +242,7 @@ class XCAPAuthResource(HTTPAuthResource):
         self._updateRealm(realm)
 
         # If we receive a GET to a 'public GET application' we will not authenticate it
-        if request.method == "GET" and xcap_uri.application_id in public_get_applications:
+        if request.method == "GET" and public_get_applications.has_key(xcap_uri.application_id):
             return self.portal.login(PublicGetApplicationCredentials(),
                                      None,
                                      IPublicGetApplication

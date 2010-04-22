@@ -6,41 +6,18 @@
 
 import os
 import sys
-import base64
-import Image
 
 from cStringIO import StringIO
 from lxml import etree
 
-from application.configuration.datatypes import StringList
 from application.configuration import ConfigSection, ConfigSetting
 from application import log
-
-from twisted.internet import defer
 
 import xcap
 from xcap import errors
 from xcap import element
 from xcap.interfaces.backend import StatusResponse
-from xcap.dbutil import make_etag
 
-supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pres-rules',
-                          'resource-lists', 'rls-services', 'pidf-manipulation', 'org.openxcap.watchers', 
-                          'dialog-rules', 'org.openmobilealliance.xcap-directory', 'xcap-directory',
-                          'oma_status-icon', 'icon')
-
-public_get_applications = ('oma_status-icon', 'icon')
-
-class EnabledApplications(StringList):
-    def __new__(typ, value):
-        apps = StringList.__new__(typ, value)
-        if apps == ["all"]:
-            return supported_applications
-        for app in apps:
-            if app not in supported_applications:
-                log.warn("ignoring unknown application : %s" % app)
-                apps.remove(app)
-        return apps
 
 class Backend(object):
     """Configuration datatype, used to select a backend module from the configuration file."""
@@ -55,16 +32,14 @@ class Backend(object):
             log.err()
             sys.exit(1)
 
+
 class ServerConfig(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
     __section__ = 'Server'
 
-    applications = ConfigSetting(type=EnabledApplications, value=EnabledApplications("all"))
     backend = ConfigSetting(type=Backend, value=Backend('database'))
     document_validation = True
 
-
-schemas_directory = os.path.join(os.path.dirname(__file__), "../", "xml-schemas")
 
 class ApplicationUsage(object):
     """Base class defining an XCAP application"""
@@ -76,7 +51,7 @@ class ApplicationUsage(object):
     def __init__(self, storage):
         ## the XML schema that defines valid documents for this application
         if self.schema_file:
-            xml_schema_doc = etree.parse(open(os.path.join(schemas_directory, self.schema_file), 'r'))
+            xml_schema_doc = etree.parse(open(os.path.join(os.path.dirname(__file__), 'xml-schemas', self.schema_file), 'r'))
             self.xml_schema = etree.XMLSchema(xml_schema_doc)
         else:
             class EverythingIsValid(object):
@@ -352,298 +327,43 @@ class ApplicationUsage(object):
         return d.addCallbacks(self._cb_get_ns_bindings, callbackArgs=(uri, ))
 
 
-class PresenceRulesApplication(ApplicationUsage):
-    id = "pres-rules"
-    default_ns = "urn:ietf:params:xml:ns:pres-rules"
-    mime_type = "application/auth-policy+xml"
-    schema_file = 'presence-rules.xsd'
+from xcap.appusage.dialogrules import DialogRulesApplication
+from xcap.appusage.directory import XCAPDirectoryApplication
+from xcap.appusage.icon import IconApplication
+from xcap.appusage.pidf import PIDFManipulationApplication
+from xcap.appusage.presrules import PresenceRulesApplication
+from xcap.appusage.resourcelists import ResourceListsApplication
+from xcap.appusage.rlsservices import RLSServicesApplication
+from xcap.appusage.test import TestApplication
+from xcap.appusage.watchers import WatchersApplication
 
-class DialogRulesApplication(ApplicationUsage):
-    id = "dialog-rules"
-    default_ns = "urn:ietf:params:xml:ns:dialog-rules"
-    mime_type = "application/auth-policy+xml"
-    schema_file = 'common-policy.xsd'
+storage = ServerConfig.backend.Storage()
 
-def get_xpath(elem):
-    """Return XPATH expression to obtain elem in the document.
+applications = {'org.openmobilealliance.xcap-directory': XCAPDirectoryApplication(storage),
+                'pres-rules': PresenceRulesApplication(storage),
+                'org.openmobilealliance.pres-rules': PresenceRulesApplication(storage),
+                'dialog-rules': DialogRulesApplication(storage),
+                'resource-lists': ResourceListsApplication(storage),
+                'rls-services': RLSServicesApplication(storage),
+                'pidf-manipulation': PIDFManipulationApplication(storage),
+                'test-app': TestApplication(storage),
+                'org.openxcap.watchers': WatchersApplication(storage)}
 
-    This could be done better, of course, not using stars, but the real tags.
-    But that would be much more complicated and I'm not sure if such effort is justified"""
-    res = ''
-    while elem is not None:
-        parent = elem.getparent()
-        if parent is None:
-            res = '/*' + res
-        else:
-            res = '/*[%s]' % parent.index(elem) + res
-        elem = parent
-    return res
+# caps application needs to import the applications dictionary
+from xcap.appusage.capabilities import XCAPCapabilitiesApplication
+applications['xcap-caps'] = XCAPCapabilitiesApplication()
 
-def attribute_not_unique(elem, attr):
-    raise errors.UniquenessFailureError(exists = get_xpath(elem) + '/@' + attr)
-
-class ResourceListsApplication(ApplicationUsage):
-    ## RFC 4826
-    id = "resource-lists"
-    default_ns = "urn:ietf:params:xml:ns:resource-lists"
-    mime_type= "application/resource-lists+xml"
-    schema_file = 'resource-lists.xsd'
-
-    @classmethod
-    def check_list(cls, elem, list_tag):
-        """Check additional constraints (see section 3.4.5 of RFC 4826).
-
-        elem is xml Element that containts <list>s
-        list_tag is provided as argument since its namespace changes from resource-lists
-        to rls-services namespace
-        """
-        entry_tag = "{%s}entry" % cls.default_ns
-        entry_ref_tag = "{%s}entry-ref" % cls.default_ns
-        external_tag ="{%s}tag" % cls.default_ns
-        name_attrs = set()
-        uri_attrs = set()
-        ref_attrs = set()
-        anchor_attrs = set()
-        for child in elem.getchildren():
-            if child.tag == list_tag:
-                name = child.get("name")
-                if name in name_attrs:
-                    attribute_not_unique(child, 'name')
-                else:
-                    name_attrs.add(name)
-                cls.check_list(child, list_tag)
-            elif child.tag == entry_tag:
-                uri = child.get("uri")
-                if uri in uri_attrs:
-                    attribute_not_unique(child, 'uri')
-                else:
-                    uri_attrs.add(uri)
-            elif child.tag == entry_ref_tag:
-                ref = child.get("ref")
-                if ref in ref_attrs:
-                    attribute_not_unique(child, 'ref')
-                else:
-                    # TODO check if it's a relative URI, else raise ConstraintFailure
-                    ref_attrs.add(ref)
-            elif child.tag == external_tag:
-                anchor = child.get("anchor")
-                if anchor in anchor_attrs:
-                    attribute_not_unique(child, 'anchor')
-                else:
-                    # TODO check if it's a HTTP URL, else raise ConstraintFailure
-                    anchor_attrs.add(anchor)
-
-    def _check_additional_constraints(self, xml_doc):
-        """Check additional constraints (see section 3.4.5 of RFC 4826)."""
-        self.check_list(xml_doc.getroot(), "{%s}list" % self.default_ns)
-
-
-class RLSServicesApplication(ApplicationUsage):
-    ## RFC 4826
-    id = "rls-services"
-    default_ns = "urn:ietf:params:xml:ns:rls-services"
-    mime_type= "application/rls-services+xml"
-    schema_file = 'rls-services.xsd'
-
-    def _check_additional_constraints(self, xml_doc):
-        """Check additional constraints (see section 3.4.5 of RFC 4826)."""
-        ResourceListsApplication.check_list(xml_doc.getroot(), "{%s}list" % self.default_ns)
-
-
-class PIDFManipulationApplication(ApplicationUsage):
-    ## RFC 4827
-    id = "pidf-manipulation"
-    default_ns = "urn:ietf:params:xml:ns:pidf"
-    mime_type= "application/pidf+xml"
-    schema_file = 'pidf.xsd'
-
-
-class XCAPCapabilitiesApplication(ApplicationUsage):
-    ## RFC 4825
-    id = "xcap-caps"
-    default_ns = "urn:ietf:params:xml:ns:xcap-caps"
-    mime_type= "application/xcap-caps+xml"
-
-    def __init__(self):
-        pass
-
-    def _get_document(self):
-        if hasattr(self, 'doc'):
-            return self.doc, self.etag
-        root = etree.Element("xcap-caps", nsmap={None: self.default_ns})
-        auids = etree.SubElement(root, "auids")
-        extensions = etree.SubElement(root, "extensions")
-        namespaces = etree.SubElement(root, "namespaces")
-        for (id, app) in applications.items():
-            etree.SubElement(auids, "auid").text = id
-            etree.SubElement(namespaces, "namespace").text = app.default_ns
-        self.doc = etree.tostring(root, encoding="UTF-8", pretty_print=True, xml_declaration=True)
-        self.etag = make_etag('xcap-caps', self.doc)
-        return self.doc, self.etag
-
-    def get_document_global(self, uri, check_etag):
-        doc, etag = self._get_document()
-        return defer.succeed(StatusResponse(200, etag=etag, data=doc))
-
-    def get_document_local(self, uri, check_etag):
-        self._not_implemented('users')
-
-
-class WatchersApplication(ApplicationUsage):
-    id = "org.openxcap.watchers"
-    default_ns = "http://openxcap.org/ns/watchers"
-    mime_type= "application/xml"
-    schema_file = 'watchers.xsd' # who needs schema for readonly application?
-
-    def _watchers_to_xml(self, watchers, uri, check_etag):
-        root = etree.Element("watchers", nsmap={None: self.default_ns})
-        for watcher in watchers:
-            watcher_elem = etree.SubElement(root, "watcher")
-            for name, value in watcher.iteritems():
-                etree.SubElement(watcher_elem, name).text = value
-        doc = etree.tostring(root, encoding="utf-8", pretty_print=True, xml_declaration=True)
-        #self.validate_document(doc)
-        etag = make_etag(uri, doc)
-        check_etag(etag)
-        return StatusResponse(200, data=doc, etag=etag)
-
-    def get_document_local(self, uri, check_etag):
-        watchers_def = self.storage.get_watchers(uri)
-        watchers_def.addCallback(self._watchers_to_xml, uri, check_etag)
-        return watchers_def
-
-    def put_document(self, uri, document, check_etag):
-        raise errors.ResourceNotFound("This application does not support PUT method")
-
-class XCAPDirectoryApplication(ApplicationUsage):
-    id = "xcap-directory"
-    default_ns = "urn:oma:xml:xdm:xcap-directory"
-    mime_type= "application/vnd.oma.xcap-directory+xml"
-    schema_file = "xcap-directory.xsd"
-
-    def _docs_to_xml(self, docs, uri):
-        sip_uri = "sip:%s@%s" % (uri.user.username, uri.user.domain)
-        root = etree.Element("xcap-directory", nsmap={None: self.default_ns})
-        if docs:
-            for k, v in docs.iteritems():
-                folder = etree.SubElement(root, "folder", attrib={'auid': k})
-                for item in v:
-                    # We may have more than one document for the same application
-                    entry_uri = "%s/%s/users/%s/%s" % (uri.xcap_root, k, sip_uri, item[0])
-                    entry = etree.SubElement(folder, "entry")
-                    entry.set("uri", entry_uri)
-                    entry.set("etag", item[1])
-        doc = etree.tostring(root, encoding="UTF-8", pretty_print=True, xml_declaration=True)
-        #self.validate_document(doc)
-        return defer.succeed(StatusResponse(200, etag=None, data=doc))
-
-    def get_document_local(self, uri, check_etag):
-        docs_def = self.storage.get_documents_list(uri)
-        docs_def.addCallback(self._docs_to_xml, uri)
-        return docs_def
-
-    def put_document(self, uri, document, check_etag):
-        raise errors.ResourceNotFound("This application does not support PUT method")
-
-class IconApplication(ApplicationUsage):
-    id = "oma_status-icon"
-    default_ns = "urn:oma:xml:prs:pres-content"
-    mime_type = "application/vnd.oma.pres-content+xml"
-
-    def _validate_icon(self, document):
-        allowed_mime_types = ['jpg', 'gif', 'png']
-        allowed_encodings = ['base64']
-        allowed_max_size = 256
-        try:
-            xml = StringIO(document)
-            tree = etree.parse(xml)
-            root = tree.getroot()
-            icon = None
-            ns = root.nsmap[None]
-            for element in root:
-                if element.tag == "{%s}mime-type" % ns:
-                    if not (len(element.text.split("/")) == 2 and element.text.split("/")[1].lower() in allowed_mime_types):
-                        raise errors.ConstraintFailureError(phrase="Unsupported MIME type. Allowed MIME type(s) %s" % allowed_mime_types)
-                if element.tag == "{%s}encoding" % ns:
-                    if not element.text.lower() in allowed_encodings:
-                        raise errors.ConstraintFailureError(phrase="Unsupported encoding. Allowed enconding(s) %s" % allowed_encodings)
-                if element.tag == "{%s}data" % ns:
-                    try:
-                        icon = base64.decodestring(element.text)
-                    except:
-                        raise errors.ConstraintFailureError(phrase="Unsupported encoding. Allowed enconding(s) %s" % allowed_encodings)
-        except etree.ParseError:
-            raise errors.NotWellFormedError()
-        else:
-            try:
-                img = Image.open(StringIO(icon))
-            except (IOError, TypeError):
-                raise errors.ConstraintFailureError(phrase="Can't detect an image in the payload.")
-            else:
-                if not (img.size[0] == img.size[1] and img.size[0] <= allowed_max_size):
-                    raise errors.ConstraintFailureError(phrase="Image size error. Maximum allowed size is 256 pixels aspect ratio 1:1")
-                if img.format.lower() not in allowed_mime_types:
-                    raise errors.ConstraintFailureError(phrase="Unsupported MIME type. Allowed MIME type(s) %s" % allowed_mime_types)
-
-    def put_document(self, uri, document, check_etag):
-        self._validate_icon(document)
-        return self.storage.put_document(uri, document, check_etag)
-
-    def _extract_and_return_icon(self, status):
-        if status.code != 200:
-            return status
-        try:
-            xml = StringIO(status.data)
-            tree = etree.parse(xml)
-            root = tree.getroot()
-            ns = root.nsmap[None]
-            icon = None
-        except etree.ParseError:
-            return StatusResponse(500)
-        else:
-            for element in root:
-                if element.tag == "{%s}data" % ns:
-                    try:
-                        icon = base64.decodestring(element.text)
-                    except:
-                        return StatusResponse(500)
-                    else:
-                        break
-            if icon:
-                return StatusResponse(200, etag=status.etag, data=icon)
-            else:
-                return StatusResponse(500)
-
-    def get_document_local(self, uri, check_etag):
-        doc_def = self.storage.get_document(uri, check_etag)
-        doc_def.addCallback(self._extract_and_return_icon)
-        return doc_def
-
-
-theStorage = ServerConfig.backend.Storage()
-
-class TestApplication(ApplicationUsage):
-    "Application for tests described in Section 8.2.3. Creation of RFC 4825"
-    id = "test-app"
-    default_ns = 'test-app'
-    mime_type= "application/test-app+xml"
-    schema_file = None
-
-applications = {'xcap-caps': XCAPCapabilitiesApplication(),
-                'pres-rules': PresenceRulesApplication(theStorage),
-                'dialog-rules': DialogRulesApplication(theStorage),
-                'org.openmobilealliance.pres-rules': PresenceRulesApplication(theStorage),
-                'resource-lists': ResourceListsApplication(theStorage),
-                'pidf-manipulation': PIDFManipulationApplication(theStorage),
-                'org.openxcap.watchers': WatchersApplication(theStorage),
-                'rls-services': RLSServicesApplication(theStorage),
-                'xcap-directory': XCAPDirectoryApplication(theStorage),
-                'org.openmobilealliance.xcap-directory': XCAPDirectoryApplication(theStorage),
-                'icon': IconApplication(theStorage),
-                'oma_status-icon': IconApplication(theStorage),
-                'test-app': TestApplication(theStorage)}
+# public GET applications (GET is not challenges for auth)
+public_get_applications = {'oma_status-icon': IconApplication(storage)}
+applications.update(public_get_applications)
 
 namespaces = dict((k, v.default_ns) for (k, v) in applications.items())
 
 def getApplicationForURI(xcap_uri):
     return applications.get(xcap_uri.application_id, None)
+
+
+__all__ = [applications, public_get_applications, getApplicationForURI, ApplicationUsage, Backend]
+
+
+

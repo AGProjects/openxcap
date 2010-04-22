@@ -5,7 +5,7 @@ recursive-include opensips *.cfg
 recursive-include scripts  *.py *.sql
 recursive-include tls      .placeholder
 recursive-include xcap/test/schemas *.xsd
-recursive-include xcap/xml-schemas  *.xsd
+recursive-include xcap/appusage/xml-schemas  *.xsd
 prune debian/tmp
 prune debian/openxcap
 prune debian/python-module-stampdir
