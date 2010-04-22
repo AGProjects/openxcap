@@ -4,12 +4,10 @@
 
 """Database utilities"""
 
-import os
 import time
 import random
-import urllib
-from hashlib import md5
 
+from hashlib import md5
 from twisted.enterprise import adbapi
 from twisted.python import reflect
 

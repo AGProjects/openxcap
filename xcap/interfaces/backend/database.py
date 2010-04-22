@@ -4,15 +4,12 @@
 
 """Implementation of a database backend."""
 
-import re
-
 from application.configuration import ConfigSection
 from application.python.util import Singleton
 
 from zope.interface import implements
 from twisted.cred import credentials, checkers, error as credError
 from twisted.internet import defer
-from twisted.python.failure import Failure
 
 from _mysql_exceptions import IntegrityError
 
