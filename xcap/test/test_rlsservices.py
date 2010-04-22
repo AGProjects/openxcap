@@ -1,3 +1,7 @@
+
+# Copyright (C) 2007-2010 AG-Projects.
+#
+
 from common import *
 
 rls_services_xml = """<?xml version="1.0" encoding="UTF-8"?>

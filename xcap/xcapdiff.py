@@ -1,3 +1,7 @@
+
+# Copyright (C) 2007-2010 AG-Projects.
+#
+
 """Track changes of the documents and notify subscribers
 
 Create a Notifier object:

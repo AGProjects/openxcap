@@ -1,3 +1,7 @@
+
+# Copyright (C) 2007-2010 AG-Projects.
+#
+
 from common import *
 
 has_global = ['xcap-caps']

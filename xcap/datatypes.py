@@ -1,4 +1,5 @@
-# Copyright (c) 2009 AG Projects. See LICENSE for details.
+
+# Copyright (c) 2007-2010 AG Projects. See LICENSE for details.
 #
 
 """Configuration data types"""

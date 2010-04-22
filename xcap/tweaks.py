@@ -1,4 +1,7 @@
 
+# Copyright (C) 2007-2010 AG-Projects.
+#
+
 from hashlib import md5
 from twisted.cred import credentials, error
 from twisted.web2.auth.digest import IUsernameDigestHash, DigestCredentialFactory

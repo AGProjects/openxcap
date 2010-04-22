@@ -1,4 +1,5 @@
-# Copyright (C) 2007 AG Projects.
+
+# Copyright (c) 2007-2010 AG Projects. See LICENSE for details.
 #
 
 """XCAP errors module"""

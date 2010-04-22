@@ -1,3 +1,7 @@
+
+# Copyright (C) 2007-2010 AG-Projects.
+#
+
 import common
 
 document = """<?xml version="1.0" encoding="UTF-8"?>

@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+
+# Copyright (C) 2007-2010 AG-Projects.
+#
+
 """This test will
  1) SUBSCRIBE to xcap-diff event
  2) read NOTIFY if any

@@ -1,3 +1,7 @@
+
+# Copyright (c) 2007-2010 AG Projects. See LICENSE for details.
+#
+
 """Database utilities"""
 
 import os

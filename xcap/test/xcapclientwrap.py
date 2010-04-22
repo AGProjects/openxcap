@@ -1,3 +1,7 @@
+
+# Copyright (C) 2007-2010 AG-Projects.
+#
+
 import os
 import re
 from subprocess import Popen, PIPE

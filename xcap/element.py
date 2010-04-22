@@ -1,3 +1,7 @@
+
+# Copyright (c) 2007-2010 AG Projects. See LICENSE for details.
+#
+
 """Element handling as described in RFC 4825.
 
 This module implements
@@ -15,6 +19,7 @@ For element selectors of type *[@att="value"] insertion point depends on
 the content of a new element. For RFC compliant behavior, fix such requests
 by replacing '*' with the root tag of the new element.
 """
+
 from StringIO import StringIO
 from xcap import uri
 from xml import sax
