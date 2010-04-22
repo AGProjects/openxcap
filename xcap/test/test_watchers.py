@@ -11,10 +11,10 @@ watchers = """<?xml version='1.0' encoding='utf-8'?>
 class Test(XCAPTest):
 
     def test_get(self):
-        self.get('watchers')
-        self.get('watchers', '/watchers')
-        self.get('watchers', globaltree=True, status=404)
-        self.get('watchers', '/watchers', globaltree=True, status=404)
+        self.get('org.openxcap.watchers')
+        self.get('org.openxcap.watchers', '/watchers')
+        self.get('org.openxcap.watchers', globaltree=True, status=404)
+        self.get('org.openxcap.watchers', '/watchers', globaltree=True, status=404)
 
 #     def test_put_not_allowed(self):
 #         self.put('watchers', watchers, status=405)

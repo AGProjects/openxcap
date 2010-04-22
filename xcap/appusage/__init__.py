@@ -25,7 +25,7 @@ from xcap.interfaces.backend import StatusResponse
 from xcap.dbutil import make_etag
 
 supported_applications = ('xcap-caps', 'pres-rules', 'org.openmobilealliance.pres-rules',
-                          'resource-lists', 'rls-services', 'pidf-manipulation', 'watchers', 
+                          'resource-lists', 'rls-services', 'pidf-manipulation', 'org.openxcap.watchers', 
                           'dialog-rules', 'org.openmobilealliance.xcap-directory', 'xcap-directory',
                           'oma_status-icon', 'icon')
 
@@ -490,7 +490,7 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
 
 
 class WatchersApplication(ApplicationUsage):
-    id = "watchers"
+    id = "org.openxcap.watchers"
     default_ns = "http://openxcap.org/ns/watchers"
     mime_type= "application/xml"
     schema_file = 'watchers.xsd' # who needs schema for readonly application?
@@ -635,7 +635,7 @@ applications = {'xcap-caps': XCAPCapabilitiesApplication(),
                 'org.openmobilealliance.pres-rules': PresenceRulesApplication(theStorage),
                 'resource-lists': ResourceListsApplication(theStorage),
                 'pidf-manipulation': PIDFManipulationApplication(theStorage),
-                'watchers': WatchersApplication(theStorage),
+                'org.openxcap.watchers': WatchersApplication(theStorage),
                 'rls-services': RLSServicesApplication(theStorage),
                 'xcap-directory': XCAPDirectoryApplication(theStorage),
                 'org.openmobilealliance.xcap-directory': XCAPDirectoryApplication(theStorage),
