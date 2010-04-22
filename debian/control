@@ -1,8 +1,8 @@
 Source: openxcap
 Section: net
 Priority: optional
-Maintainer: Lucian Stanescu <luci@ag-projects.com>
-Uploaders: Dan Pascu <dan@ag-projects.com>, Ruud Klaver <ruud@ag-projects.com>, Adrian Georgescu <ag@ag-projects.com>
+Maintainer: Saul Ibarra <saul@ag-projects.com>
+Uploaders: Dan Pascu <dan@ag-projects.com>, Adrian Georgescu <ag@ag-projects.com>, Lucian Stanescu <luci@ag-projects.com>
 Build-Depends: cdbs (>= 0.4.53), debhelper (>= 7.0.0), python
 Build-Depends-Indep: python-support
 Standards-Version: 3.8.4
