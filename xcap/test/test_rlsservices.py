@@ -98,12 +98,17 @@ rls_services_xml_non_unique_service = """<?xml version="1.0" encoding="UTF-8"?>
 # check index
 
 class DocumentTest(XCAPTest):
-    
-    def test_operations(self):
+
+    def test_operations1(self):
         self.getputdelete('rls-services', rls_services_xml, 'application/rls-services+xml')
 
+    def test_operations2(self):
         self.put_rejected('rls-services', rls_services_xml_badformed)
+
+    def test_operations3(self):
         self.put_rejected('rls-services', rls_services_xml_non_unique_list)
+
+    def test_operations4(self):
         self.put_rejected('rls-services', rls_services_xml_non_unique_service)
 
         #self.account = 'test2@example.com'

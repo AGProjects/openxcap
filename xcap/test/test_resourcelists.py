@@ -100,16 +100,20 @@ resource_lists_xml_baduri = """<?xml version="1.0" encoding="UTF-8"?>
 
 
 class DocumentTest(XCAPTest):
-  
-    def test_operations(self):
+
+    def test_operations1(self):
         self.getputdelete('resource-lists', resource_lists_xml,
                           'application/resource-lists+xml')
+
+    def test_operations2(self):
         self.getputdelete('resource-lists', resource_lists_xml.replace('UTF-8', 'utf-8'),
                           'application/resource-lists+xml')
 
+    def test_operations3(self):
         r = self.put_rejected('resource-lists', resource_lists_xml_badformed)
         self.assertInBody(r, '<not-well-formed')
 
+    def test_operations4(self):
         r =  self.put_rejected('resource-lists', resource_lists_xml_non_unique_list)
         xml = validate_xcaps_error(r.body)
         namespaces={'d': 'urn:ietf:params:xml:ns:xcap-error'}
