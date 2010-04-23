@@ -168,18 +168,16 @@ class MultipleResultsError(Error):
 
 class Storage(DBBase):
     __metaclass__ = Singleton
-    
     implements(IStorage)
 
-    app_mapping = {"pres-rules"       : 1<<1,
-                   "org.openmobilealliance.pres-rules": 1<<1,
-                   "resource-lists"   : 1<<2,
-                   "rls-services"     : 1<<3,
-                   "pidf-manipulation": 1<<4,
-                   "dialog-rules"     : 1<<5,
-                   "icon"             : 1<<6,
-                   "oma_status-icon"  : 1<<6,
-                   "test-app"         : 0}
+    app_mapping = {"pres-rules"                             : 1<<1,
+                   "org.openmobilealliance.pres-rules"      : 1<<1,
+                   "resource-lists"                         : 1<<2,
+                   "rls-services"                           : 1<<3,
+                   "pidf-manipulation"                      : 1<<4,
+                   "org.openxcap.dialog-rules"              : 1<<5,
+                   "oma_status-icon"                        : 1<<6,
+                   "test-app"                               : 0}
 
     def _db_connect(self):
         self.conn = storage_db_connection(Config.storage_db_uri)

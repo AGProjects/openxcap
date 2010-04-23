@@ -342,7 +342,7 @@ storage = ServerConfig.backend.Storage()
 applications = {'org.openmobilealliance.xcap-directory': XCAPDirectoryApplication(storage),
                 'pres-rules': PresenceRulesApplication(storage),
                 'org.openmobilealliance.pres-rules': PresenceRulesApplication(storage),
-                'dialog-rules': DialogRulesApplication(storage),
+                'org.openxcap.dialog-rules': DialogRulesApplication(storage),
                 'resource-lists': ResourceListsApplication(storage),
                 'rls-services': RLSServicesApplication(storage),
                 'pidf-manipulation': PIDFManipulationApplication(storage),

@@ -5,8 +5,8 @@
 from xcap.appusage import ApplicationUsage
 
 class DialogRulesApplication(ApplicationUsage):
-    id = "dialog-rules"
-    default_ns = "urn:ietf:params:xml:ns:dialog-rules"
+    id = "org.openxcap.dialog-rules"
+    default_ns = "http://openxcap.org/ns/dialog-rules"
     mime_type = "application/auth-policy+xml"
     schema_file = 'common-policy.xsd'
 
