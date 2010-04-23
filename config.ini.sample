@@ -28,36 +28,42 @@ document_validation = Yes
 
 
 [Logging]
-; directory where to put log files, default is /var/log/openxcap
-; if empty, like in the following line, logs will be printed to stdout
-; if in no-fork mode or to syslog if in forked mode
-;directory=
 
-; The following log_* parameters control what information is logged for
-; which errors. Their format is comma-separated list of HTTP error codes
-; that should enable the feature currently implemented: log_request_headers,
-; log_response_body, log_stacktrace
+; Start, stop and major server error messages are always logged to syslog.
 
-; Some examples:
+; This section can be used to log more details about XCAP clients accessing
+; the server. The values in the commented lines represent the defaults built 
+; in the server software
 
-; * log stack trace for 500 Internal Error only (default)
-;log_stacktrace=500
+; Directory where to write access.log file that will contain requests and/or
+; responses to OpenXCAP server in Apache style. If set to an empty string,
+; access logs will be printed to stdout if the server runs in no-fork mode
+; or to syslog if the server runs in the background
 
-; * log stack trace (if available) for any error
-;log_stacktrace=any
+; directory=/var/log/openxcap 
 
-; * log responses sent to the client for 400 and 409 errors (default is 500)
-;log_response_body=400,409
 
-; * log headers sent by the client for 401 errors (default is 500)
-;log_request_headers=401
+; The following parameters control what kind of information (like
+; stacktrace, body or headers) is logged for which response codes. The
+; values must be a comma-separated list of HTTP response codes or the  
+; keyword 'any' that matches all response codes.
+
+; log_stacktrace=500
+
+; log_response_headers=500
+
+; log_response_body=500
+
+; log_request_headers=500
+
+; log_request_body=500
 
 
 [Authentication]
 
 ; The HTTP authentication type, this can be either 'basic' or 'digest'.
-; If you're using TLS, it's better to choose 'basic' because the data is
-; encrypted anyway.
+; Standard states 'digest' as mandatory, however you may change it to
+; basic if you wish.
 type = digest
 
 ; Specify if the passwords are stored as plain text - Yes
