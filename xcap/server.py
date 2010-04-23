@@ -57,7 +57,8 @@ class TLSConfig(ConfigSection):
     private_key = ConfigSetting(type=PrivateKey, value=PrivateKey('tls/server.key'))
 
 if ServerConfig.root is None:
-    raise RuntimeError("the XCAP root URI is not defined")
+    log.fatal("the XCAP root URI is not defined")
+    sys.exit(1)
 
 if ServerConfig.port:
     log.warn("Port setting is deprecated, please specify the port in the root setting")
@@ -66,9 +67,11 @@ listen_port = get_port_from_root_uri(ServerConfig.root)
 if listen_port:
     for uri in ServerConfig.root.aliases:
         if get_port_from_root_uri(uri) != listen_port:
-            raise RuntimeError("Port needs to be the same in all aliases")
+            log.fatal("Port needs to be the same in all aliases")
+            sys.exit(1)
 else:
-    raise RuntimeError("Invalid port specified")
+    log.fatal("Invalid port specified")
+    sys.exit(1)
 
 class XCAPRoot(resource.Resource, resource.LeafResource):
     addSlash = True

@@ -4,6 +4,7 @@
 
 """Implementation of an OpenSIPS backend."""
 
+import sys
 from application import log
 from application.configuration import ConfigSection, ConfigSetting
 
@@ -29,7 +30,8 @@ class Config(ConfigSection):
     enable_publish_xcapdiff = False
 
 if Config.xmlrpc_url is None:
-    RuntimeError("the OpenSIPS.xmlrpc_url option is not set")
+    log.fatal("the OpenSIPS.xmlrpc_url option is not set")
+    sys.exit(1)
 
 class PlainPasswordChecker(database.PlainPasswordChecker): pass
 class HashPasswordChecker(database.HashPasswordChecker): pass
@@ -73,7 +75,7 @@ class NotifyingStorage(BaseStorage):
         d = super(NotifyingStorage, self).delete_document(uri, check_etag)
         d.addCallback(lambda result: self._on_delete(result, uri))
         return d
-        
+
     def _on_put(self, result, uri):
         if result.succeed:
             self.notifier.on_change(uri, result.old_etag, result.etag)

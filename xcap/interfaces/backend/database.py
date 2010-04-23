@@ -4,6 +4,8 @@
 
 """Implementation of a database backend."""
 
+import sys
+from application import log
 from application.configuration import ConfigSection
 from application.python.util import Singleton
 
@@ -29,6 +31,10 @@ class Config(ConfigSection):
     password_col = 'password'
     ha1_col = 'ha1'
     xcap_table = 'xcap'
+
+if not Config.authentication_db_uri or not Config.storage_db_uri:
+    log.fatal("Authentication DB URI and Storage DB URI must be provided")
+    sys.exit(1)
 
 
 class DBBase(object):
