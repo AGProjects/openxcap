@@ -4,12 +4,12 @@
 
 import os
 import re
+import logging
 from StringIO import StringIO
 from twisted.web2 import responsecode
-from twisted.python.logfile import LogFile
-from twisted.python.log import FileLogObserver, startLoggingWithObserver
 from application import log
 from application.configuration import ConfigSection, ConfigSetting
+from logging.handlers import RotatingFileHandler
 
 import xcap
 
@@ -276,7 +276,7 @@ def log_access(request, response, reason=None):
     msg = format_log_message(request, response, reason)
     request._logged = True
     if msg:
-        log.msg(msg, access_log=True)
+        log.msg(AccessLog(msg))
 
 def log_error(request, response, reason):
     msg = format_log_message(request, response, reason)
@@ -284,34 +284,27 @@ def log_error(request, response, reason):
     if msg:
         log.error(msg)
 
+class AccessLog(str): pass
 
-class ApacheLogObserver(object):
+class IsAccessLog(logging.Filter):
+    def filter(self, record):
+        return isinstance(record.msg, AccessLog)
 
-    params = {
-        'rotateLength': 2*1024*1024,
-        'maxRotatedFiles': 10 }
+class IsNotAccessLog(logging.Filter):
+    def filter(self, record):
+        return not isinstance(record.msg, AccessLog)
 
-    def __init__(self, directory):
-        access_file = LogFile('access.log', directory, **self.params)
-        self.access = FileLogObserver(access_file)
-        error_file = LogFile('error.log', directory, **self.params)
-        self.error  = FileLogObserver(error_file)
-
-    def emit(self, eventDict):
-        if eventDict.get('access_log'):
-            self.access.emit(eventDict)
-        else:
-            self.error.emit(eventDict)
-
-
-def start_log(setStdout=True):
+def start_log():
+    log.start_syslog('openxcap')
     if Logging.directory:
         if not os.path.exists(Logging.directory):
             os.mkdir(Logging.directory)
-        obs = ApacheLogObserver(Logging.directory)
-        startLoggingWithObserver(obs.emit, setStdout=setStdout)
-    else:
-        log.start_syslog('openxcap')
+        handler = RotatingFileHandler(os.path.join(Logging.directory, 'access.log'), 'a', 2*1024*1024, 5)
+        handler.addFilter(IsAccessLog())
+        log.logger.addHandler(handler)
+        for handler in log.logger.handlers:
+            if isinstance(handler, log.SyslogHandler):
+                handler.addFilter(IsNotAccessLog())
 
 
 if __name__=='__main__':

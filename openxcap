@@ -58,7 +58,7 @@ if __name__ == '__main__':
         pass
         #from application.debug.memory import *
 
-    print "Starting %s" % fullname
+    log.msg("Starting %s" % fullname)
 
     try:
         from xcap.server import XCAPServer
