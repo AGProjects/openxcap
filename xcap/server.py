@@ -53,8 +53,8 @@ class TLSConfig(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
     __section__ = 'TLS'
 
-    certificate = ConfigSetting(type=Certificate, value=None)
-    private_key = ConfigSetting(type=PrivateKey, value=None)
+    certificate = ConfigSetting(type=Certificate, value=Certificate('tls/server.crt'))
+    private_key = ConfigSetting(type=PrivateKey, value=PrivateKey('tls/server.key'))
 
 if ServerConfig.root is None:
     raise RuntimeError("the XCAP root URI is not defined")
