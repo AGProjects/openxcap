@@ -234,18 +234,30 @@ A test suite for testing the functionality the server is located in
 /xcap/test directory. If the software has been installed as a Debian
 package, the test suite is found in /usr/lib/python2.5/site-packages/xcap/test
 
-To run the test suite add a user to the XCAP subscriber database
-(alice@example.com in the following example), then create a configuration
-file with the credentials in ~/.xcapclient.ini that reads:
+Add a test account XCAP subscriber database, alice@example.com in the
+following example:
+
+INSERT INTO `subscriber`
+(username,domain,password,email_address,ha1, ha1b)
+VALUES
+('alice','example.com','1234','alice@example.com',
+'fd7cab2287702c763e7b318b7fb2451a',
+'fe605f5cea371c874a6fb7239a332a3e');
+
+Then create the configuration file ~/.xcapclient.ini with the same
+credentials as follows:
 
 [Account_test]
 sip_address=alice@example.com
 password=123
 xcap_root = https://xcap.example.com/xcap-root
 
-Then run the test suite:
+Replace the xcap_root with the same xcap_root configured in the server and
+make sure the hostname points to the IP address where the server listens to.
 
-~/openxcap/xcap/test$./test.py 
+Run the test suite:
+
+~$./test.py
 test_delete (test_attribute.AttributeTest) ... ok
 test_get (test_attribute.AttributeTest) ... WARNING: test with URI in att_value is disabled
 ok
@@ -305,14 +317,13 @@ test_schema (test_xcap_caps.XCAPCaps) ... ok
 ----------------------------------------------------------------------
 Ran 53 tests in 48.941s
 
-OK
-
-Notes
+Notes:
 
 - Running the test suite for a given user will result in the destruction of
-all xcap documents belonging to that user
+  all xcap documents belonging to that user
+
 - Replacing 'test.py' with 'test_something.py' will run only the tests
-defined in test_something.py
+  defined in test_something.py
 
 
 Testing with xcapclient
