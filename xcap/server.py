@@ -32,7 +32,7 @@ class AuthenticationConfig(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
     __section__ = 'Authentication'
 
-    type = 'basic'
+    type = 'digest'
     cleartext_passwords = True
     default_realm = ConfigSetting(type=str, value=None)
     trusted_peers = ConfigSetting(type=NetworkRangeList, value=NetworkRangeList('none'))
