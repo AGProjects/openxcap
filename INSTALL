@@ -18,126 +18,102 @@ installation and configuration of several components:
   using SOAP/XML requests, it can be used to build a web page to perform XCAP
   requests for pres-rules and pidf-manipulation documents
 
+* python-xcaplib, an optional component that can be used for developing an
+  XCAP client or for testing the server using the xcapclient command line
+  utility
 
-Debian or Ubuntu Linux
-----------------------
 
-Binary packages are available for Debian or Ubuntu on i386 and amd64
-architectures. To install add the following lines to /etc/apt/sources.list:
+Dependencies
+------------
 
-# AG Projects software 
-deb http://ag-projects.com/debian unstable main
-deb-src http://ag-projects.com/debian unstable main
+ * Python 2.5 or 2.6  http://www.python.org
+ * Twisted Core, Twisted Web and Twisted Web 2 >= 8.1.0  http://twistedmatrix.com
+ * python-lxml >= 2.0.7  http://codespeak.net/lxml)
+ * python-application >= 1.2.0  http://pypi.python.org/pypi/python-application
+ * python-gnutls >=1.8.1  http://pypi.python.org/pypi/python-gnutls
+ * python-mysqldb >=1.2.2  http://pypi.python.org/simple/mysql-python
+ * python-imaging >=1.1.7  http://pypi.python.org/simple/PIL/
+
+
+Debian Packages
+---------------
+
+Binary packages are available for Debian and Ubuntu on i386 and amd64
+architectures.
 
 Install AG Projects debian signing key: 
 
 wget http://download.ag-projects.com/agp-debian-gpg.key
 sudo apt-key add agp-debian-gpg.key 
 
-To install the software on the XCAP server machine:
+Add the following lines to /etc/apt/sources.list:
 
-apt-get update
-apt-get install openxcap soap-simple-proxy
+# Debian Unstable
+deb http://ag-projects.com/debian unstable main
+deb-src http://ag-projects.com/debian unstable main
 
-To install the software on the SIP Proxy machine:
+# Ubuntu Karmic
+deb http://ag-projects.com/ubuntu karmic main
+deb-src http://ag-projects.com/ubuntu karmic main
 
-apt-get update
-apt-get install opensips-mi-proxy
+# Ubuntu Lucid
+deb http://ag-projects.com/ubuntu lucid main
+deb-src http://ag-projects.com/ubuntu lucid main
 
-To install the client library:
+Update the list of available packages:
 
-apt-get update
-apt-get install python-xcaplib
+sudo apt-get update
+
+Install OpenXCAP server:
+
+apt-get install openxcap
+
+Install opensips-mi-proxy (on the machine running OpenSIPS):
+
+sudo apt-get install opensips-mi-proxy
+Install soap-simple-proxy:
+
+sudo apt-get install soap-simple-proxy
+Install xcap-client library:
+
+sudo apt-get install python-xcaplib
 
 
-Other Linux OS
---------------
+Tar Archives
+------------
 
-You must perform the following steps:
-
-a. Download and install OpenXCAP
-b. Download and install opensips-mi-proxy (optional)
-c. Download and install soap-simple-proxy (optional
-
-a. Download and install OpenXCAP
-
-The software has the following dependencies, which you must install on your
-operating system:
-
- * LibXML (http://xmlsoft.org/downloads.html)
- * Python 2.5 or newer (www.python.org)
- * Twisted framework (http://twistedmatrix.com) 
- * Twisted Core, Twisted Web and Twisted Web 2
- * python-lxml (http://codespeak.net/lxml)
- * python-application
- * python-xml (_xmlplus package provided by pyxml library)
- * python-mysqldb
-
-To enable TLS support:
-
- * GnuTLS library (http://www.gnu.org/software/gnutls)
- * python-gnutls (http://pypi.python.org/pypi/python-gnutls)
-
-OpenXCAP has been tested on Debian unstable with the following versions:
-
- * libxml2: 2.6.32.dfsg-2
- * python: 2.5.2-1
- * python-application: 1.1.5
- * python-gnutls: 1.1.8
- * python-lxml: 2.0.5-1
- * python-sqlobject: 0.10.1-1
- * python-twisted-core: 8.1.0-1
- * python-twisted-web: 8.1.0-1
- * python-twisted-web2: 8.1.0-1
- * python-zopeinterface: 3.3.1-6
-
-OpenXCAP can be downloaded as a tar archive from:
+OpenXCAP and related software can be downloaded as tar archives from:
 
 http://download.ag-projects.com/XCAP/
 
-Extract it using tar xzvf openxcap-version.tar.gz and change directory to
-the newly created openxcap directory.
+Extract it using tar xzvf openxcap-version.tar.gz.
 
 Install the software:
 
 cd openxcap
-python setup.py install
+sudo python setup.py install
 
 Download and install opensips-mi-proxy
 
-The software has the following dependencies, which you must install on your
-operating system:
-
- * Python 2.5 or newer (http://www.python.org)
- * Twisted framework (http://twistedmatrix.com)
- * Twisted Core, Twisted Web and Twisted Web 2 (http://twistedmatrix.com)
- * The software can be downloaded as a tar archive from:
-
-http://download.ag-projects.com/XCAP/
-
-Extract it using tar xzvf opensips-mi-proxy-version.tar.gz and change
-directory to the newly created opensips-mi-proxy directory.
+Extract it using tar xzvf opensips-mi-proxy-version.tar.gz.
 
 Install the software:
 
 cd opensips-mi-proxy
-python setup.py install
+sudo python setup.py install
 
 Download and install soap-simple-proxy
 
-The software can be downloaded as a tar archive from:
-
-http://download.ag-projects.com/XCAP/
-
-Extract it using tar xzvf soap-simple-proxy-version.tar.gz and change
-directory to the newly created soap-simple-proxy directory.
+Extract it using tar xzvf soap-simple-proxy-version.tar.gz.
 
 Install the software:
 
 cd soap-simple-proxy
-python setup.py install
+sudo python setup.py install
 
-Downloading from the version control repository
+
+Version control repository
+--------------------------
 
 The source code is managed using darcs version control tool. The darcs
 repository can be fetched with:
@@ -159,8 +135,8 @@ Configuration
 Configure OpenXCAP server
 
 If you have installed the debian package copy etc/openxcap/config.ini.sample
-/to /etc/openxcap/config.ini. For other Linux copy config.ini.sample from
-the tar archive to the same directory. Edit /config.ini with your settings.
+to /etc/openxcap/config.ini. For other Linux copy config.ini.sample from
+the tar archive to the same directory. Edit config.ini with your settings.
 
 Database setup
 
@@ -193,17 +169,20 @@ Configure soap-simple-proxy
 If you have installed the debian package copy
 /etc/soap-simple-proxy/config.ini.sample to
 /etc/soap-simple-proxy/config.ini. For other Linux OS copy config.ini.sample
-/from the tar archive to the same directory. Edit config.ini with your
-/settings.
+from the tar archive to the same directory. Edit config.ini with your
+settings.
+
 
 [SOAP Server]
 address = 0.0.0.0
 port = 9300
 log_requests = Yes
 
+
 [WSDL]
 public_service_url = https://example.com/soap-simple-proxy/
 internal_service_url = http://private-address:9200/
+
 
 [XCAP]
 root_uri = http://xcap.example.com/xcap-root
@@ -251,18 +230,19 @@ package, the test suite is found in /usr/lib/python2.5/site-packages/xcap/test
 
 To run the test suite add a user to the XCAP subscriber database
 (alice@example.com in the following example), then create a configuration
-file with the credentials in ~/.sipclient/config.ini that reads:
+file with the credentials in ~/.xcapclient.ini that reads:
 
-[Account]
+[Account_test]
 sip_address=alice@example.com
 password=123
 xcap_root = https://xcap.example.com/xcap-root
 
 Then run the test suite:
 
-$./test.py 
+~/openxcap/xcap/test$./test.py 
 test_delete (test_attribute.AttributeTest) ... ok
-test_get (test_attribute.AttributeTest) ... WARNING: test with URI in att_value is disabled ok
+test_get (test_attribute.AttributeTest) ... WARNING: test with URI in att_value is disabled
+ok
 test_put (test_attribute.AttributeTest) ... ok
 test_global_auth (test_auth.AuthTest_org_openmobilealliance_pres_rules) ... ok
 test_users_auth (test_auth.AuthTest_org_openmobilealliance_pres_rules) ... ok
@@ -281,7 +261,8 @@ test_users_auth (test_auth.AuthTest_watchers) ... ok
 test_global_auth (test_auth.AuthTest_xcap_caps) ... ok
 test_users_auth (test_auth.AuthTest_xcap_caps) ... ok
 test_delete (test_element.ElementTest) ... ok
-test_get (test_element.ElementTest) ... WARNING: test with URI in att_value is disabled ok
+test_get (test_element.ElementTest) ... WARNING: test with URI in att_value is disabled
+ok
 test_put_error (test_element.ElementTest) ... ok
 Testing different ways of inserting an element as described in examples from Section 8.2.3 ... ok
 Testing PUT requests of form '*[@att="some"]' which require looking into body of PUT ... ok
@@ -297,17 +278,28 @@ test_conditional_PUT (test_etags.ETagTest) ... ok
 test_conditional_GET (test_etags.ETagTest2) ... ok
 test_conditional_PUT (test_etags.ETagTest2) ... ok
 test_etag_parsing (test_etags.ETagTest2) ... ok
+test_errors (test_fragment.FragmentTest) ... ok
+test_success (test_fragment.FragmentTest) ... ok
 test_has_global (test_global.TestGlobal) ... ok
 test_no_global (test_global.TestGlobal) ... ok
 test_ns_bindings (test_nsbindings.NSBindingsTest) ... ok
 test_pidf_manipulation (test_pidf.PIDFTest) ... ok
 test_pidf_manipulation (test_presrules.PresenceRulesTest) ... ok
-test_operations (test_resourcelists.DocumentTest) ... ok
-test_operations (test_rlsservices.DocumentTest) ... ok
+test_operations1 (test_resourcelists.DocumentTest) ... ok
+test_operations2 (test_resourcelists.DocumentTest) ... ok
+test_operations3 (test_resourcelists.DocumentTest) ... ok
+test_operations4 (test_resourcelists.DocumentTest) ... ok
+test_operations1 (test_rlsservices.DocumentTest) ... ok
+test_operations2 (test_rlsservices.DocumentTest) ... ok
+test_operations3 (test_rlsservices.DocumentTest) ... ok
+test_operations4 (test_rlsservices.DocumentTest) ... ok
 test_get (test_watchers.Test) ... ok
 test_schema (test_xcap_caps.XCAPCaps) ... ok
+
 ----------------------------------------------------------------------
-Ran 45 tests in 74.427s
+Ran 53 tests in 48.941s
+
+OK
 
 Notes
 
