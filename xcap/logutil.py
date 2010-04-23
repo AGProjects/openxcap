@@ -216,8 +216,15 @@ def get(obj, attr):
     return _repr(getattr(obj, attr, None))
 
 def format_access_record(request, response):
+
+    def format_clientproto(proto):
+        try:
+            return "HTTP/%d.%d" % (proto[0], proto[1])
+        except IndexError:
+            return ""
+
     ip = get_ip(request)
-    request_line = get(request, '_initial_line')
+    request_line = "'%s %s %s'" % (request.method, request.unparseURL(), format_clientproto(request.clientproto))
     code = get(response, 'code')
 
     if hasattr(request, 'stream'):
