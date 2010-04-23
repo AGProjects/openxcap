@@ -1,8 +1,8 @@
 
 # Copyright (C) 2007-2010 AG-Projects.
 #
-# This module is prorietary to AG-Projects. Use of this module by third
-# parties is unsupported.
+# This module is proprietary to AG Projects. Use of this module by third
+# parties is not supported.
 
 import signal
 
