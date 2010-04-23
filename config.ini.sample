@@ -83,10 +83,10 @@ trusted_peers =
 ; path.
 
 ; Server X509 certificate
-;certificate = tls/server.crt
+;certificate =
 
 ; Server X509 private key
-;private_key = tls/server.key
+;private_key =
 
 
 [Database]
