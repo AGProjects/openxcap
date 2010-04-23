@@ -14,36 +14,7 @@ from logging.handlers import RotatingFileHandler
 import xcap
 
 
-class ErrorCodeList(set):
-    """
-    >>> ErrorCodeList('BadRequest')
-    ErrorCodeList([400])
-
-    >>> big = ErrorCodeList('200, 201,NotFound, Conflict,  Internal_Server_Error , Bad Request ')
-    >>> sorted(big)
-    [200, 201, 400, 404, 409, 500]
-
-    >>> 500 in big, 501 in big
-    (True, False)
-
-    >>> ErrorCodeList('*')
-    AnyErrorCode
-
-    >>> 200 in ErrorCodeList('all')
-    True
-
-    >>> ErrorCodeList('')
-    ErrorCodeList([])
-
-    >>> 200 in ErrorCodeList('')
-    False
-
-    >>> ErrorCodeList('InternalServerError, 10')
-    Traceback (most recent call last):
-     ...
-    ValueError: 10 cannot be an HTTP error code
-    """
-
+class ResponseCodeList(set):
     names = {}
 
     for k, v in responsecode.__dict__.iteritems():
@@ -53,7 +24,7 @@ class ErrorCodeList(set):
 
     def __new__(cls, value):
         if value.lower() in ('*', 'any', 'all', 'yes'):
-            return AnyErrorCode
+            return AnyResponseCode
         return set.__new__(cls, value)
 
     def __init__(self, value):
@@ -71,7 +42,7 @@ class ErrorCodeList(set):
             else:
                 self.add(n)
 
-class AnyErrorCode(ErrorCodeList):
+class AnyResponseCode(ResponseCodeList):
     def __new__(cls, value):
         return set.__new__(cls)
 
@@ -82,9 +53,9 @@ class AnyErrorCode(ErrorCodeList):
         return True
 
     def __repr__(self):
-        return "AnyErrorCode"
+        return "AnyResponseCode"
 
-AnyErrorCode = AnyErrorCode('')
+AnyResponseCode = AnyResponseCode('')
 
 
 class Logging(ConfigSection):
@@ -97,17 +68,15 @@ class Logging(ConfigSection):
     directory = '/var/log/openxcap'
 
     # each log message is followed by the headers of the request
-    log_request_headers = ConfigSetting(type=ErrorCodeList, value=[500])
+    log_request_headers = ConfigSetting(type=ResponseCodeList, value=[500])
 
-    log_request_body = ConfigSetting(type=ErrorCodeList, value=[500])
+    log_request_body = ConfigSetting(type=ResponseCodeList, value=[500])
 
-    log_response_headers = ConfigSetting(type=ErrorCodeList, value=[500])
+    log_response_headers = ConfigSetting(type=ResponseCodeList, value=[500])
 
-    # each log message is followed by the body of the response sent to the client
-    log_response_body = ConfigSetting(type=ErrorCodeList, value=[500])
+    log_response_body = ConfigSetting(type=ResponseCodeList, value=[500])
 
-    # each log message is followed by the stacktrace if there was underlying exception
-    log_stacktrace = ConfigSetting(type=ErrorCodeList, value=[500])
+    log_stacktrace = ConfigSetting(type=ResponseCodeList, value=[500])
 
 
 def log_format_request_headers(code, r):
@@ -306,12 +275,3 @@ def start_log():
             if isinstance(handler, log.SyslogHandler):
                 handler.addFilter(IsNotAccessLog())
 
-
-if __name__=='__main__':
-    import doctest
-    doctest.testmod()
-    format_log_message(None, None, None)
-    Logging.log_request_headers = AnyErrorCode
-    Logging.log_response_body = AnyErrorCode
-    Logging.log_stacktrace = AnyErrorCode
-    format_log_message(None, None, None)
