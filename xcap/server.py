@@ -224,6 +224,8 @@ class XCAPServer(object):
                 else:   break
         from twisted.internet import reactor
 
+        log.msg("Listening on: %s:%d" % (ServerConfig.address, listen_port))
+        log.msg("XCAP root: %s" % ServerConfig.root)
         if ServerConfig.root.startswith('https'):
             self._start_https(reactor)
         else:
