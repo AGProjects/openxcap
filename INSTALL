@@ -26,13 +26,13 @@ installation and configuration of several components:
 Dependencies
 ------------
 
- * Python 2.5 or 2.6  http://www.python.org
- * Twisted Core, Twisted Web and Twisted Web 2 >= 8.1.0  http://twistedmatrix.com
- * python-lxml >= 2.0.7  http://codespeak.net/lxml)
- * python-application >= 1.2.0  http://pypi.python.org/pypi/python-application
- * python-gnutls >=1.8.1  http://pypi.python.org/pypi/python-gnutls
- * python-mysqldb >=1.2.2  http://pypi.python.org/simple/mysql-python
- * python-imaging >=1.1.7  http://pypi.python.org/simple/PIL/
+ * Python 2.5 or 2.6 - http://www.python.org
+ * Twisted Core, Twisted Web and Twisted Web 2 >= 8.1.0 - http://twistedmatrix.com
+ * python-lxml >= 2.0.7 - http://codespeak.net/lxml
+ * python-application >= 1.2.0 - http://pypi.python.org/pypi/python-application
+ * python-gnutls >=1.8.1 - http://pypi.python.org/pypi/python-gnutls
+ * python-mysqldb >=1.2.2 - http://pypi.python.org/simple/mysql-python
+ * python-imaging >=1.1.7 - http://pypi.python.org/simple/PIL/
 
 
 Debian Packages
@@ -66,7 +66,7 @@ sudo apt-get update
 
 Install OpenXCAP server:
 
-apt-get install openxcap
+sudo apt-get install openxcap
 
 Install opensips-mi-proxy (on the machine running OpenSIPS):
 
@@ -86,37 +86,43 @@ OpenXCAP and related software can be downloaded as tar archives from:
 
 http://download.ag-projects.com/XCAP/
 
-Extract it using tar xzvf openxcap-version.tar.gz.
+Extract the software using tar xzvf openxcap-version.tar.gz.
 
-Install the software:
+Install OpenXCAP:
 
 cd openxcap
 sudo python setup.py install
 
-Download and install opensips-mi-proxy
+Download and extract opensips-mi-proxy using tar xzvf
+opensips-mi-proxy-version.tar.gz.
 
-Extract it using tar xzvf opensips-mi-proxy-version.tar.gz.
-
-Install the software:
+Install opensips-mi-proxy:
 
 cd opensips-mi-proxy
 sudo python setup.py install
 
-Download and install soap-simple-proxy
+Download soap-simple-proxy and extract it using tar xzvf
+soap-simple-proxy-version.tar.gz.
 
-Extract it using tar xzvf soap-simple-proxy-version.tar.gz.
-
-Install the software:
+Install soap-simple-proxy:
 
 cd soap-simple-proxy
 sudo python setup.py install
 
+Download python-xcaplib and extract it using tar xzvf
+python-xcaplib-version.tar.gz.
 
-Version control repository
+Install python-xcaplib:
+
+cd python-xcaplib
+sudo python setup.py install
+
+
+Version Control Repository
 --------------------------
 
-The source code is managed using darcs version control tool. The darcs
-repository can be fetched with:
+The source code is managed using darcs version control tool from
+http://darcs.net. The darcs repository can be fetched with:
 
 darcs get http://devel.ag-projects.com/repositories/openxcap
 
@@ -132,13 +138,13 @@ darcs pull -a
 Configuration
 -------------
 
-Configure OpenXCAP server
+OpenXCAP server
 
 If you have installed the debian package copy etc/openxcap/config.ini.sample
 to /etc/openxcap/config.ini. For other Linux copy config.ini.sample from
 the tar archive to the same directory. Edit config.ini with your settings.
 
-Database setup
+Database
 
 Both OpenXCAP backends (Database and OpenSIPS) depend on a database engine to
 store service subscribers and XCAP resources. The database creation scripts
@@ -147,7 +153,7 @@ is used to authenticate XCAP requests, and xcap, where XCAP documents are
 stored. The subscriber table is a subset of the subscriber table from
 OpenSIPS, xcap table is the same as the one from OpenSIPS.
 
-Configure opensips-mi-proxy
+opensips-mi-proxy
 
 If you have installed the debian package copy
 /etc/opensips-mi-proxy/config.ini.sample to /etc/opensips-mi-proxy/config.ini.
@@ -164,7 +170,7 @@ socket = /var/run/opensips/socket
 For more information see the README and INSTALL files that come together
 with the tar archive.
 
-Configure soap-simple-proxy
+soap-simple-proxy
 
 If you have installed the debian package copy
 /etc/soap-simple-proxy/config.ini.sample to
@@ -189,7 +195,7 @@ root_uri = http://xcap.example.com/xcap-root
 For more information see the README and INSTALL files that come together
 with the tar archive.
 
-A working OpenSIPS configuration is available at http://openxcap.org
+A sample OpenSIPS configuration is available at http://openxcap.org
 
 
 Running the server
@@ -221,7 +227,7 @@ The user accounts are stored in OpenSIPS subscriber table. You can add
 subscribers by using your favorite OpenSIPS subscriber management tool.
 
 
-Test suite
+Test Suite
 ----------
 
 A test suite for testing the functionality the server is located in
