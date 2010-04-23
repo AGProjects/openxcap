@@ -1,12 +1,16 @@
 ;
 ; Configuration file for OpenXCAP
 ;
+; The values in the commented lines represent the defaults built in the
+; server software
+;
+
 [Server]
 
 ; IP address to listen for requests
 ; 0.0.0.0 means any address of this host
-address = 0.0.0.0
 
+; address = 0.0.0.0
 
 ; This is a comma separated list of XCAP root URIs. The first is the
 ; primary XCAP root URI, while the others (if specified) are aliases.
@@ -24,7 +28,8 @@ root = https://xcap.example.com/xcap-root
 backend = OpenSIPS
 
 ; Validate XCAP documents against XML schemas
-document_validation = Yes
+
+; document_validation = Yes
 
 
 [Logging]
@@ -42,35 +47,32 @@ document_validation = Yes
 
 ; directory=/var/log/openxcap 
 
-
 ; The following parameters control what kind of information (like
 ; stacktrace, body or headers) is logged for which response codes. The
 ; values must be a comma-separated list of HTTP response codes or the  
 ; keyword 'any' that matches all response codes.
 
 ; log_stacktrace=500
-
 ; log_response_headers=500
-
 ; log_response_body=500
-
 ; log_request_headers=500
-
 ; log_request_body=500
 
 
 [Authentication]
 
-; The HTTP authentication type, this can be either 'basic' or 'digest'.
-; Standard states 'digest' as mandatory, however you may change it to
-; basic if you wish.
-type = digest
+; The HTTP authentication type, this can be either 'basic' or 'digest'. The
+; standard states 'digest' as the mandatory, however it can be changed to
+; basic
+
+; type = digest
 
 ; Specify if the passwords are stored as plain text - Yes
 ; or in a hashed format MD5('username:domain:password') - No
-cleartext_passwords = Yes
+; cleartext_passwords = Yes
 
-; The default authentication realm
+; The default authentication realm, if none indicated in the HTTP request
+; URI
 default_realm = example.com
 
 ; A comma-separated list of hosts or networks to trust.
@@ -79,7 +81,7 @@ default_realm = example.com
 ; is assumed), or the special keywords 'any' and 'none'
 ; (being equivalent to 0.0.0.0/0 and 0.0.0.0/32
 ; respectively).
-trusted_peers =
+; trusted_peers =
 
 
 [TLS]
@@ -89,10 +91,10 @@ trusted_peers =
 ; path.
 
 ; Server X509 certificate
-;certificate =
+; certificate =
 
 ; Server X509 private key
-;private_key =
+; private_key =
 
 
 [Database]
@@ -104,8 +106,8 @@ authentication_db_uri = mysql://username:password@db/database
 storage_db_uri = mysql://username:password@db/database
 
 ; Authentication and storage tables
-subscriber_table = subscriber
-xcap_table = xcap
+; subscriber_table = subscriber
+; xcap_table = xcap
 
 
 [OpenSIPS]
@@ -115,4 +117,3 @@ xmlrpc_url = http://sip.example.com:8080
 
 ; Publish xcap-diff event via OpenSIPS management interface 
 ; enable_publish_xcapdiff = yes
-
