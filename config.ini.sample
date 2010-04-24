@@ -17,7 +17,7 @@
 ; The primary root URI is used when generating xcap-diff
 ; If the scheme is https, then the server will listen for requests in TLS mode.
 
-root = https://xcap.example.com/xcap-root
+root = http://xcap.example.com/xcap-root
 
 ; The backend to be used for storage and authentication. Current supported
 ; values are Database and OpenSIPS. OpenSIPS backend inherits all the settings
