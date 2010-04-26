@@ -47,7 +47,7 @@ class ServerConfig(ConfigSection):
     address = '0.0.0.0'
     port = 0
     root = ConfigSetting(type=XCAPRootURI, value=None)
-    backend = ConfigSetting(type=Backend, value=Backend('database'))
+    backend = ConfigSetting(type=Backend, value=None)
 
 class TLSConfig(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
@@ -58,6 +58,10 @@ class TLSConfig(ConfigSection):
 
 if ServerConfig.root is None:
     log.fatal("the XCAP root URI is not defined")
+    sys.exit(1)
+
+if ServerConfig.backend is None:
+    log.fatal("OpenXCAP needs a backend to be specified in order to run")
     sys.exit(1)
 
 if ServerConfig.port:

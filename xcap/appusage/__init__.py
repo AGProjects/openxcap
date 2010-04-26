@@ -37,8 +37,12 @@ class ServerConfig(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
     __section__ = 'Server'
 
-    backend = ConfigSetting(type=Backend, value=Backend('database'))
+    backend = ConfigSetting(type=Backend, value=None)
     document_validation = True
+
+if ServerConfig.backend is None:
+    log.fatal("OpenXCAP needs a backend to be specified in order to run")
+    sys.exit(1)
 
 
 class ApplicationUsage(object):
