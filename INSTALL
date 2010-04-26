@@ -157,7 +157,7 @@ Database
 
 Both OpenXCAP backends (Database and OpenSIPS) depend on a database engine
 to store service subscribers and XCAP resources. The database creation
-scripts are found in the scripts/ directory
+scripts are found in the scripts/ directory.
 
 Create Tables
 
@@ -167,7 +167,8 @@ configure OpenXCAP to use the same database as OpenSIPS.
 If you want to setup OpenXCAP to use its own database, create the database:
 
 mysqladmin create openxcap
-and the tables using the script:
+
+and the tables using the sample script:
 
  * setup/mysql-create-tables.sql
 
@@ -185,6 +186,9 @@ Use the following script as template, edit it first and run it against on
 your database:
 
  * setup/mysql-create-user.sql
+
+For Debian Package the above sql sample scripts are installed in openxcap
+shared directory, you can locate them using 'dpkg -L openxcap' command.
 
 
 OpenXCAP
@@ -353,15 +357,8 @@ Test Suite
 ----------
 
 A test suite for testing the functionality the server is located in
-/xcap/test directory. If the software has been installed as a Debian
-package, the test suite is found in
-
-For Python 2.5:
-
-/usr/lib/python2.5/site-packages/xcap/test
-For Python 2.6:
-
-/usr/lib/python2.5/site-packages/xcap/test
+/xcap/test directory. If you have installed the Debian Package you can
+located the test suite scripts using dpkg -L openxcap command.
 
 Configure the credentials of a test account and the xcap root in a
 configuration file as follows:
