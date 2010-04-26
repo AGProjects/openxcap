@@ -81,10 +81,11 @@ Supported XCAP applications
    Lists the documents stored in the XCAP server for a given user.
  * icon (auid = oma_status-icon). Manipulate the user icon for
    a given user and provide icon download capability from HTTP clients.
- * Dialog rules (auid = dialog-rules). Dialog Rules application is a
-   custom application modeled after Presence rules that uses authorization 
-   policies, to specify when dialog information can be given to which watchers.
- * Watchers (auid = org.openxcap.watchers, prrivate application). This
+ * Dialog rules (auid = org.openxcap.dialog-rules). Dialog Rules application
+   is a private application modeled after Presence rules that uses
+   authorization policies, to specify when dialog information can be given
+   to which watchers.
+ * Watchers (auid = org.openxcap.watchers, private application). This
    application returns the list of watchers from OpenSIPS presence agent.
 
 
