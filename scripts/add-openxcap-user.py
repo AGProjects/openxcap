@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """This is an example that shows how a new user could be added to
 `subscriber' table. It does NOT actually create a new record in
 the database.
@@ -14,4 +15,3 @@ except ValueError:
 hash = md5(":".join([username, domain, password])).hexdigest()
 query = """INSERT INTO subscriber (username, domain, password, ha1) VALUES ("%(username)s", "%(domain)s", "%(password)s", "%(hash)s");""" % locals()
 print query
-
