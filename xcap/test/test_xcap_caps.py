@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 # Copyright (C) 2007-2010 AG-Projects.
 #
