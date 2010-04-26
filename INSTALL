@@ -377,9 +377,9 @@ make sure the hostname points to the IP address where the server listens to.
 
 Add the same test account to the OpenSIPS subscriber table:
 
-INSERT INTO `subscriber` (username,domain,password,email_address,ha1, ha1b) 
+INSERT INTO `subscriber` (username,domain,password,ha1, ha1b) 
 VALUES 
-('alice','example.com','1234','alice@example.com',
+('alice','example.com','1234',
 'fd7cab2287702c763e7b318b7fb2451a',
 'fe605f5cea371c874a6fb7239a332a3e');
 
