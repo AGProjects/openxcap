@@ -1,0 +1,8 @@
+#
+# OpenXCAP startup options
+#
+
+# Set to yes to enable OpenXCAP, once configured properly 
+# by editing /etc/openxcap/config.ini
+RUN_OPENXCAP=no
+

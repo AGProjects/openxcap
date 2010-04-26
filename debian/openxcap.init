@@ -14,6 +14,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 INSTALL_DIR="/usr/bin"
 RUNTIME_DIR="/var/run/openxcap"
+DEFAULTS="/etc/default/openxcap"
 
 SERVER="$INSTALL_DIR/openxcap"
 PID="$RUNTIME_DIR/openxcap.pid"
@@ -29,6 +30,16 @@ test -f $SERVER || exit 0
 
 if [ "$PID" != "/var/run/openxcap/openxcap.pid" ]; then
     OPTIONS="--pid $PID $OPTIONS"
+fi
+
+# Load startup options if available
+if [ -f $DEFAULTS ]; then
+    . $DEFAULTS || true
+fi
+
+if [ "$RUN_OPENXCAP" != "yes" ]; then
+    echo "OpenXCAP not yet configured. Edit /etc/default/openxcap first."
+    exit 0
 fi
 
 start() {
