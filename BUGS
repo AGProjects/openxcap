@@ -1,4 +1,0 @@
-* uri validation of several kinds (the same is true for resource-lists)
-what's intentionally skipped:
-* global scope of uri attr in <service> and building /global/index (supposed
-to be used by rls, RLS module in openser doesn't use it)
