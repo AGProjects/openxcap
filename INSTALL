@@ -1,9 +1,17 @@
+OpenXCAP
+--------
+
+Copyright (c) 2007-2010 AG Projects
+http://ag-projects.com
+
+Home page: http://openxcap.org
+
 
 Installation
 ------------
 
-This documentation is split in multiple sections that deal with the
-installation and configuration of several components:
+Components
+----------
 
 * OpenXCAP, the XCAP server itself
 
@@ -35,18 +43,22 @@ Dependencies
  * python-imaging >=1.1.7 - http://pypi.python.org/simple/PIL/
 
 
-Debian Packages
----------------
+Debian and Ubuntu
+-----------------
 
 Binary packages are available for Debian and Ubuntu on i386 and amd64
 architectures.
 
-Install AG Projects debian signing key: 
+Install AG Projects debian repository signing key:
 
 wget http://download.ag-projects.com/agp-debian-gpg.key
 sudo apt-key add agp-debian-gpg.key 
 
 Add the following lines to /etc/apt/sources.list:
+
+# Debian Stable
+deb http://ag-projects.com/debian stable main
+deb-src http://ag-projects.com/debian stable main
 
 # Debian Unstable
 deb http://ag-projects.com/debian unstable main
@@ -71,9 +83,11 @@ sudo apt-get install openxcap
 Install opensips-mi-proxy (on the machine running OpenSIPS):
 
 sudo apt-get install opensips-mi-proxy
+
 Install soap-simple-proxy:
 
 sudo apt-get install soap-simple-proxy
+
 Install xcap-client library:
 
 sudo apt-get install python-xcaplib
@@ -138,28 +152,116 @@ darcs pull -a
 Configuration
 -------------
 
-OpenXCAP server
-
-If you have installed the debian package copy etc/openxcap/config.ini.sample
-to /etc/openxcap/config.ini. For other Linux copy config.ini.sample from
-the tar archive to the same directory. Edit config.ini with your settings.
-
 Database
+--------
 
-Both OpenXCAP backends (Database and OpenSIPS) depend on a database engine to
-store service subscribers and XCAP resources. The database creation scripts
-are found in the scripts/ directory, and involve 2 tables: subscriber, which
-is used to authenticate XCAP requests, and xcap, where XCAP documents are
-stored. The subscriber table is a subset of the subscriber table from
-OpenSIPS, xcap table is the same as the one from OpenSIPS.
+Both OpenXCAP backends (Database and OpenSIPS) depend on a database engine
+to store service subscribers and XCAP resources. The database creation
+scripts are found in the scripts/ directory
+
+Create Tables
+
+If you use OpenSIPS backend, you do not need to create any tables and
+configure OpenXCAP to use the same database as OpenSIPS.
+
+If you want to setup OpenXCAP to use its own database, create the database:
+
+mysqladmin create openxcap
+and the tables using the script:
+
+ * setup/mysql-create-tables.sql
+
+This script creates two tables:
+
+ * subscriber, which is used to authenticate XCAP requests
+ * xcap, where the XCAP documents are actually stored
+
+The subscriber table is a subset of the subscriber table from OpenSIPS, xcap
+table is the same as the one from OpenSIPS.
+
+Add MySQL user
+
+Use the following script as template, edit it first and run it against on
+your database:
+
+ * setup/mysql-create-user.sql
+
+
+OpenXCAP
+--------
+
+For debian package copy /etc/openxcap/config.ini.sample to
+/etc/openxcap/config.ini. For other Linux OS copy config.ini.sample from the
+tar archive to the same directory. Edit config.ini with your settings.
+
+The specific settings for an installation must be set from the configuration
+file, which is split in several configuration sections.
+
+The [Server] section contains global settings: the IP address and port where
+OpenXCAP listens for client requests.
+
+The XCAP root is the context that contains all the documents across all
+applications and users that are managed by the server. Only the client
+requests that address the root defined here are accepted. If the root URI
+has the "https" scheme, the server will listen for requests in TLS mode. The
+X509 certificate and private key that will identify the server are loaded
+using the values in the [TLS] section.
+
+OpenXCAP support multiple, interchangeable backend modules. Each backend
+knows where and how to authorize and authenticate XCAP users and where to
+store the XCAP documents. Currently, supported values are "Database" and
+"OpenSIPS", the specific settings will be taken the corresponding sections,
+[Database] or [OpenSIPS].
+
+An XCAP request must be authenticated before it's handled, and the various
+settings are found in the [Authentication] section.
+
+A trusted peer IP list can be defined, requests matching this list will be
+accepted without authentication.
+
+Client requests must be authenticated in the context of a realm that is the
+same as the SIP domain. This realm is derived in real time for each request
+using the following logic:
+
+ * if the user section of the XCAP URI (the section following the "users"
+   path segment) is in the form of username@domain, the realm is taken from the
+   domain part
+
+ * some XCAP clients (e.g. CounterPath's Eyebeam), only put the
+   username in the XCAP URI, so there is the need for a convention to determine
+  the realm: it must be included in the XCAP root URI on the client side. For
+  example, if the XCAP root of the server is http://example.com/xcap-root, the
+  client should be provisioned with http://example.com/xcap-root@domain/ 
+
+ * if the above logic does not provide the realm, the realm will be taken
+   from the default_realm setting of [Authentication] There are separate
+   configuration settings for each backend. The current supported back-ends are
+   Database and OpenSIPS.
+
+The Database section contains the database connection URI to the database
+where the service subscribers are kept (authentication_db_uri) and the
+database connection URI to the database where XCAP documents are stored.
+Currently, only MySQL database engine has been implemented.
+
+The OpenSIPS section contains all the settings of the Database section, plus
+the URL where OpenSIPS's XMLRPC management interface is listening for
+commands. The refreshWatchers command is sent to OpenSIPS management
+interface to inform the server that the XCAP documents have been changed for
+a user so that OpenSIPS can send notifications out according to the new
+policy in real-time.
+
+When using TLS you must generate an X.509 certificate and a key. Consult
+Internet resources for how to do this. The procedure is the same as for any
+other TLS server like Apache web server.
+
 
 opensips-mi-proxy
+-----------------
 
-If you have installed the debian package copy
-/etc/opensips-mi-proxy/config.ini.sample to /etc/opensips-mi-proxy/config.ini.
-
-For other Linux OS copy config.ini.sample from the tar archive to the same
-/directory. Edit config.ini with your settings.
+For the debian package copy /etc/opensips-mi-proxy/config.ini.sample to
+/etc/opensips-mi-proxy/config.ini. For other Linux OS copy config.ini.sample
+from the tar archive to the same directory. Edit config.ini with your
+settings.
 
 [OpenSIPS]
 socket = /var/run/opensips/socket
@@ -170,10 +272,11 @@ socket = /var/run/opensips/socket
 For more information see the README and INSTALL files that come together
 with the tar archive.
 
-soap-simple-proxy
 
-If you have installed the debian package copy
-/etc/soap-simple-proxy/config.ini.sample to
+soap-simple-proxy
+-----------------
+
+For the debian package copy /etc/soap-simple-proxy/config.ini.sample to
 /etc/soap-simple-proxy/config.ini. For other Linux OS copy config.ini.sample
 from the tar archive to the same directory. Edit config.ini with your
 settings.
@@ -209,6 +312,16 @@ Start OpenXCAP server:
 
 /etc/init.d/openxcap start
 
+You can also start OpenXCAP in no fork mode, which is useful to debug the
+configuration. This will not put the server in the background and will log
+its messages in the console where it was started:
+
+adigeo@ag-imac3:~/work/openxcap$sudo ./openxcap --no-fork
+Starting OpenXCAP 1.2.0
+Listening on: 0.0.0.0:80
+XCAP root: http://xcap.example.com/xcap-root
+xcap.server.HTTPFactory starting on 80
+
 Start opensips-mi-proxy:
 
 /etc/init.d/opensips-mi-proxy start
@@ -221,10 +334,19 @@ OpenXCAP logs its messages to /var/log/openxcap/. All other servers log
 /their messages to the system syslog. Check the log files for any startup or
 runtime errors.
 
-Creating user accounts
+Logging
 
-The user accounts are stored in OpenSIPS subscriber table. You can add
-subscribers by using your favorite OpenSIPS subscriber management tool.
+OpenXCAP logs its start, stop and error messages to /var/log/syslog. Client
+access requests are logged in /var/log/openxcap/access.log. You can
+configure the logging of the headers and bodies of client requests and
+responses in the Logging section of the configuration file.
+
+Adding Accounts
+
+The accounts used for authentication of XCAP requests are stored in OpenSIPS
+subscriber table. You can add subscribers by using your favorite OpenSIPS
+subscriber management tool. Check the following script that can be used to
+add manually account to opensips subscriber table:
 
 
 Test Suite
@@ -232,28 +354,34 @@ Test Suite
 
 A test suite for testing the functionality the server is located in
 /xcap/test directory. If the software has been installed as a Debian
-package, the test suite is found in /usr/lib/python2.5/site-packages/xcap/test
+package, the test suite is found in
 
-Add a test account XCAP subscriber database, alice@example.com in the
-following example:
+For Python 2.5:
 
-INSERT INTO `subscriber`
-(username,domain,password,email_address,ha1, ha1b)
-VALUES
-('alice','example.com','1234','alice@example.com',
-'fd7cab2287702c763e7b318b7fb2451a',
-'fe605f5cea371c874a6fb7239a332a3e');
+/usr/lib/python2.5/site-packages/xcap/test
+For Python 2.6:
 
-Then create the configuration file ~/.xcapclient.ini with the same
-credentials as follows:
+/usr/lib/python2.5/site-packages/xcap/test
 
+Configure the credentials of a test account and the xcap root in a
+configuration file as follows:
+
+~/.xcapclient.ini
 [Account_test]
 sip_address=alice@example.com
 password=123
-xcap_root = https://xcap.example.com/xcap-root
+xcap_root = http://xcap.example.com/xcap-root
 
 Replace the xcap_root with the same xcap_root configured in the server and
 make sure the hostname points to the IP address where the server listens to.
+
+Add the same test account to the OpenSIPS subscriber table:
+
+INSERT INTO `subscriber` (username,domain,password,email_address,ha1, ha1b) 
+VALUES 
+('alice','example.com','1234','alice@example.com',
+'fd7cab2287702c763e7b318b7fb2451a',
+'fe605f5cea371c874a6fb7239a332a3e');
 
 Run the test suite:
 
@@ -326,14 +454,15 @@ Notes:
   defined in test_something.py
 
 
-Testing with xcapclient
------------------------
+xcapclient
+----------
 
-A command line client is available in the same download repository of
-OpenXCAP server. The client can be used to manipulate full or partial XML
-documents on XCAP servers (not limited to OpenXCAP) and has a bash shell
-command line completion facility that makes it very easy to browse through
-the structure of XML documents based on XPATH.
+A command line client is available in the python-xcaplib package available
+in same download repository of OpenXCAP server. The client can be used to
+manipulate full or partial XML documents on XCAP servers (not limited to
+OpenXCAP) and has a bash shell command line completion facility that makes
+it very easy to browse through the structure of XML documents based on
+XPATH.
 
 See README of python-xcaplib package for examples on how to create/retrieve
 a document.
