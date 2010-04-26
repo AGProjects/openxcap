@@ -1,6 +1,6 @@
-recursive-include debian   changelog compat control copyright install
+recursive-include debian   changelog compat control copyright
 recursive-include debian   pycompat pyversions rules
-recursive-include debian   *.dirs *.init *.postinst *.postrm
+recursive-include debian   *.dirs *.init *.postinst *.postrm *.docs *.install
 recursive-include opensips *.cfg
 recursive-include scripts  *.py *.sql
 recursive-include tls      .placeholder
