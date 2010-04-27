@@ -244,7 +244,7 @@ def log_access(request, response, reason=None):
         return
     msg = format_log_message(request, response, reason)
     request._logged = True
-    if msg:
+    if msg and response.stream.length < 5000:
         log.msg(AccessLog(msg))
 
 def log_error(request, response, reason):
