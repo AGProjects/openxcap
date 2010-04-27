@@ -501,8 +501,11 @@ class XCAPUri(object):
         doc_selector = _split[0]
         self.doc_selector = DocumentSelector(doc_selector)
         self.application_id = self.doc_selector.application_id
-        if len(_split)==2:
-            self.node_selector = NodeSelector(_split[1], namespaces.get(self.application_id))
+        if len(_split) == 2:
+            try:
+                self.node_selector = NodeSelector(_split[1], namespaces.get(self.application_id))
+            except KeyError:
+                self.node_selector = None
         else:
             self.node_selector = None
         if self.doc_selector.user_id:
