@@ -100,10 +100,10 @@ default_realm = example.com
 [Database]
 
 ; The database connection URI for the datase with subscriber accounts
-authentication_db_uri = mysql://username:password@db/opensips
+authentication_db_uri = mysql://opensips:opensipsrw@db/opensips
 
 ; The database connection URI for the database that stores the XCAP documents
-storage_db_uri = mysql://username:password@db/opensips
+storage_db_uri = mysql://opensips:opensipsrw@db/opensips
 
 ; Authentication and storage tables
 ; subscriber_table = subscriber
