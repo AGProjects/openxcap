@@ -21,6 +21,7 @@ from application.configuration import ConfigSection, ConfigSetting
 
 import struct
 import socket
+import urlparse
 
 import xcap
 from xcap.datatypes import XCAPRootURI
@@ -218,10 +219,11 @@ class XCAPAuthResource(HTTPAuthResource):
 
     def authenticate(self, request):
         """Authenticates an XCAP request."""
+        url = urlparse.urlparse(request.uri)
         if request.port in (80, 443):
-            uri = request.scheme + "://" + request.host + request.uri
+            uri = request.scheme + "://" + request.host + url.path
         else:
-            uri = request.scheme + "://" + request.host + ":" + str(request.port) + request.uri
+            uri = request.scheme + "://" + request.host + ":" + str(request.port) + url.path
         xcap_uri = parseNodeURI(uri, AuthenticationConfig.default_realm)
         request.xcap_uri = xcap_uri
         if xcap_uri.doc_selector.context=='global':
