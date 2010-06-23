@@ -1,3 +1,13 @@
+openxcap (1.2.1) unstable; urgency=low
+
+  * Don't generate exception if unknown namespace is specified
+  * Fix crash with huge logs produced by icon application
+  * Modified log_access not to assume response.stream exists
+  * Support full and partial URLs
+  * Fix packaging for Debian and Ubuntu distributions
+
+ -- Saul Ibarra <saul@ag-projects.com>  Wed, 23 Jun 2010 11:18:49 +0200
+
 openxcap (1.2.0) unstable; urgency=low
 
   [ Adrian Georgescu ]
