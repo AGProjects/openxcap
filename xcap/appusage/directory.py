@@ -9,7 +9,7 @@ from xcap.appusage import ApplicationUsage
 from xcap.interfaces.backend import StatusResponse
 
 class XCAPDirectoryApplication(ApplicationUsage):
-    id = "xcap-directory"
+    id = "org.openmobilealliance.xcap-directory"
     default_ns = "urn:oma:xml:xdm:xcap-directory"
     mime_type= "application/vnd.oma.xcap-directory+xml"
     schema_file = "xcap-directory.xsd"
