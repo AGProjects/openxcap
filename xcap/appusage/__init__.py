@@ -357,7 +357,7 @@ applications = {'org.openmobilealliance.xcap-directory': XCAPDirectoryApplicatio
 from xcap.appusage.capabilities import XCAPCapabilitiesApplication
 applications['xcap-caps'] = XCAPCapabilitiesApplication()
 
-# public GET applications (GET is not challenges for auth)
+# public GET applications (GET is not challenged for auth)
 public_get_applications = {'oma_status-icon': IconApplication(storage)}
 applications.update(public_get_applications)
 
