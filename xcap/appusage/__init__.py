@@ -331,6 +331,7 @@ class ApplicationUsage(object):
         return d.addCallbacks(self._cb_get_ns_bindings, callbackArgs=(uri, ))
 
 
+from xcap.appusage.capabilities import XCAPCapabilitiesApplication
 from xcap.appusage.dialogrules import DialogRulesApplication
 from xcap.appusage.directory import XCAPDirectoryApplication
 from xcap.appusage.icon import IconApplication
@@ -351,11 +352,8 @@ applications = {'org.openmobilealliance.xcap-directory': XCAPDirectoryApplicatio
                 'rls-services': RLSServicesApplication(storage),
                 'pidf-manipulation': PIDFManipulationApplication(storage),
                 'test-app': TestApplication(storage),
-                'org.openxcap.watchers': WatchersApplication(storage)}
-
-# caps application needs to import the applications dictionary
-from xcap.appusage.capabilities import XCAPCapabilitiesApplication
-applications['xcap-caps'] = XCAPCapabilitiesApplication()
+                'org.openxcap.watchers': WatchersApplication(storage),
+                'xcap-caps': XCAPCapabilitiesApplication()}
 
 # public GET applications (GET is not challenged for auth)
 public_get_applications = {'oma_status-icon': IconApplication(storage)}

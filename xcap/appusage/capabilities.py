@@ -4,7 +4,7 @@
 
 from lxml import etree
 from twisted.internet import defer
-from xcap.appusage import applications, ApplicationUsage
+from xcap.appusage import ApplicationUsage
 from xcap.dbutil import make_etag
 from xcap.interfaces.backend import StatusResponse
 
@@ -24,6 +24,8 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
         auids = etree.SubElement(root, "auids")
         extensions = etree.SubElement(root, "extensions")
         namespaces = etree.SubElement(root, "namespaces")
+
+        from xcap.appusage import applications
         for (id, app) in applications.items():
             etree.SubElement(auids, "auid").text = id
             etree.SubElement(namespaces, "namespace").text = app.default_ns
