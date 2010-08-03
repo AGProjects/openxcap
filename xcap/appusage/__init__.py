@@ -365,7 +365,6 @@ def getApplicationForURI(xcap_uri):
     return applications.get(xcap_uri.application_id, None)
 
 
-__all__ = [applications, public_get_applications, getApplicationForURI, ApplicationUsage, Backend]
-
+__all__ = ['applications', 'namespaces', 'public_get_applications', 'getApplicationForURI', 'ApplicationUsage', 'Backend']
 
 
