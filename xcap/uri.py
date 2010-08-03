@@ -35,14 +35,13 @@ Meanwhile, the safe approach is to use &quot;
 """
 
 import re
-from urllib import unquote
-from urlparse import urlparse
-
-from copy import copy
-from xml.sax.saxutils import quoteattr
-from lxml import _elementpath as ElementPath
 
 from application import log
+from copy import copy
+from lxml import _elementpath as ElementPath
+from urllib import unquote
+from urlparse import urlparse
+from xml.sax.saxutils import quoteattr
 
 
 XPATH_DEFAULT_PREFIX = 'default' # should be more random
