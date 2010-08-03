@@ -345,19 +345,21 @@ from xcap.appusage.watchers import WatchersApplication
 
 storage = ServerConfig.backend.Storage()
 
-applications = {'org.openmobilealliance.xcap-directory': XCAPDirectoryApplication(storage),
-                'pres-rules': PresenceRulesApplication(storage),
-                'org.openmobilealliance.pres-rules': OMAPresenceRulesApplication(storage),
-                'org.openxcap.dialog-rules': DialogRulesApplication(storage),
-                'resource-lists': ResourceListsApplication(storage),
-                'rls-services': RLSServicesApplication(storage),
-                'pidf-manipulation': PIDFManipulationApplication(storage),
-                'test-app': TestApplication(storage),
-                'org.openxcap.watchers': WatchersApplication(storage),
-                'xcap-caps': XCAPCapabilitiesApplication()}
+applications = {
+                DialogRulesApplication.id:          DialogRulesApplication(storage),
+                OMAPresenceRulesApplication.id:     OMAPresenceRulesApplication(storage),
+                PIDFManipulationApplication.id:     PIDFManipulationApplication(storage),
+                PresenceRulesApplication.id:        PresenceRulesApplication(storage),
+                ResourceListsApplication.id:        ResourceListsApplication(storage),
+                RLSServicesApplication.id:          RLSServicesApplication(storage),
+                TestApplication.id:                 TestApplication(storage),
+                WatchersApplication.id:             WatchersApplication(storage),
+                XCAPCapabilitiesApplication.id:     XCAPCapabilitiesApplication(),
+                XCAPDirectoryApplication.id:        XCAPDirectoryApplication(storage)
+                }
 
 # public GET applications (GET is not challenged for auth)
-public_get_applications = {'oma_status-icon': IconApplication(storage)}
+public_get_applications = {IconApplication.id: IconApplication(storage)}
 applications.update(public_get_applications)
 
 namespaces = dict((k, v.default_ns) for (k, v) in applications.items())
