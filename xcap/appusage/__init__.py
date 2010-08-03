@@ -335,6 +335,7 @@ from xcap.appusage.capabilities import XCAPCapabilitiesApplication
 from xcap.appusage.dialogrules import DialogRulesApplication
 from xcap.appusage.directory import XCAPDirectoryApplication
 from xcap.appusage.icon import IconApplication
+from xcap.appusage.omapresrules import OMAPresenceRulesApplication
 from xcap.appusage.pidf import PIDFManipulationApplication
 from xcap.appusage.presrules import PresenceRulesApplication
 from xcap.appusage.resourcelists import ResourceListsApplication
@@ -346,7 +347,7 @@ storage = ServerConfig.backend.Storage()
 
 applications = {'org.openmobilealliance.xcap-directory': XCAPDirectoryApplication(storage),
                 'pres-rules': PresenceRulesApplication(storage),
-                'org.openmobilealliance.pres-rules': PresenceRulesApplication(storage),
+                'org.openmobilealliance.pres-rules': OMAPresenceRulesApplication(storage),
                 'org.openxcap.dialog-rules': DialogRulesApplication(storage),
                 'resource-lists': ResourceListsApplication(storage),
                 'rls-services': RLSServicesApplication(storage),

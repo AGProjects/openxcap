@@ -429,12 +429,15 @@ class Storage(object):
         self._provisioning = XCAPProvisioning()
 
     def _normalize_document_path(self, uri):
-        ## some clients e.g. counterpath's eyebeam save presence rules under
-        ## different filenames between versions and they expect to find the same
-        ## information, thus we are forcing all presence rules documents to be
-        ## saved under "index.xml" default filename
-        if uri.application_id in ("org.openmobilealliance.pres-rules", "pres-rules"):
+        if uri.application_id == "pres-rules":
+            # some clients e.g. counterpath's eyebeam save presence rules under
+            # different filenames between versions and they expect to find the same
+            # information, thus we are forcing all presence rules documents to be
+            # saved under "index.xml" default filename
             uri.doc_selector.document_path = "index.xml"
+        elif uri.application_id == "org.openmobilealliance.pres-rules":
+            # in OMA specs pres-rules document can only be called 'pres-rules'
+            uri.doc_selector.document_path = "pres-rules"
 
     def get_document(self, uri, check_etag):
         self._normalize_document_path(uri)
