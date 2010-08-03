@@ -419,7 +419,7 @@ class NodeSelector(object):
         return ns_bindings
 
     def replace_default_prefix(self, defprefix=XPATH_DEFAULT_PREFIX, append_terminal = True):
-        namespace2prefix = dict((v, k) for (k, v) in self.ns_bindings)
+        namespace2prefix = dict((v, k) for (k, v) in self.ns_bindings.iteritems())
         namespace2prefix[self.element_selector.namespace] = defprefix
         res = self.element_selector.replace_default_prefix(namespace2prefix)
         if append_terminal and self.terminal_selector:

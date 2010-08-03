@@ -219,11 +219,13 @@ class XCAPAuthResource(HTTPAuthResource):
 
     def authenticate(self, request):
         """Authenticates an XCAP request."""
-        url = urlparse.urlparse(request.uri)
+        parsed_url = urlparse.urlparse(request.uri)
         if request.port in (80, 443):
-            uri = request.scheme + "://" + request.host + url.path
+            uri = request.scheme + "://" + request.host + parsed_url.path
         else:
-            uri = request.scheme + "://" + request.host + ":" + str(request.port) + url.path
+            uri = request.scheme + "://" + request.host + ":" + str(request.port) + parsed_url.path
+        if parsed_url.query:
+            uri += "?%s" % parsed_url.query
         xcap_uri = parseNodeURI(uri, AuthenticationConfig.default_realm)
         request.xcap_uri = xcap_uri
         if xcap_uri.doc_selector.context=='global':
