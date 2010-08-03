@@ -235,6 +235,10 @@ def read_element_tag(lst, index, namespace, namespaces):
             raise NodeParsingError
         if not get(lst, index+2) or not get(lst, index+2).tag:
             raise NodeParsingError
+        try:
+            namespaces[lst[index]]
+        except LookupError:
+            raise NodeParsingError
         return (namespaces[lst[index]], lst[index+2]), index+3
     else:
         return (namespace, lst[index]), index+1
@@ -501,10 +505,7 @@ class XCAPUri(object):
         self.doc_selector = DocumentSelector(doc_selector)
         self.application_id = self.doc_selector.application_id
         if len(_split) == 2:
-            try:
-                self.node_selector = NodeSelector(_split[1], namespaces.get(self.application_id))
-            except KeyError:
-                self.node_selector = None
+            self.node_selector = NodeSelector(_split[1], namespaces.get(self.application_id))
         else:
             self.node_selector = None
         if self.doc_selector.user_id:
