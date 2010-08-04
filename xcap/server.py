@@ -21,12 +21,12 @@ from xcap import authentication
 from xcap.datatypes import XCAPRootURI
 from xcap.appusage import getApplicationForURI, Backend
 from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute, XCAPNamespaceBinding
-from xcap.uri import AttributeSelector, NamespaceSelector, get_port_from_root_uri
 from xcap.logutil import log_access, log_error
 from xcap.tls import Certificate, PrivateKey
+from xcap.xpath import AttributeSelector, NamespaceSelector
+
 
 server.VERSION = "OpenXCAP/%s" % xcap.__version__
-listen_port = None
 
 class AuthenticationConfig(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
@@ -64,15 +64,6 @@ if ServerConfig.backend is None:
 if ServerConfig.port:
     log.warn("Port setting is deprecated, please specify the port in the root setting")
 
-listen_port = get_port_from_root_uri(ServerConfig.root)
-if listen_port:
-    for uri in ServerConfig.root.aliases:
-        if get_port_from_root_uri(uri) != listen_port:
-            log.fatal("Port needs to be the same in all aliases")
-            sys.exit(1)
-else:
-    log.fatal("Invalid port specified")
-    sys.exit(1)
 
 class XCAPRoot(resource.Resource, resource.LeafResource):
     addSlash = True
@@ -184,7 +175,6 @@ class XCAPSite(server.Site):
 
 
 class XCAPServer(object):
-    global listen_port
 
     def __init__(self):
         portal = Portal(authentication.XCAPAuthRealm())
@@ -217,7 +207,7 @@ class XCAPServer(object):
             log.fatal("the TLS certificates or the private key could not be loaded")
             sys.exit(1)
         credentials = X509Credentials(cert, pKey)
-        reactor.listenTLS(listen_port, HTTPFactory(self.site), credentials, interface=ServerConfig.address)
+        reactor.listenTLS(ServerConfig.root.port, HTTPFactory(self.site), credentials, interface=ServerConfig.address)
         log.msg("TLS started")
 
     def start(self):
@@ -228,12 +218,12 @@ class XCAPServer(object):
                 else:   break
         from twisted.internet import reactor
 
-        log.msg("Listening on: %s:%d" % (ServerConfig.address, listen_port))
+        log.msg("Listening on: %s:%d" % (ServerConfig.address, ServerConfig.root.port))
         log.msg("XCAP root: %s" % ServerConfig.root)
         if ServerConfig.root.startswith('https'):
             self._start_https(reactor)
         else:
-            reactor.listenTCP(listen_port, HTTPFactory(self.site), interface=ServerConfig.address)
+            reactor.listenTCP(ServerConfig.root.port, HTTPFactory(self.site), interface=ServerConfig.address)
         self.run(reactor)
 
     def run(self, reactor):
