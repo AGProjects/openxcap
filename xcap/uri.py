@@ -35,7 +35,7 @@ Meanwhile, the safe approach is to use &quot;
 """
 
 from urllib import unquote
-from xcap.xpath import parse_node_selector, DocumentSelector, NodeSelector
+from xcap.xpath import DocumentSelector, NodeSelector
 
 
 class XCAPUser(object):
@@ -77,18 +77,7 @@ class XCAPUser(object):
 
 
 class XCAPUri(object):
-    """An XCAP URI containing the XCAP root, document selector and node selector.
-
-    >>> uri = XCAPUri('https://xcap.sipthor.net/xcap-root@ag-projects.com',
-    ... '/resource-lists/users/sip:denis@umts.ro/properties-resource-list.xml/~~/resource-lists/list%5b@name=%22Default%22%5d/entry%5b@uri=%22sip%3adenis%40umts.ro%22%5d', {})
-
-    >>> uri.user
-    XCAPUser('denis', 'umts.ro')
-
-    >>> uri.node_selector.element_selector
-    [Step((None, 'resource-lists')), Step((None, 'list'), None, (None, 'name'), 'Default'), Step((None, 'entry'), None, (None, 'uri'), 'sip:denis@umts.ro')]
-
-    """
+    """An XCAP URI containing the XCAP root, document selector and node selector."""
 
     def __init__(self, xcap_root, resource_selector, namespaces):
         "namespaces maps application id to default namespace"
@@ -119,16 +108,4 @@ class XCAPUri(object):
 
     def __str__(self):
         return self.xcap_root + self.resource_selector
-
-
-if __name__=='__main__':
-    from xcap import __version__
-    print __file__, __version__
-    import sys
-    if not sys.argv[1:]:
-        import doctest
-        doctest.testmod()
-    elif sys.argv[1]=='node':
-        for uri in sys.argv[2:]:
-            print '%r: %s' % (uri, parse_node_selector(uri))
 
