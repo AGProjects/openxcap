@@ -4,6 +4,7 @@
 
 from lxml import etree
 from twisted.internet import defer
+from xcap import errors
 from xcap.appusage import ApplicationUsage
 from xcap.dbutil import make_etag
 from xcap.interfaces.backend import StatusResponse
@@ -40,4 +41,6 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
     def get_document_local(self, uri, check_etag):
         self._not_implemented('users')
 
+    def put_document(self, uri, document, check_etag):
+        raise errors.ResourceNotFound("This application does not support PUT method")
 
