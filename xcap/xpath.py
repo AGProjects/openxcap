@@ -253,9 +253,11 @@ class DocumentSelector(str):
     """
 
     def __init__(self, selector):
-        if selector[:1]=='/':
+        if selector[:1] == '/':
             selector = selector[1:]
-        if selector[-1:]=='/':
+        else:
+            raise DocumentSelectorError("Document selector does not start with /")
+        if selector[-1:] == '/':
             selector = selector[:-1]
         if not selector:
             raise DocumentSelectorError("Document selector does not contain auid")
