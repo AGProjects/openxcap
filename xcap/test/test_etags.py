@@ -49,6 +49,13 @@ class ETagTest(XCAPTest):
 
         self.put('resource-lists', resource_list_xml, headers={'If-Match': new_alice_etag})
 
+    def test_conditional_PUT_2(self):
+        self.delete('resource-lists', status=[200,404])
+        self.get('resource-lists', status=404)
+
+        self.put('resource-lists', resource_list_xml, headers={'If-None-Match': '*'}, status=201)
+        self.put('resource-lists', resource_list_xml, headers={'If-None-Match': '*'}, status=412)
+
 
 class ETagTest2(XCAPTest):
     # the same as prev, but using 'etag' param
