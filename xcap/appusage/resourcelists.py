@@ -77,8 +77,15 @@ class ResourceListsApplication(ApplicationUsage):
                 else:
                     try:
                         ref_uri = parseNodeURI("%s/%s" % (node_uri.xcap_root, ref), AuthenticationConfig.default_realm)
+                        try:
+                            if ref_uri.node_selector.element_selector[-1].name[1] != "entry":
+                                raise ValueError
+                        except LookupError:
+                            raise ValueError
                     except (DocumentSelectorError, NodeParsingError), e:
                         raise errors.ConstraintFailureError(phrase=str(e))
+                    except ValueError:
+                        raise errors.ConstraintFailureError
                     else:
                         ref_attrs.add(ref)
             elif child.tag == external_tag:
