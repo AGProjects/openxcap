@@ -2,8 +2,21 @@
 # Copyright (C) 2007-2010 AG-Projects.
 #
 
+from application.configuration import ConfigSection, ConfigSetting
+from cStringIO import StringIO
+from lxml import etree
+
+import xcap
 from xcap import errors
 from xcap.appusage import ApplicationUsage
+from xcap.xpath import DocumentSelectorError, NodeParsingError
+
+
+class AuthenticationConfig(ConfigSection):
+    __cfgfile__ = xcap.__cfgfile__
+    __section__ = 'Authentication'
+
+    default_realm = ConfigSetting(type=str, value=None)
 
 def get_xpath(elem):
     """Return XPATH expression to obtain elem in the document.
@@ -24,35 +37,33 @@ def attribute_not_unique(elem, attr):
     raise errors.UniquenessFailureError(exists = get_xpath(elem) + '/@' + attr)
 
 class ResourceListsApplication(ApplicationUsage):
-    ## RFC 4826
+    # RFC 4826
     id = "resource-lists"
     default_ns = "urn:ietf:params:xml:ns:resource-lists"
     mime_type= "application/resource-lists+xml"
     schema_file = 'resource-lists.xsd'
 
     @classmethod
-    def check_list(cls, elem, list_tag):
-        """Check additional constraints (see section 3.4.5 of RFC 4826).
-
-        elem is xml Element that containts <list>s
-        list_tag is provided as argument since its namespace changes from resource-lists
-        to rls-services namespace
-        """
+    def check_list(cls, element, node_uri):
+        from xcap.authentication import parseNodeURI
         entry_tag = "{%s}entry" % cls.default_ns
         entry_ref_tag = "{%s}entry-ref" % cls.default_ns
         external_tag ="{%s}tag" % cls.default_ns
-        name_attrs = set()
-        uri_attrs = set()
-        ref_attrs = set()
+        list_tag = "{%s}list" % cls.default_ns
+
         anchor_attrs = set()
-        for child in elem.getchildren():
+        name_attrs = set()
+        ref_attrs = set()
+        uri_attrs = set()
+
+        for child in element.getchildren():
             if child.tag == list_tag:
                 name = child.get("name")
                 if name in name_attrs:
                     attribute_not_unique(child, 'name')
                 else:
                     name_attrs.add(name)
-                cls.check_list(child, list_tag)
+                cls.check_list(child, node_uri)
             elif child.tag == entry_tag:
                 uri = child.get("uri")
                 if uri in uri_attrs:
@@ -64,8 +75,12 @@ class ResourceListsApplication(ApplicationUsage):
                 if ref in ref_attrs:
                     attribute_not_unique(child, 'ref')
                 else:
-                    # TODO check if it's a relative URI, else raise ConstraintFailure
-                    ref_attrs.add(ref)
+                    try:
+                        ref_uri = parseNodeURI("%s/%s" % (node_uri.xcap_root, ref), AuthenticationConfig.default_realm)
+                    except (DocumentSelectorError, NodeParsingError), e:
+                        raise errors.ConstraintFailureError(phrase=str(e))
+                    else:
+                        ref_attrs.add(ref)
             elif child.tag == external_tag:
                 anchor = child.get("anchor")
                 if anchor in anchor_attrs:
@@ -74,9 +89,10 @@ class ResourceListsApplication(ApplicationUsage):
                     # TODO check if it's a HTTP URL, else raise ConstraintFailure
                     anchor_attrs.add(anchor)
 
-    def _check_additional_constraints(self, xml_doc):
-        """Check additional constraints (see section 3.4.5 of RFC 4826)."""
-        self.check_list(xml_doc.getroot(), "{%s}list" % self.default_ns)
-
-
+    def put_document(self, uri, document, check_etag):
+        self.validate_document(document)
+        # Check additional constraints (see section 3.4.5 of RFC 4826)
+        xml_doc = etree.parse(StringIO(document))
+        self.check_list(xml_doc.getroot(), uri)
+        return self.storage.put_document(uri, document, check_etag)
 
