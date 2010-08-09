@@ -107,16 +107,7 @@ def read_position(lst, index):
         return int(lst[index+1]), index+3
     return None, index
 
-# XML attributes don't belong to the same namespace as containing tag?
-# because thats what I get in startElement/attrs.items - (None, 'tag')
-# lxml's xpath works similar way too:
-# doc.xpath('/default:rls-services/defaultg:service[@uri="sip:mybuddies@example.com"]',
-#           namespaces = {'default':"urn:ietf:params:xml:ns:rls-services"})
-# works, while 
-# doc.xpath('/default:rls-services/defaultg:service[@default:uri="sip:mybuddies@example.com"]',
-#           namespaces = {'default':"urn:ietf:params:xml:ns:rls-services"})
-# does not
-# that's why _namespace parameter is ignored and None is supplied in that case
+# XML attributes don't belong to the same namespace as containing tag
 def read_att_test(lst, index, _namespace, namespaces):
     if lst.get(index) == '[' and lst.get(index+1) == '@' and lst.get(index+3) == '=' and lst.get(index+5) == ']':
         return (None, lst[index+2]), lst[index+4], index+6
