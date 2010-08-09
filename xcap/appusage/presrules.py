@@ -24,6 +24,7 @@ class ServerConfig(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
     __section__ = 'Server'
 
+    allow_external_references = False
     root = ConfigSetting(type=XCAPRootURI, value=None)
 
 
@@ -79,7 +80,8 @@ class PresenceRulesApplication(ApplicationUsage):
 
     def put_document(self, uri, document, check_etag):
         self.validate_document(document)
-        self._validate_rules(document, uri)
+        if not ServerConfig.allow_external_references:
+            self._validate_rules(document, uri)
         return self.storage.put_document(uri, document, check_etag)
 
 

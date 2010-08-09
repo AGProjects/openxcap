@@ -31,6 +31,10 @@ backend = OpenSIPS
 
 ; document_validation = Yes
 
+; Allow URIs in pres-rules and resource-lists to point to lists not served
+; by this server
+
+allow_external_references = No
 
 [Logging]
 

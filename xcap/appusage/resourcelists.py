@@ -5,10 +5,13 @@
 from application.configuration import ConfigSection, ConfigSetting
 from cStringIO import StringIO
 from lxml import etree
+from urlparse import urlparse
 
 import xcap
 from xcap import errors
 from xcap.appusage import ApplicationUsage
+from xcap.datatypes import XCAPRootURI
+from xcap.uri import XCAPUri
 from xcap.xpath import DocumentSelectorError, NodeParsingError
 
 
@@ -17,6 +20,34 @@ class AuthenticationConfig(ConfigSection):
     __section__ = 'Authentication'
 
     default_realm = ConfigSetting(type=str, value=None)
+
+class ServerConfig(ConfigSection):
+    __cfgfile__ = xcap.__cfgfile__
+    __section__ = 'Server'
+
+    allow_external_references = False
+    root = ConfigSetting(type=XCAPRootURI, value=None)
+
+def parseExternalListURI(node_uri, default_realm):
+    from xcap.appusage import namespaces
+    xcap_root = None
+    for uri in ServerConfig.root.uris:
+        if node_uri.startswith(uri):
+            xcap_root = uri
+            break
+    if xcap_root is None:
+        raise errors.ConstraintFailureError("XCAP root not found for URI: %s" % node_uri)
+    resource_selector = node_uri[len(xcap_root):]
+    if not resource_selector or resource_selector == '/':
+        raise errors.ConstraintFailureError("Resource selector missing")
+    try:
+        uri = XCAPUri(xcap_root, resource_selector, namespaces)
+    except (DocumentSelectorError, NodeParsingError), e:
+        raise errors.ConstraintFailureError(phrase=str(e))
+    else:
+        if uri.user.domain is None:
+            uri.user.domain = default_realm
+        return uri
 
 def get_xpath(elem):
     """Return XPATH expression to obtain elem in the document.
@@ -36,6 +67,7 @@ def get_xpath(elem):
 def attribute_not_unique(elem, attr):
     raise errors.UniquenessFailureError(exists = get_xpath(elem) + '/@' + attr)
 
+
 class ResourceListsApplication(ApplicationUsage):
     # RFC 4826
     id = "resource-lists"
@@ -48,7 +80,7 @@ class ResourceListsApplication(ApplicationUsage):
         from xcap.authentication import parseNodeURI
         entry_tag = "{%s}entry" % cls.default_ns
         entry_ref_tag = "{%s}entry-ref" % cls.default_ns
-        external_tag ="{%s}tag" % cls.default_ns
+        external_tag ="{%s}external" % cls.default_ns
         list_tag = "{%s}list" % cls.default_ns
 
         anchor_attrs = set()
@@ -93,8 +125,18 @@ class ResourceListsApplication(ApplicationUsage):
                 if anchor in anchor_attrs:
                     attribute_not_unique(child, 'anchor')
                 else:
-                    # TODO check if it's a HTTP URL, else raise ConstraintFailure
-                    anchor_attrs.add(anchor)
+                    if not ServerConfig.allow_external_references:
+                        external_list_uri = parseExternalListURI(anchor, AuthenticationConfig.default_realm)
+                        if external_list_uri.xcap_root != node_uri.xcap_root:
+                            raise errors.ConstraintFailureError(phrase="XCAP root in the external list doesn't match PUT requests'")
+                        if external_list_uri.user != node_uri.user:
+                            raise errors.ConstraintFailureError(phrase="Cannot link to another users' list")
+                    else:
+                        parsed_url = urlparse(anchor)
+                        if parsed_url.scheme not in ('http', 'https'):
+                            raise errors.ConstraintFailureError(phrase='Specified anchor is not a valid URL')
+                        else:
+                            anchor_attrs.add(anchor)
 
     def put_document(self, uri, document, check_etag):
         self.validate_document(document)
