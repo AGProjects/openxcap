@@ -109,6 +109,8 @@ class ResourceListsApplication(ApplicationUsage):
                 else:
                     try:
                         ref_uri = parseNodeURI("%s/%s" % (node_uri.xcap_root, ref), AuthenticationConfig.default_realm)
+                        if ref_uri.user != node_uri.user:
+                            raise errors.ConstraintFailureError(phrase="Cannot link to another users' list")
                         try:
                             if ref_uri.node_selector.element_selector[-1].name[1] != "entry":
                                 raise ValueError
