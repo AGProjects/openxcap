@@ -335,7 +335,6 @@ from xcap.appusage.capabilities import XCAPCapabilitiesApplication
 from xcap.appusage.dialogrules import DialogRulesApplication
 from xcap.appusage.directory import XCAPDirectoryApplication
 from xcap.appusage.icon import IconApplication
-from xcap.appusage.omapresrules import OMAPresenceRulesApplication
 from xcap.appusage.pidf import PIDFManipulationApplication
 from xcap.appusage.presrules import PresenceRulesApplication
 from xcap.appusage.resourcelists import ResourceListsApplication
@@ -347,9 +346,9 @@ storage = ServerConfig.backend.Storage()
 
 applications = {
                 DialogRulesApplication.id:          DialogRulesApplication(storage),
-                OMAPresenceRulesApplication.id:     OMAPresenceRulesApplication(storage),
                 PIDFManipulationApplication.id:     PIDFManipulationApplication(storage),
                 PresenceRulesApplication.id:        PresenceRulesApplication(storage),
+                PresenceRulesApplication.oma_id:    PresenceRulesApplication(storage),
                 ResourceListsApplication.id:        ResourceListsApplication(storage),
                 RLSServicesApplication.id:          RLSServicesApplication(storage),
                 TestApplication.id:                 TestApplication(storage),

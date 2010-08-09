@@ -171,27 +171,24 @@ class Storage(DBBase):
     implements(IStorage)
 
     app_mapping = {"pres-rules"                             : 1<<1,
+                   "org.openmobilealliance.pres-rules"      : 1<<1,
                    "resource-lists"                         : 1<<2,
                    "rls-services"                           : 1<<3,
                    "pidf-manipulation"                      : 1<<4,
                    "org.openxcap.dialog-rules"              : 1<<5,
                    "oma_status-icon"                        : 1<<6,
-                   "org.openmobilealliance.pres-rules"      : 1<<7,
                    "test-app"                               : 0}
 
     def _db_connect(self):
         self.conn = storage_db_connection(Config.storage_db_uri)
 
     def _normalize_document_path(self, uri):
-        if uri.application_id == "pres-rules":
+        if uri.application_id in ("pres-rules", "org.openmobilealliance.pres-rules"):
             # some clients e.g. counterpath's eyebeam save presence rules under
             # different filenames between versions and they expect to find the same
             # information, thus we are forcing all presence rules documents to be
             # saved under "index.xml" default filename
             uri.doc_selector.document_path = "index.xml"
-        elif uri.application_id == "org.openmobilealliance.pres-rules":
-            # in OMA specs pres-rules document can only be called 'pres-rules'
-            uri.doc_selector.document_path = "pres-rules"
 
     def _get_document(self, trans, uri, check_etag):
         username, domain = uri.user.username, uri.user.domain
