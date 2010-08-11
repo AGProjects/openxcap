@@ -70,8 +70,14 @@ class PresenceRulesApplication(ApplicationUsage):
         common_policy_namespace = 'urn:ietf:params:xml:ns:common-policy'
         oma_namespace = 'urn:oma:xml:xdm:common-policy'
 
+        actions_tag = '{%s}actions' % common_policy_namespace
         conditions_tag = '{%s}conditions' % common_policy_namespace
         identity_tag = '{%s}identity' % common_policy_namespace
+        rule_tag = '{%s}rule' % common_policy_namespace
+        transformations_tag = '{%s}transformations' % common_policy_namespace
+
+        sub_handling_tag = '{%s}sub-handling' % self.default_ns
+
         oma_anonymous_request_tag = '{%s}anonymous-request' % oma_namespace
         oma_entry_tag = '{%s}entry' % oma_namespace
         oma_external_list_tag = '{%s}external-list' % oma_namespace
@@ -87,6 +93,13 @@ class PresenceRulesApplication(ApplicationUsage):
                 for element in root.iter(conditions_tag):
                     if any([len(element.findall(item)) > 1 for item in (identity_tag, oma_external_list_tag, oma_other_identity_tag, oma_anonymous_request_tag)]):
                         raise errors.ConstraintFailureError(phrase="Complex rules are not allowed")
+                # Transformations constraints
+                for rule in root.iter(rule_tag):
+                    actions = rule.find(actions_tag)
+                    if actions is not None:
+                        sub_handling = actions.find(sub_handling_tag)
+                        if sub_handling is not None and sub_handling.text != 'allow' and rule.find(transformations_tag) is not None:
+                            raise errors.ConstraintFailureError(phrase="transformations element not allowed")
                 # External list constraints
                 if not ServerConfig.allow_external_references:
                     for element in root.iter(oma_external_list_tag):
