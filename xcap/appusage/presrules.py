@@ -67,21 +67,37 @@ class PresenceRulesApplication(ApplicationUsage):
             raise errors.ConstraintFailureError(phrase="Cannot link to another users' list")
 
     def _validate_rules(self, document, node_uri):
+        common_policy_namespace = 'urn:ietf:params:xml:ns:common-policy'
+        oma_namespace = 'urn:oma:xml:xdm:common-policy'
+
+        conditions_tag = '{%s}conditions' % common_policy_namespace
+        identity_tag = '{%s}identity' % common_policy_namespace
+        oma_anonymous_request_tag = '{%s}anonymous-request' % oma_namespace
+        oma_entry_tag = '{%s}entry' % oma_namespace
+        oma_external_list_tag = '{%s}external-list' % oma_namespace
+        oma_other_identity_tag = '{%s}other-identity' % oma_namespace
+
         try:
             xml = StringIO(document)
             tree = etree.parse(xml)
             root = tree.getroot()
-            oma_namespace = 'urn:oma:xml:xdm:common-policy'
-            for element in root.iter("{%s}external-list" % oma_namespace):
-                for entry in element.iter("{%s}entry" % oma_namespace):
-                    self._check_external_list(entry.attrib.get('anc', None), node_uri)
+
+            if oma_namespace in root.nsmap.values():
+                # Condition constraints
+                for element in root.iter(conditions_tag):
+                    if any([len(element.findall(item)) > 1 for item in (identity_tag, oma_external_list_tag, oma_other_identity_tag, oma_anonymous_request_tag)]):
+                        raise errors.ConstraintFailureError(phrase="Complex rules are not allowed")
+                # External list constraints
+                if not ServerConfig.allow_external_references:
+                    for element in root.iter(oma_external_list_tag):
+                        for entry in element.iter(oma_entry_tag):
+                            self._check_external_list(entry.attrib.get('anc', None), node_uri)
         except etree.ParseError:
             raise errors.NotWellFormedError()
 
     def put_document(self, uri, document, check_etag):
         self.validate_document(document)
-        if not ServerConfig.allow_external_references:
-            self._validate_rules(document, uri)
+        self._validate_rules(document, uri)
         return self.storage.put_document(uri, document, check_etag)
 
 
