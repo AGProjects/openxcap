@@ -1,3 +1,82 @@
+openxcap (2.0.0) unstable; urgency=low
+
+  * Added OMA support for Buddy Lists Management 
+  * Fixed directory application AUID
+  * Generate NodeParsingError when specified namespace is not found
+  * Fixed support for XCAP default document namespace
+  * Refactored xcap.uri module
+  * Raise DocumentSelectorError if selector doesn't start with slash
+  * Added XPath tests to the test suite
+  * Don't allow PUT for xcap-caps
+  * Added test case for testing If-None-Match * in PUT requests
+  * Fix UTF-8 encoding/decoding in SIPThor backend
+
+ -- Saul Ibarra <saul@ag-projects.com>  Mon, 23 Aug 2010 11:02:56 +0200
+
+openxcap (1.2.1) unstable; urgency=low
+
+  * Don't generate exception if unknown namespace is specified
+  * Fix crash with huge logs produced by icon application
+  * Modified log_access not to assume response.stream exists
+  * Support full and partial URLs
+  * Fix packaging for Debian and Ubuntu distributions
+
+ -- Saul Ibarra <saul@ag-projects.com>  Wed, 23 Jun 2010 11:18:49 +0200
+
+openxcap (1.2.0) unstable; urgency=low
+
+  [ Adrian Georgescu ]
+  * Removed python-xml dependency
+  * Use Account_test for running the test suite
+  * Changed MySQL scripts doc field to mediumblob
+  * Removed unused auids, keep only the standard ones
+  * Use OMA standard names for icon directory applications
+  * Dropped SQLite support which wasn't finished. 
+  * Make MySQLdb reconnect active only for version 1.2.2
+  * Updated readme
+  * Detail allowed MIME types in error response
+  * Icon application GET returns the image itself, not an XML
+  * Fixed size constraint and don't delete previous icons on PUT
+  * Made some error messages more clear
+  * Deprecated port parameter, now port should be specified in root URI
+  * Added icon application support
+  * Added 'public GET applications'. Public GET applications are not asked for 
+    auth for GET requests, just for PUT
+  * Fixed xcap-directory listing in SIPThor backend
+  * Support for listing more than one document of the same type in xcap-directory
+  * Added xcap-directory application (OMA TS XDM Core)
+  * If no trusted_peers is specified default to none instead of any
+  * Fixed allow subnets in trusted_peers
+  * Reworked xcap-caps using etree
+  * Use common-policy schema for validating dialog-rules documents
+  * Fixed refresh of OpenSIPS watchers when using dialog-rules
+  * Made presence rules use presence-rules.xsd schema
+  * Added support for dialog-rules
+
+  [ Saul Ibarra ]
+  * Fixed logging with latest python-application
+  * Remove python-xml dependency by taking sax package from PyXML project
+  * Changed default authentication type to digest
+  * Renamed watchers application to org.openxcap.watchers
+  * Fixed test suite for resource lists and rls services
+  * Bumped debian standards to version 3.8.4
+  * Restructured all appusages
+  * Updated maintainer and uploaders
+  * Refactored logging system and added more information
+  * Updated documentation and install files
+  * Log fatal error and exit when must-have settings are missing
+  * Clarified configuration sample comments
+  * Renamed dialog-rules to org.openxcap.dialog-rules
+
+ -- Saul Ibarra <saul@ag-projects.com>  Mon, 26 Apr 2010 08:46:56 +0200
+
+openxcap (1.1.3) unstable; urgency=low
+
+  * Fixed digest authentication bug related to the opaque attribute
+  * Added more python packages to the runtime dependency checking
+
+ -- Adrian Georgescu <ag@ag-projects.com>  Thu, 12 Nov 2009 15:01:35 +0100
+
 openxcap (1.1.2) unstable; urgency=low
 
   * Fixed debian/rules and added dependencies an newer cdbs and debhelper

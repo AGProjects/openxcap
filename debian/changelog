@@ -1,3 +1,18 @@
+openxcap (2.0.0) unstable; urgency=low
+
+  * Added OMA support for Buddy Lists Management 
+  * Fixed directory application AUID
+  * Generate NodeParsingError when specified namespace is not found
+  * Fixed support for XCAP default document namespace
+  * Refactored xcap.uri module
+  * Raise DocumentSelectorError if selector doesn't start with slash
+  * Added XPath tests to the test suite
+  * Don't allow PUT for xcap-caps
+  * Added test case for testing If-None-Match * in PUT requests
+  * Fix UTF-8 encoding/decoding in SIPThor backend
+
+ -- Saul Ibarra <saul@ag-projects.com>  Mon, 23 Aug 2010 11:02:56 +0200
+
 openxcap (1.2.1) unstable; urgency=low
 
   * Don't generate exception if unknown namespace is specified
