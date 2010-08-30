@@ -293,6 +293,7 @@ class DatabaseConnection(object):
             etag = xcap_docs[application_id][uri.doc_selector.document_path][1]
         except KeyError:
             found = False
+            check_etag(None, False)
         else:
             found = True
             check_etag(etag)

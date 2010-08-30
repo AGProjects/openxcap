@@ -231,9 +231,10 @@ class Storage(DBBase):
                   "document_path": document_path}
         trans.execute(query, params)
         result = trans.fetchall()
-        if len(result)>1:
+        if len(result) > 1:
             raise MultipleResultsError(params)
         elif not result:
+            check_etag(None, False)
             ## the document doesn't exist, create it
             etag = make_random_etag(uri)
             query = """INSERT INTO %(table)s (username, domain, doc_type, etag, doc, doc_uri)

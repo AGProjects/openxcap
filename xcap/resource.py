@@ -20,8 +20,8 @@ class XCAPResource(resource.Resource, resource.LeafResource, MetaDataMixin):
         ## don't let renderHTTP to automatically check preconditions, we'll do this ourselves
         return None
 
-    def checkEtag(self, request, etag):
-        http.checkPreconditions(request, etag=ETag(etag))
+    def checkEtag(self, request, etag, exists=True):
+        http.checkPreconditions(request, etag=ETag(etag), entityExists=exists)
 
     def renderHTTP(self, request):
         d = resource.Resource.renderHTTP(self, request)
@@ -59,7 +59,7 @@ class XCAPDocument(XCAPResource):
     def http_PUT(self, request):
         application = self.application
         document = request.attachment
-        return application.put_document(self.xcap_uri, document, lambda e: self.checkEtag(request, e))
+        return application.put_document(self.xcap_uri, document, lambda e, exists=True: self.checkEtag(request, e, exists))
 
     def http_DELETE(self, request):
         d = self.application.delete_document(self.xcap_uri, lambda e: self.checkEtag(request, e))
