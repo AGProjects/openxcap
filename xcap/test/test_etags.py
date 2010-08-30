@@ -28,6 +28,12 @@ class ETagTest(XCAPTest):
         self.get('resource-lists', headers={'If-None-Match': "another-etag"}, status=200)
 
     def test_conditional_PUT(self):
+        self.delete('resource-lists', status=[200,404])
+        self.get('resource-lists', status=404)
+
+        # Test conditional PUT when document doesn't exist
+        self.put('resource-lists', resource_list_xml, headers={'If-Match': '12345asdf'}, status=412)
+
         r = self.put('resource-lists', resource_list_xml)
         etag = self.assertHeader(r, 'ETag')
 
