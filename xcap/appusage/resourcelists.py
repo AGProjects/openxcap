@@ -5,6 +5,7 @@
 from application.configuration import ConfigSection, ConfigSetting
 from cStringIO import StringIO
 from lxml import etree
+from urllib import unquote
 from urlparse import urlparse
 
 import xcap
@@ -108,6 +109,7 @@ class ResourceListsApplication(ApplicationUsage):
                     attribute_not_unique(child, 'ref')
                 else:
                     try:
+                        ref = unquote(ref)
                         ref_uri = parseNodeURI("%s/%s" % (node_uri.xcap_root, ref), AuthenticationConfig.default_realm)
                         if not ServerConfig.allow_external_references and ref_uri.user != node_uri.user:
                             raise errors.ConstraintFailureError(phrase="Cannot link to another users' list")
@@ -127,6 +129,7 @@ class ResourceListsApplication(ApplicationUsage):
                 if anchor in anchor_attrs:
                     attribute_not_unique(child, 'anchor')
                 else:
+                    anchor = unquote(anchor)
                     if not ServerConfig.allow_external_references:
                         external_list_uri = parseExternalListURI(anchor, AuthenticationConfig.default_realm)
                         if external_list_uri.xcap_root != node_uri.xcap_root:

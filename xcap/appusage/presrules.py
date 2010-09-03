@@ -5,6 +5,7 @@
 from application.configuration import ConfigSection, ConfigSetting
 from cStringIO import StringIO
 from lxml import etree
+from urllib import unquote
 
 import xcap
 from xcap import errors
@@ -60,6 +61,7 @@ class PresenceRulesApplication(ApplicationUsage):
     def _check_external_list(self, external_list, node_uri):
         if not external_list:
             return
+        external_list = unquote(external_list)
         external_list_uri = parseExternalListURI(external_list, AuthenticationConfig.default_realm)
         if external_list_uri.xcap_root != node_uri.xcap_root:
             raise errors.ConstraintFailureError(phrase="XCAP root in the external list doesn't match PUT requests'")
