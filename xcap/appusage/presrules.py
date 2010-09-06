@@ -100,7 +100,8 @@ class PresenceRulesApplication(ApplicationUsage):
                     actions = rule.find(actions_tag)
                     if actions is not None:
                         sub_handling = actions.find(sub_handling_tag)
-                        if sub_handling is not None and sub_handling.text != 'allow' and rule.find(transformations_tag) is not None:
+                        transformations = rule.find(transformations_tag)
+                        if sub_handling is not None and sub_handling.text != 'allow' and transformations is not None and transformations.getchildren():
                             raise errors.ConstraintFailureError(phrase="transformations element not allowed")
                 # External list constraints
                 if not ServerConfig.allow_external_references:
