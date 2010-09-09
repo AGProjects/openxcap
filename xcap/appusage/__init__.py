@@ -139,7 +139,7 @@ class ApplicationUsage(object):
     ## Element management
 
     def _cb_put_element(self, response, uri, element_body, check_etag):
-        """This is called when the document that relates to the element is retreived."""
+        """This is called when the document that relates to the element is retrieved."""
         if response.code == 404:          ### XXX let the storate raise
             raise errors.NoParentError    ### catch error in errback and attach http_error
 
@@ -218,7 +218,7 @@ class ApplicationUsage(object):
 
     ## Attribute management
     def _cb_get_attribute(self, response, uri):
-        """This is called when the document that relates to the attribute is retreived."""
+        """This is called when the document that relates to the attribute is retrieved."""
         if response.code == 404:
             raise errors.ResourceNotFound
         document = response.data
@@ -274,7 +274,7 @@ class ApplicationUsage(object):
         return d.addCallbacks(self._cb_delete_attribute, callbackArgs=(uri, check_etag))
 
     def _cb_put_attribute(self, response, uri, attribute, check_etag):
-        """This is called when the document that relates to the element is retreived."""
+        """This is called when the document that relates to the element is retrieved."""
         if response.code == 404:
             raise errors.NoParentError
         document = response.data
@@ -303,7 +303,7 @@ class ApplicationUsage(object):
 
     ## Namespace Bindings
     def _cb_get_ns_bindings(self, response, uri):
-        """This is called when the document that relates to the element is retreived."""
+        """This is called when the document that relates to the element is retrieved."""
         if response.code == 404:
             raise errors.ResourceNotFound
         document = response.data
