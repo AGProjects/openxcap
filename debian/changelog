@@ -1,17 +1,29 @@
 openxcap (2.0.0) unstable; urgency=low
 
   * Added OMA support for Buddy Lists Management 
-  * Fixed directory application AUID
-  * Generate NodeParsingError when specified namespace is not found
-  * Fixed support for XCAP default document namespace
-  * Refactored xcap.uri module
-  * Raise DocumentSelectorError if selector doesn't start with slash
-  * Added XPath tests to the test suite
-  * Don't allow PUT for xcap-caps
+  * Unquote external references in resource-lists and pres-rules
+  * Fixed resource lists and RLS services schemas
+  * Added test case for conditional PUT with If-Match
+  * Use allow_external_references setting also for entry-ref elements
+  * Fixed PUT with If-Match header
+  * Fixed UTF-8 encoding/decoding in SIPThor backend
+  * Don't allow relative URIs to link to another users' resource list entry
+  * Check external references for pres-rules and resource-lists
+  * Use a single appusage for pres-rules
+  * Don't allow external-ref paths which don't point to an 'entry'
+  * Check entry-ref entries in resource-lists
   * Added test case for testing If-None-Match * in PUT requests
-  * Fix UTF-8 encoding/decoding in SIPThor backend
+  * Don't allow PUT for xcap-caps
+  * Added XPath tests to the test suite
+  * Raise DocumentSelectorError if selector doesn't start with slash
+  * Use appusages 'id' attribute as the AUID
+  * Fixed support for XCAP default document namespace
+  * Generate NodeParsingError when specified namespace is not found
+  * Merged xcap-directory application definition with other applications
+  * Fixed directory application AUID
+  * Updated sample OpenSIPS mysql dburi
 
- -- Saul Ibarra <saul@ag-projects.com>  Mon, 23 Aug 2010 11:02:56 +0200
+ -- Adrian Georgescu <ag@ag-projects.com>  Tue, 28 Sep 2010 11:29:23 +0200
 
 openxcap (1.2.1) unstable; urgency=low
 
