@@ -1,6 +1,6 @@
 openxcap (2.0.0) unstable; urgency=low
 
-  * Added OMA support for Buddy Lists Management 
+  * Added OMA XDM support for Buddy Lists Management
   * Unquote external references in resource-lists and pres-rules
   * Fixed resource lists and RLS services schemas
   * Added test case for conditional PUT with If-Match
