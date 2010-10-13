@@ -54,7 +54,7 @@ class BaseStorage(database.Storage):
     def put_document(self, uri, document, check_etag):
         application_id = uri.application_id
         d = self.conn.runInteraction(super(BaseStorage, self)._put_document, uri, document, check_etag)
-        if application_id in ('pres-rules', 'org.openmobilealliance.pres-rules', 'pidf-manipulation', 'org.openxcap.dialog-rules'):
+        if application_id in ('pres-rules', 'org.openmobilealliance.pres-rules', 'pidf-manipulation', 'org.openxcap.dialog-rules', 'resource-lists', 'rls-services'):
             type = 1 if application_id == 'pidf-manipulation' else 0
             event = 'dialog' if application_id == 'org.openxcap.dialog-rules' else 'presence'
             d.addCallback(self._notify_watchers, uri.user, event, type)
