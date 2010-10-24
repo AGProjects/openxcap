@@ -11,6 +11,7 @@ from cStringIO import StringIO
 from lxml import etree
 
 from application.configuration import ConfigSection, ConfigSetting
+from application.configuration.datatypes import StringList
 from application import log
 
 import xcap
@@ -38,6 +39,7 @@ class ServerConfig(ConfigSection):
     __section__ = 'Server'
 
     backend = ConfigSetting(type=Backend, value=None)
+    disabled_applications = ConfigSetting(type=StringList, value=[])
     document_validation = True
 
 if ServerConfig.backend is None:
@@ -360,6 +362,9 @@ applications = {
 # public GET applications (GET is not challenged for auth)
 public_get_applications = {IconApplication.id: IconApplication(storage)}
 applications.update(public_get_applications)
+
+for application in ServerConfig.disabled_applications:
+    applications.pop(application, None)
 
 namespaces = dict((k, v.default_ns) for (k, v) in applications.items())
 

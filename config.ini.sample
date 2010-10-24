@@ -36,6 +36,10 @@ backend = OpenSIPS
 
 allow_external_references = No
 
+; List os applications that won't be enabled on the server
+disabled_applications = 
+
+; List of applications that will be disabled in the server. They won-'t be 
 [Logging]
 
 ; Start, stop and major server error messages are always logged to syslog.
