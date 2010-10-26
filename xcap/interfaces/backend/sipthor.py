@@ -11,7 +11,8 @@ import cjson
 from formencode import validators
 
 from application import log
-from application.python.util import Singleton
+from application.notification import IObserver, NotificationCenter
+from application.python.util import Singleton, Null
 from application.system import default_host_ip
 from application.process import process
 from application.configuration import ConfigSection, ConfigSetting
@@ -35,10 +36,15 @@ from thor.entities import ThorEntitiesRoleMap, GenericThorEntity as ThorEntity
 from gnutls.interfaces.twisted import X509Credentials
 from gnutls.constants import COMP_DEFLATE, COMP_LZO, COMP_NULL
 
+from sipsimple.core import Engine, FromHeader, Publication, RouteHeader, SIPURI
+from sipsimple.util import run_in_twisted_thread
+
 import xcap
 from xcap.tls import Certificate, PrivateKey
 from xcap.interfaces.backend import StatusResponse
+from xcap.datatypes import XCAPRootURI
 from xcap.dbutil import make_random_etag
+from xcap.xcapdiff import Notifier
 
 
 class ThorNodeConfig(ConfigSection):
@@ -293,13 +299,14 @@ class DatabaseConnection(object):
             etag = xcap_docs[application_id][uri.doc_selector.document_path][1]
         except KeyError:
             found = False
+            etag = None
             check_etag(None, False)
         else:
             found = True
             check_etag(etag)
         xcap_app = xcap_docs.setdefault(application_id, {})
         xcap_app[uri.doc_selector.document_path] = (document, new_etag)
-        return found
+        return (found, etag, new_etag)
 
     def _delete_operation(self, uri, check_etag, profile):
         application_id = sanitize_application_id(uri.application_id)
@@ -310,7 +317,7 @@ class DatabaseConnection(object):
             raise NotFound()
         check_etag(etag)
         del(xcap_docs[application_id][uri.doc_selector.document_path])
-        return None
+        return (etag)
 
     def _get_operation(self, uri, profile):
         try:
@@ -422,12 +429,60 @@ class HashPasswordChecker(SipthorPasswordChecker):
                 credentials.checkHash, profile["ha1"]).addCallback(
                 self._checkedPassword, credentials.username, credentials.realm)
 
+
+class ServerConfig(ConfigSection):
+    __cfgfile__ = xcap.__cfgfile__
+    __section__ = 'Server'
+
+    root = ConfigSetting(type=XCAPRootURI, value=None)
+
+
+class SIPNotifier(object):
+    __metaclass__ = Singleton
+
+    implements(IObserver)
+
+    def __init__(self):
+        self.provisioning = XCAPProvisioning()
+        self.engine = Engine()
+        self.engine.start(
+           auto_sound=False,
+           user_agent="OpenXCAP %s" % xcap.__version__,
+        )
+
+    def send_publish(self, uri, body):
+        destination_node = self.provisioning.lookup(uri)
+        if destination_node is not None:
+            # TODO: add configuration settings for SIP transport, port and duration. -Saul
+            if uri.startswith('sip:'):
+                uri = uri[4:]
+            publication = Publication(FromHeader(SIPURI(uri)), "xcap-diff", "application/xcap-diff+xml", duration=600)
+            NotificationCenter().add_observer(self, sender=publication)
+            route_header = RouteHeader(SIPURI(host=destination_node, port='5060', parameters=dict(transport='udp')))
+            publication.publish(body, route_header, timeout=5)
+
+    @run_in_twisted_thread
+    def handle_notification(self, notification):
+        handler = getattr(self, '_NH_%s' % notification.name, Null)
+        handler(notification)
+
+    def _NH_SIPPublicationDidSucceed(self, notification):
+        log.msg("PUBLISH for xcap-diff event successfully sent to %s for %s" % (notification.data.route_header.uri, notification.sender.from_header.uri))
+        NotificationCenter().remove_observer(self, sender=notification.sender)
+
+    def _NH_SIPPublicationDidFail(self, notification):
+        log.msg("PUBLISH for xcap-diff event failed to %s for %s" % (notification.data.route_header.uri, notification.sender.from_header.uri))
+        NotificationCenter().remove_observer(self, sender=notification.sender)
+
+
 class Storage(object):
     __metaclass__ = Singleton
 
     def __init__(self):
         self._database = DatabaseConnection()
         self._provisioning = XCAPProvisioning()
+        self._sip_notifier = SIPNotifier()
+        self._notifier = Notifier(ServerConfig.root, self._sip_notifier.send_publish)
 
     def _normalize_document_path(self, uri):
         if uri.application_id in ("pres-rules", "org.openmobilealliance.pres-rules"):
@@ -458,27 +513,29 @@ class Storage(object):
         self._normalize_document_path(uri)
         etag = make_random_etag(uri)
         result = self._database.put(uri, document, check_etag, etag)
-        result.addCallback(self._cb_put, etag, "%s@%s" % (uri.user.username, uri.user.domain))
+        result.addCallback(self._cb_put, uri, "%s@%s" % (uri.user.username, uri.user.domain))
         result.addErrback(self._eb_not_found)
         return result
 
-    def _cb_put(self, found, etag, thor_key):
-        if found:
+    def _cb_put(self, result, uri, thor_key):
+        if result[0]:
             code = 200
         else:
             code = 201
         self._provisioning.notify("update", "sip_account", thor_key)
-        return StatusResponse(code, etag)
+        self._notifier.on_change(uri, result[1], result[2])
+        return StatusResponse(code, result[2])
 
     def delete_document(self, uri, check_etag):
         self._normalize_document_path(uri)
         result = self._database.delete(uri, check_etag)
-        result.addCallback(self._cb_delete, "%s@%s" % (uri.user.username, uri.user.domain))
+        result.addCallback(self._cb_delete, uri, "%s@%s" % (uri.user.username, uri.user.domain))
         result.addErrback(self._eb_not_found)
         return result
 
-    def _cb_delete(self, nothing, thor_key):
+    def _cb_delete(self, result, uri, thor_key):
         self._provisioning.notify("update", "sip_account", thor_key)
+        self._notifier.on_change(uri, result[1], None)
         return StatusResponse(200)
 
     def get_watchers(self, uri):
