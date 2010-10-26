@@ -451,11 +451,11 @@ class SIPNotifier(object):
         )
 
     def send_publish(self, uri, body):
+        if uri.startswith('sip:'):
+            uri = uri[4:]
         destination_node = self.provisioning.lookup(uri)
         if destination_node is not None:
             # TODO: add configuration settings for SIP transport, port and duration. -Saul
-            if uri.startswith('sip:'):
-                uri = uri[4:]
             publication = Publication(FromHeader(SIPURI(uri)), "xcap-diff", "application/xcap-diff+xml", duration=600)
             NotificationCenter().add_observer(self, sender=publication)
             route_header = RouteHeader(SIPURI(host=destination_node, port='5060', parameters=dict(transport='udp')))
