@@ -556,6 +556,7 @@ class Storage(object):
     def get_documents_list(self, uri):
         result = self._database.get_documents_list(uri)
         result.addCallback(self._got_documents_list)
+        result.addErrback(self._got_documents_list_error)
         return result
 
     def _got_documents_list(self, xcap_docs):
@@ -569,5 +570,8 @@ class Storage(object):
                         docs[k] = [(k2, v2[1])]
         return docs
 
+    def _got_documents_list_error(self, failure):
+        failure.trap(NotFound)
+        return {}
 
 installSignalHandlers = False
