@@ -36,7 +36,7 @@ from thor.entities import ThorEntitiesRoleMap, GenericThorEntity as ThorEntity
 from gnutls.interfaces.twisted import X509Credentials
 from gnutls.constants import COMP_DEFLATE, COMP_LZO, COMP_NULL
 
-from sipsimple.core import Engine, FromHeader, Publication, RouteHeader, SIPURI
+from sipsimple.core import Engine, FromHeader, Header, Publication, RouteHeader, SIPURI
 from sipsimple.util import run_in_twisted_thread
 
 import xcap
@@ -456,7 +456,7 @@ class SIPNotifier(object):
         destination_node = self.provisioning.lookup(uri)
         if destination_node is not None:
             # TODO: add configuration settings for SIP transport, port and duration. -Saul
-            publication = Publication(FromHeader(SIPURI(uri)), "xcap-diff", "application/xcap-diff+xml", duration=600)
+            publication = Publication(FromHeader(SIPURI(uri)), "xcap-diff", "application/xcap-diff+xml", duration=600, extra_headers=[Header('Thor-Scope', 'publish-xcap')])
             NotificationCenter().add_observer(self, sender=publication)
             route_header = RouteHeader(SIPURI(host=destination_node, port='5060', parameters=dict(transport='udp')))
             publication.publish(body, route_header, timeout=5)
