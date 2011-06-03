@@ -9,7 +9,7 @@ __cfgfile__ = "config.ini"
 
 
 # python-lxml and python-sqlobject don't provide any usable version attribute.
-package_requirements = {'python-application': '1.2.0',
+package_requirements = {'python-application': '1.2.8',
                         'python-gnutls':      '1.1.8',
                         'twisted':            '8.1.0'}
 
