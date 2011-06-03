@@ -7,7 +7,7 @@
 import sys
 from application import log
 from application.configuration import ConfigSection
-from application.python.util import Singleton
+from application.python.types import Singleton
 
 from zope.interface import implements
 from twisted.cred import credentials, checkers, error as credError

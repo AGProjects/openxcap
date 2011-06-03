@@ -12,8 +12,9 @@ from formencode import validators
 
 from application import log
 from application.notification import IObserver, NotificationCenter
-from application.python.util import Singleton, Null
-from application.system import default_host_ip
+from application.python import Null
+from application.python.types import Singleton
+from application.system import host
 from application.process import process
 from application.configuration import ConfigSection, ConfigSetting
 
@@ -156,7 +157,7 @@ class XCAPProvisioning(EventServiceClient):
 
     def __init__(self):
         self._database = DatabaseConnection()
-        self.node = ThorEntity(default_host_ip, ['xcap_server'], version=xcap.__version__)
+        self.node = ThorEntity(host.default_ip, ['xcap_server'], version=xcap.__version__)
         self.networks = {}
         self.presence_message = ThorEvent('Thor.Presence', self.node.id)
         self.shutdown_message = ThorEvent('Thor.Leave', self.node.id)

@@ -6,7 +6,7 @@
 
 from twisted.web import xmlrpc
 
-from application.python.util import Singleton
+from application.python.types import Singleton
 
 class Result(str):
     """
