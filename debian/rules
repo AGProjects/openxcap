@@ -1,12 +1,16 @@
 #!/usr/bin/make -f
 
-DEB_PYTHON_SYSTEM=pysupport
+#export DH_VERBOSE=1
 
-include /usr/share/cdbs/1/class/python-distutils.mk
-include /usr/share/cdbs/1/rules/debhelper.mk
+%:
+	dh  $@ --with python2
 
-clean::
-	-rm -rf build dist MANIFEST
+override_dh_clean:
+	dh_clean
+	rm -rf build dist MANIFEST
 
-install/openxcap::
+override_dh_install:
+	dh_install
 	install -m 0644 config.ini.sample debian/openxcap/etc/openxcap/config.ini
+
+.PHONY: override_dh_clean override_dh_install
