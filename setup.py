@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 
+import os
+
 from distutils.core import setup
 from xcap import __version__
+
+def find_packages(toplevel):
+    return [directory.replace(os.path.sep, '.') for directory, subdirs, files in os.walk(toplevel) if '__init__.py' in files]
 
 setup(name         = "openxcap",
       version      = __version__,
@@ -26,9 +31,8 @@ solution.""",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
       ],
-      packages = ['xcap', 'xcap.appusage', 'xcap.interfaces', 'xcap.interfaces.backend', 'xcap.sax', 'xcap.test'],
+      packages = find_packages('xcap'),
       scripts  = ['openxcap'],
-      package_data = {'xcap.appusage': ['xml-schemas/*'],
-                      'xcap.test': ['schemas/*']},
+      package_data = {'xcap.appusage': ['xml-schemas/*']},
       )
 
