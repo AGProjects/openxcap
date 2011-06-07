@@ -1,3 +1,15 @@
+openxcap (2.0.1) unstable; urgency=low
+
+  * Added xcap-diff notification also for resource-lists and rls-services
+  * Added disabled_applications setting
+  * Use the local xml.xsd instead of importing the schema remotely
+  * Added missing XML declaration to xcap-directory schema
+  * Adapted to changes in python-application
+  * Bumped debian standards to version 3.9.2
+  * Reworked Debian packaging
+
+ -- Saul Ibarra <saul@ag-projects.com>  Tue, 07 Jun 2011 08:32:10 +0200
+
 openxcap (2.0.0) unstable; urgency=low
 
   * Added OMA XDM support for Buddy Lists Management
