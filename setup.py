@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 
 import os
+import re
 
 from distutils.core import setup
-from xcap import __version__
+
+
+def get_version():
+    return re.search(r"""__version__\s+=\s+(?P<quote>['"])(?P<version>.+?)(?P=quote)""", open('xcap/__init__.py').read()).group('version')
 
 def find_packages(toplevel):
     return [directory.replace(os.path.sep, '.') for directory, subdirs, files in os.walk(toplevel) if '__init__.py' in files]
 
 setup(name         = "openxcap",
-      version      = __version__,
+      version      = get_version(),
       author       = "Mircea Amarascu",
       author_email = "support@ag-projects.com",
       url          = "http://openxcap.org/",
