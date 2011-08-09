@@ -458,7 +458,7 @@ class SIPNotifier(object):
             # TODO: add configuration settings for SIP transport, port and duration. -Saul
             publication = Publication(FromHeader(SIPURI(uri)), "xcap-diff", "application/xcap-diff+xml", duration=600, extra_headers=[Header('Thor-Scope', 'publish-xcap')])
             NotificationCenter().add_observer(self, sender=publication)
-            route_header = RouteHeader(SIPURI(host=destination_node, port='5060', parameters=dict(transport='udp')))
+            route_header = RouteHeader(SIPURI(host=str(destination_node), port='5060', parameters=dict(transport='udp')))
             publication.publish(body, route_header, timeout=5)
 
     @run_in_twisted_thread
