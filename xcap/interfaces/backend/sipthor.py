@@ -4,6 +4,7 @@
 # This module is proprietary to AG Projects. Use of this module by third
 # parties is not supported.
 
+import re
 import signal
 
 import cjson
@@ -451,8 +452,7 @@ class SIPNotifier(object):
         )
 
     def send_publish(self, uri, body):
-        if uri.startswith('sip:'):
-            uri = uri[4:]
+        uri = re.sub("^(sip:|sips:)", "", uri)
         destination_node = self.provisioning.lookup(uri)
         if destination_node is not None:
             # TODO: add configuration settings for SIP transport, port and duration. -Saul
