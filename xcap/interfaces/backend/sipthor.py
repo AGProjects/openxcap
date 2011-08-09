@@ -455,8 +455,12 @@ class SIPNotifier(object):
         uri = re.sub("^(sip:|sips:)", "", uri)
         destination_node = self.provisioning.lookup(uri)
         if destination_node is not None:
-            # TODO: add configuration settings for SIP transport, port and duration. -Saul
-            publication = Publication(FromHeader(SIPURI(uri)), "xcap-diff", "application/xcap-diff+xml", duration=600, extra_headers=[Header('Thor-Scope', 'publish-xcap')])
+            # TODO: add configuration settings for SIP transport. -Saul
+            publication = Publication(FromHeader(SIPURI(uri)),
+                                      "xcap-diff",
+                                      "application/xcap-diff+xml",
+                                      duration=0,
+                                      extra_headers=[Header('Thor-Scope', 'publish-xcap')])
             NotificationCenter().add_observer(self, sender=publication)
             route_header = RouteHeader(SIPURI(host=str(destination_node), port='5060', parameters=dict(transport='udp')))
             publication.publish(body, route_header, timeout=5)
@@ -468,6 +472,9 @@ class SIPNotifier(object):
 
     def _NH_SIPPublicationDidSucceed(self, notification):
         log.msg("PUBLISH for xcap-diff event successfully sent to %s for %s" % (notification.data.route_header.uri, notification.sender.from_header.uri))
+
+    def _NH_SIPPublicationDidEnd(self, notification):
+        log.msg("PUBLISH for xcap-diff event ended for %s" % notification.sender.from_header.uri)
         NotificationCenter().remove_observer(self, sender=notification.sender)
 
     def _NH_SIPPublicationDidFail(self, notification):
