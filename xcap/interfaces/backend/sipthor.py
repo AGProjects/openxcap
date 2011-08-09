@@ -38,7 +38,7 @@ from gnutls.interfaces.twisted import X509Credentials
 from gnutls.constants import COMP_DEFLATE, COMP_LZO, COMP_NULL
 
 from sipsimple.core import Engine, FromHeader, Header, Publication, RouteHeader, SIPURI
-from sipsimple.util import run_in_twisted_thread
+from sipsimple.threading import run_in_twisted_thread
 
 import xcap
 from xcap.tls import Certificate, PrivateKey
@@ -447,7 +447,6 @@ class SIPNotifier(object):
         self.provisioning = XCAPProvisioning()
         self.engine = Engine()
         self.engine.start(
-           auto_sound=False,
            user_agent="OpenXCAP %s" % xcap.__version__,
         )
 
