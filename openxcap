@@ -25,7 +25,7 @@ if __name__ == '__main__':
     parser = OptionParser(version="%%prog %s" % version)
     parser.add_option("--no-fork", action="store_false", dest="fork", default=1,
                       help="run the process in the foreground (for debugging)")
-    parser.add_option("--pid", dest="pidFile", default=default_pid,
+    parser.add_option("--pid", dest="pidfile", default=default_pid,
                       help="pid file (%s)" % default_pid,
                       metavar="File")
 
@@ -37,26 +37,21 @@ if __name__ == '__main__':
         log.fatal(str(e))
         sys.exit(1)
 
-    pidFile = options.pidFile
-
+    pidfile = options.pidfile
     process.system_config_directory = config_directory
-    try:
-        process.runtime_directory = runtime_directory
-    except ProcessError, e:
-        log.msg("Fatal error: %s" % e)
-        sys.exit(1)
 
-    from xcap.logutil import start_log
-    if options.fork:
-        try:
-            process.daemonize(pidFile)
-        except ProcessError, e:
-            log.fatal(str(e))
-            sys.exit(1)
-        start_log()
+    if not options.fork:
+        process._runtime_directory = None
     else:
-        pass
-        #from application.debug.memory import *
+        try:
+            process.runtime_directory = runtime_directory
+            process.daemonize(pidfile)
+        except ProcessError, e:
+            log.msg("Fatal error: %s" % e)
+            sys.exit(1)
+        else:
+            from xcap.logutil import start_log
+            start_log()
 
     log.msg("Starting %s" % fullname)
 
