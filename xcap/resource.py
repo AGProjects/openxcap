@@ -66,7 +66,10 @@ class XCAPDocument(XCAPResource):
         return d        
 
     def contentType(self):
-        return MimeType.fromString(self.application.mime_type)
+        try:
+            return MimeType.fromString(self.application.mime_type)
+        except TypeError:
+            return None
 
 
 class XCAPElement(XCAPResource):

@@ -317,6 +317,16 @@ class Storage(DBBase):
         else:
             return StatusResponse(404)
 
+    def _delete_all_documents(self, trans, uri):
+        username, domain = uri.user.username, uri.user.domain
+        query = """DELETE FROM %(table)s
+                    WHERE username = %%(username)s AND domain = %%(domain)s
+                """ % {"table" : Config.xcap_table}
+        params = {"username": username,
+                  "domain"  : domain}
+        trans.execute(query, params)
+        return StatusResponse(200)
+
     def get_document(self, uri, check_etag):
         return self.conn.runInteraction(self._get_document, uri, check_etag)
 
@@ -326,6 +336,9 @@ class Storage(DBBase):
 
     def delete_document(self, uri, check_etag):
         return repeat_on_error(10, DeleteFailed, self.conn.runInteraction, self._delete_document, uri, check_etag)
+
+    def delete_documents(self, uri, check_etag):
+        return self.conn.runInteraction(self._delete_all_documents, uri)
 
     # Application-specific functions
     def _get_watchers(self, trans, uri):

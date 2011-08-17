@@ -275,6 +275,12 @@ class DatabaseConnection(object):
         reactor.callInThread(self.retrieve_profile, uri.user.username, uri.user.domain, operation, True, defer)
         return defer
 
+    def delete_all(self, uri):
+        defer = Deferred()
+        operation = lambda profile: self._delete_all_operation(uri, profile)
+        reactor.callInThread(self.retrieve_profile, uri.user.username, uri.user.domain, operation, True, defer)
+        return defer
+
     def get(self, uri):
         defer = Deferred()
         operation = lambda profile: self._get_operation(uri, profile)
@@ -320,6 +326,11 @@ class DatabaseConnection(object):
         check_etag(etag)
         del(xcap_docs[application_id][uri.doc_selector.document_path])
         return (etag)
+
+    def _delete_all_operation(self, uri, profile):
+        xcap_docs = profile.setdefault("xcap", {})
+        xcap_docs.clear()
+        return None
 
     def _get_operation(self, uri, profile):
         try:
@@ -530,6 +541,16 @@ class Storage(object):
         self._provisioning.notify("update", "sip_account", thor_key)
         self._notifier.on_change(uri, result[1], result[2])
         return StatusResponse(code, result[2])
+
+    def delete_documents(self, uri):
+        result = self._database.delete_all(uri)
+        result.addCallback(self._cb_delete_all, uri, "%s@%s" % (uri.user.username, uri.user.domain))
+        result.addErrback(self._eb_not_found)
+        return result
+
+    def _cb_delete_all(self, result, uri, thor_key):
+        self._provisioning.notify("update", "sip_account", thor_key)
+        return StatusResponse(200)
 
     def delete_document(self, uri, check_etag):
         self._normalize_document_path(uri)

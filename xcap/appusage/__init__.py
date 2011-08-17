@@ -339,6 +339,7 @@ from xcap.appusage.directory import XCAPDirectoryApplication
 from xcap.appusage.icon import IconApplication
 from xcap.appusage.pidf import PIDFManipulationApplication
 from xcap.appusage.presrules import PresenceRulesApplication
+from xcap.appusage.purge import PurgeApplication
 from xcap.appusage.resourcelists import ResourceListsApplication
 from xcap.appusage.rlsservices import RLSServicesApplication
 from xcap.appusage.test import TestApplication
@@ -351,6 +352,7 @@ applications = {
                 PIDFManipulationApplication.id:     PIDFManipulationApplication(storage),
                 PresenceRulesApplication.id:        PresenceRulesApplication(storage),
                 PresenceRulesApplication.oma_id:    PresenceRulesApplication(storage),
+                PurgeApplication.id:                PurgeApplication(storage),
                 ResourceListsApplication.id:        ResourceListsApplication(storage),
                 RLSServicesApplication.id:          RLSServicesApplication(storage),
                 TestApplication.id:                 TestApplication(storage),
