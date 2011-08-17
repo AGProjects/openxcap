@@ -511,12 +511,10 @@ class Storage(object):
         return StatusResponse(404)
 
     def _got_document(self, (doc, etag), check_etag):
-        doc = doc.encode('utf-8')
         check_etag(etag)
         return StatusResponse(200, etag, doc)
 
     def put_document(self, uri, document, check_etag):
-        document = document.decode('utf-8')
         self._normalize_document_path(uri)
         etag = make_random_etag(uri)
         result = self._database.put(uri, document, check_etag, etag)
