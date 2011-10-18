@@ -368,6 +368,8 @@ class DatabaseConnection(object):
             reactor.callFromThread(defer.errback, e)
         else:
             reactor.callFromThread(defer.callback, result)
+        finally:
+            transaction.cache.clear()
 
     def update_dburi(self, dburi):
         if self.dburi != dburi:
