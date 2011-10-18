@@ -6,6 +6,8 @@
 """OpenXCAP"""
 
 
+MEMORY_DEBUG = False
+
 if __name__ == '__main__':
     import sys
     from optparse import OptionParser
@@ -56,6 +58,8 @@ if __name__ == '__main__':
     log.msg("Starting %s" % fullname)
 
     try:
+        if not options.fork and MEMORY_DEBUG:
+            from application.debug.memory import memory_dump
         from xcap.server import XCAPServer
         server = XCAPServer()
         server.start()
@@ -64,4 +68,9 @@ if __name__ == '__main__':
         if e.__class__ is not RuntimeError:
             log.err()
         sys.exit(1)
+
+    if not options.fork and MEMORY_DEBUG:
+        print "------------------"
+        memory_dump()
+        print "------------------"
 
