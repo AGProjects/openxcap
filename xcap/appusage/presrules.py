@@ -66,7 +66,7 @@ class PresenceRulesApplication(ApplicationUsage):
         if external_list_uri.xcap_root != node_uri.xcap_root:
             raise errors.ConstraintFailureError(phrase="XCAP root in the external list doesn't match PUT requests'")
         if external_list_uri.user != node_uri.user:
-            raise errors.ConstraintFailureError(phrase="Cannot link to another users' list")
+            raise errors.ConstraintFailureError(phrase="Cannot link to another user's list")
 
     def _validate_rules(self, document, node_uri):
         common_policy_namespace = 'urn:ietf:params:xml:ns:common-policy'
