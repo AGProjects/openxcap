@@ -463,6 +463,7 @@ class SIPNotifier(object):
         self.provisioning = XCAPProvisioning()
         self.engine = Engine()
         self.engine.start(
+           ip_address=None if ServerConfig.address == '0.0.0.0' else ServerConfig.address,
            user_agent="OpenXCAP %s" % xcap.__version__,
         )
 
