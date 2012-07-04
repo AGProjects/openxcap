@@ -6,7 +6,7 @@
 
 import sys
 
-from application.configuration.datatypes import NetworkRangeList
+from application.configuration.datatypes import IPAddress, NetworkRangeList
 from application.configuration import ConfigSection, ConfigSetting
 from application import log
 
@@ -41,7 +41,7 @@ class ServerConfig(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
     __section__ = 'Server'
 
-    address = '0.0.0.0'
+    address = ConfigSetting(type=IPAddress, value='0.0.0.0')
     port = 0
     root = ConfigSetting(type=XCAPRootURI, value=None)
     backend = ConfigSetting(type=Backend, value=None)

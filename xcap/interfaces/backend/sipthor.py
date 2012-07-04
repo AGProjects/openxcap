@@ -18,6 +18,7 @@ from application.python.types import Singleton
 from application.system import host
 from application.process import process
 from application.configuration import ConfigSection, ConfigSetting
+from application.configuration.datatypes import IPAddress
 
 from sqlobject import sqlhub, connectionForURI, SQLObject, AND
 from sqlobject import StringCol, IntCol, DateTimeCol, SOBLOBCol, Col
@@ -59,6 +60,13 @@ class ThorNodeConfig(ConfigSection):
     private_key = ConfigSetting(type=PrivateKey, value=None)
     ca = ConfigSetting(type=Certificate, value=None)
 
+
+class ServerConfig(ConfigSection):
+    __cfgfile__ = xcap.__cfgfile__
+    __section__ = 'Server'
+
+    address = ConfigSetting(type=IPAddress, value='0.0.0.0')
+    root = ConfigSetting(type=XCAPRootURI, value=None)
 
 
 class JSONValidator(validators.Validator):
@@ -158,7 +166,7 @@ class XCAPProvisioning(EventServiceClient):
 
     def __init__(self):
         self._database = DatabaseConnection()
-        self.node = ThorEntity(host.default_ip, ['xcap_server'], version=xcap.__version__)
+        self.node = ThorEntity(host.default_ip if ServerConfig.address == '0.0.0.0' else ServerConfig.address, ['xcap_server'], version=xcap.__version__)
         self.networks = {}
         self.presence_message = ThorEvent('Thor.Presence', self.node.id)
         self.shutdown_message = ThorEvent('Thor.Leave', self.node.id)
@@ -444,13 +452,6 @@ class HashPasswordChecker(SipthorPasswordChecker):
         return maybeDeferred(
                 credentials.checkHash, profile["ha1"]).addCallback(
                 self._checkedPassword, credentials.username, credentials.realm)
-
-
-class ServerConfig(ConfigSection):
-    __cfgfile__ = xcap.__cfgfile__
-    __section__ = 'Server'
-
-    root = ConfigSetting(type=XCAPRootURI, value=None)
 
 
 class SIPNotifier(object):
