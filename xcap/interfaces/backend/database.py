@@ -74,7 +74,7 @@ class PasswordChecker(DBBase):
             raise credError.UnauthorizedLogin("Unauthorized login")
 
     def requestAvatarId(self, credentials):
-        """Return the avatar ID for the credentials which must have the username 
+        """Return the avatar ID for the credentials which must have the username
            and realm attributes, or an UnauthorizedLogin in case of a failure."""
         d = self._query_credentials(credentials)
         return d
@@ -176,7 +176,7 @@ class Storage(DBBase):
                    "rls-services"                           : 1<<3,
                    "pidf-manipulation"                      : 1<<4,
                    "org.openxcap.dialog-rules"              : 1<<5,
-                   "oma_status-icon"                        : 1<<6,
+                   "org.openmobilealliance.pres-content"    : 1<<6,
                    "test-app"                               : 0}
 
     def _db_connect(self):
