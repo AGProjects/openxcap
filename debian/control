@@ -8,7 +8,7 @@ Standards-Version: 3.9.2
 
 Package: openxcap
 Architecture: all
-Depends: ${python:Depends}, ${misc:Depends}, python-lxml (>= 2.0.7-1), python-zopeinterface, python-twisted-core (>= 8.1.0), python-twisted-web (>= 8.1.0), python-twisted-web2 (>= 8.1.0), python-application (>= 1.2.8), python-gnutls (>= 1.1.8), python-sqlobject, python-mysqldb, python-imaging
+Depends: ${python:Depends}, ${misc:Depends}, python-lxml (>= 2.0.7-1), python-zopeinterface, python-twisted-core (>= 8.1.0), python-twisted-web (>= 8.1.0), python-twisted-web2 (>= 8.1.0), python-application (>= 1.2.8), python-gnutls (>= 1.1.8), python-sqlobject, python-mysqldb
 Description: An Open Source XCAP server implementation
  XCAP protocol allows a client to read, write and modify application
  configuration data stored in XML format on a server. XCAP maps XML document
