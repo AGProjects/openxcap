@@ -13,15 +13,16 @@ import xcap.xpath
 from xcap.uri import XCAPUri
 
 
-default_namespaces = {'org.openxcap.watchers': 'http://openxcap.org/ns/watchers', 
-                      'org.openmobilealliance.pres-rules': 'urn:ietf:params:xml:ns:pres-rules', 
-                      'rls-services': 'urn:ietf:params:xml:ns:rls-services', 
-                      'resource-lists': 'urn:ietf:params:xml:ns:resource-lists', 
-                      'xcap-caps': 'urn:ietf:params:xml:ns:xcap-caps', 
-                      'org.openxcap.dialog-rules': 'http://openxcap.org/ns/dialog-rules', 
-                      'test-app': 'test-app', 'oma_status-icon': 'urn:oma:xml:prs:pres-content', 
-                      'pidf-manipulation': 'urn:ietf:params:xml:ns:pidf', 
-                      'pres-rules': 'urn:ietf:params:xml:ns:pres-rules', 
+default_namespaces = {'org.openxcap.watchers': 'http://openxcap.org/ns/watchers',
+                      'org.openmobilealliance.pres-rules': 'urn:ietf:params:xml:ns:pres-rules',
+                      'rls-services': 'urn:ietf:params:xml:ns:rls-services',
+                      'resource-lists': 'urn:ietf:params:xml:ns:resource-lists',
+                      'xcap-caps': 'urn:ietf:params:xml:ns:xcap-caps',
+                      'org.openxcap.dialog-rules': 'http://openxcap.org/ns/dialog-rules',
+                      'test-app': 'test-app',
+                      'org.openmobilealliance.pres-content': 'urn:oma:xml:prs:pres-content',
+                      'pidf-manipulation': 'urn:ietf:params:xml:ns:pidf',
+                      'pres-rules': 'urn:ietf:params:xml:ns:pres-rules',
                       'org.openmobilealliance.xcap-directory': 'urn:oma:xml:xdm:xcap-directory'}
 
 class XPathTest(unittest.TestCase):
