@@ -8,7 +8,7 @@ from xcap import errors
 from xcap.appusage import ApplicationUsage
 
 
-class IconApplication(ApplicationUsage):
+class PresContentApplication(ApplicationUsage):
     id = "org.openmobilealliance.pres-content"
     default_ns = "urn:oma:xml:prs:pres-content"
     mime_type = "application/vnd.oma.pres-content+xml"

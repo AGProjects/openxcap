@@ -82,7 +82,7 @@ class ApplicationUsage(object):
             raise errors.SchemaValidationError(comment=self.xml_schema.error_log)
 
     def _check_additional_constraints(self, xml_doc):
-        """Check additional validations constraints for this XCAP document. Should be 
+        """Check additional validations constraints for this XCAP document. Should be
            overriden in subclasses if specified by the application usage, and raise
            a ConstraintFailureError if needed."""
 
@@ -238,7 +238,7 @@ class ApplicationUsage(object):
         elif len(attribute) != 1:
             raise errors.ResourceNotFound('XPATH expression is ambiguous')
         # TODO
-        # The server MUST NOT add namespace bindings representing namespaces 
+        # The server MUST NOT add namespace bindings representing namespaces
         # used by the element or its children, but declared in ancestor elements
         return StatusResponse(200, response.etag, attribute[0])
 
@@ -250,7 +250,7 @@ class ApplicationUsage(object):
         if response.code == 404:
             raise errors.ResourceNotFound
         document = response.data
-        xml_doc = etree.parse(StringIO(document))        
+        xml_doc = etree.parse(StringIO(document))
         application = getApplicationForURI(uri)
         ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
@@ -336,8 +336,8 @@ class ApplicationUsage(object):
 from xcap.appusage.capabilities import XCAPCapabilitiesApplication
 from xcap.appusage.dialogrules import DialogRulesApplication
 from xcap.appusage.directory import XCAPDirectoryApplication
-from xcap.appusage.icon import IconApplication
 from xcap.appusage.pidf import PIDFManipulationApplication
+from xcap.appusage.prescontent import PresContentApplication
 from xcap.appusage.presrules import PresenceRulesApplication
 from xcap.appusage.purge import PurgeApplication
 from xcap.appusage.resourcelists import ResourceListsApplication
@@ -350,6 +350,7 @@ storage = ServerConfig.backend.Storage()
 applications = {
                 DialogRulesApplication.id:          DialogRulesApplication(storage),
                 PIDFManipulationApplication.id:     PIDFManipulationApplication(storage),
+                PresContentApplication.id:          PresContentApplication(storage),
                 PresenceRulesApplication.id:        PresenceRulesApplication(storage),
                 PresenceRulesApplication.oma_id:    PresenceRulesApplication(storage),
                 PurgeApplication.id:                PurgeApplication(storage),
@@ -362,7 +363,7 @@ applications = {
                 }
 
 # public GET applications (GET is not challenged for auth)
-public_get_applications = {IconApplication.id: IconApplication(storage)}
+public_get_applications = {}
 applications.update(public_get_applications)
 
 for application in ServerConfig.disabled_applications:
