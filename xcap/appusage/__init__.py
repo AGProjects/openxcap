@@ -350,7 +350,6 @@ storage = ServerConfig.backend.Storage()
 applications = {
                 DialogRulesApplication.id:          DialogRulesApplication(storage),
                 PIDFManipulationApplication.id:     PIDFManipulationApplication(storage),
-                PresContentApplication.id:          PresContentApplication(storage),
                 PresenceRulesApplication.id:        PresenceRulesApplication(storage),
                 PresenceRulesApplication.oma_id:    PresenceRulesApplication(storage),
                 PurgeApplication.id:                PurgeApplication(storage),
@@ -363,7 +362,7 @@ applications = {
                 }
 
 # public GET applications (GET is not challenged for auth)
-public_get_applications = {}
+public_get_applications = {PresContentApplication.id: PresContentApplication(storage)}
 applications.update(public_get_applications)
 
 for application in ServerConfig.disabled_applications:
