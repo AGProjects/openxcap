@@ -107,9 +107,7 @@ class ApplicationUsage(object):
     def is_authorized(self, xcap_user, xcap_uri):
         """Default authorization policy. Authorizes an XCAPUser for an XCAPUri.
            Return True if the user is authorized, False otherwise."""
-        if xcap_user and xcap_user == xcap_uri.user:
-            return True
-        return False
+        return xcap_user and xcap_user == xcap_uri.user
 
     ## Document management
 
