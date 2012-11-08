@@ -71,6 +71,7 @@ def connectionForURI(uri):
         if MySQLdb.version_info[:3] == (1, 2, 2):
             kwargs.setdefault('reconnect', 1)
         kwargs.setdefault('host', host or 'localhost')
+        kwargs.setdefault('port', int(port or '3306'))
         kwargs.setdefault('user', user or '')
         kwargs.setdefault('passwd', password or '')
         kwargs.setdefault('db', db)
