@@ -1,3 +1,17 @@
+openxcap (2.1.0) unstable; urgency=low
+
+  * Adapted to changes in SIP SIMPLE SDK package structure
+  * Added custom application to purge all server data (org.openxcap.purge)
+  * Separate pres-rules and OMA pres-rules applications
+  * Fixed creating route header for xcap-diff
+  * Fixed setting port number in DB URL
+  * Fixed unicode issues with SIPThor backend
+  * Refactor icon application to conform to standards
+  * Allow OpenXCAP to be started as non-root when running in foreground
+  * Send xcap-diff PUBLISH with expires set to 0
+
+ -- Saul Ibarra <saul@ag-projects.com>  Thu, 10 Jan 2013 01:17:03 +0100
+
 openxcap (2.0.1) unstable; urgency=low
 
   * Added xcap-diff notification also for resource-lists and rls-services
