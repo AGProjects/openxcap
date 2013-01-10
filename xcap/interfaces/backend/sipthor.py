@@ -138,12 +138,6 @@ class SipAccountData(SQLObject):
     profile  = JSONCol()
 
 
-def sanitize_application_id(application_id):
-    if application_id == "org.openmobilealliance.pres-rules":
-        return "pres-rules"
-    else:
-        return application_id
-
 class ThorEntityAddress(str):
     def __new__(cls, ip, control_port=None, version='unknown'):
         instance = str.__new__(cls, ip)
@@ -309,10 +303,9 @@ class DatabaseConnection(object):
 
     # Methods to be called in a separate thread:
     def _put_operation(self, uri, document, check_etag, new_etag, profile):
-        application_id = sanitize_application_id(uri.application_id)
         xcap_docs = profile.setdefault("xcap", {})
         try:
-            etag = xcap_docs[application_id][uri.doc_selector.document_path][1]
+            etag = xcap_docs[uri.application_id][uri.doc_selector.document_path][1]
         except KeyError:
             found = False
             etag = None
@@ -320,19 +313,18 @@ class DatabaseConnection(object):
         else:
             found = True
             check_etag(etag)
-        xcap_app = xcap_docs.setdefault(application_id, {})
+        xcap_app = xcap_docs.setdefault(uri.application_id, {})
         xcap_app[uri.doc_selector.document_path] = (document, new_etag)
         return (found, etag, new_etag)
 
     def _delete_operation(self, uri, check_etag, profile):
-        application_id = sanitize_application_id(uri.application_id)
         xcap_docs = profile.setdefault("xcap", {})
         try:
-            etag = xcap_docs[application_id][uri.doc_selector.document_path][1]
+            etag = xcap_docs[uri.application_id][uri.doc_selector.document_path][1]
         except KeyError:
             raise NotFound()
         check_etag(etag)
-        del(xcap_docs[application_id][uri.doc_selector.document_path])
+        del(xcap_docs[uri.application_id][uri.doc_selector.document_path])
         return (etag)
 
     def _delete_all_operation(self, uri, profile):
@@ -343,7 +335,7 @@ class DatabaseConnection(object):
     def _get_operation(self, uri, profile):
         try:
             xcap_docs = profile["xcap"]
-            doc, etag = xcap_docs[sanitize_application_id(uri.application_id)][uri.doc_selector.document_path]
+            doc, etag = xcap_docs[uri.application_id][uri.doc_selector.document_path]
         except KeyError:
             raise NotFound()
         return doc, etag

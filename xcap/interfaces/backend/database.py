@@ -171,12 +171,12 @@ class Storage(DBBase):
     implements(IStorage)
 
     app_mapping = {"pres-rules"                             : 1<<1,
-                   "org.openmobilealliance.pres-rules"      : 1<<1,
                    "resource-lists"                         : 1<<2,
                    "rls-services"                           : 1<<3,
                    "pidf-manipulation"                      : 1<<4,
-                   "org.openxcap.dialog-rules"              : 1<<5,
+                   "org.openmobilealliance.pres-rules"      : 1<<5,
                    "org.openmobilealliance.pres-content"    : 1<<6,
+                   "org.openxcap.dialog-rules"              : 1<<7,
                    "test-app"                               : 0}
 
     def _db_connect(self):
