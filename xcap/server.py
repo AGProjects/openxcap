@@ -162,6 +162,18 @@ class HTTPChannelRequest(channel.http.HTTPChannelRequest):
 class HTTPChannel(channel.http.HTTPChannel):
     chanRequestFactory = HTTPChannelRequest
 
+    def __init__(self):
+        channel.http.HTTPChannel.__init__(self)
+        # if connection wasn't completed for 30 seconds, terminate it,
+        # this avoids having lingering TCP connections which don't complete
+        # the TLS handshake
+        self.setTimeout(30)
+
+    def timeoutConnection(self):
+        if self.transport:
+            log.msg("Timing out client: %s" % str(self.transport.getPeer()))
+            channel.http.HTTPChannel.timeoutConnection(self)
+
 
 class HTTPFactory(channel.HTTPFactory):
     noisy = False
