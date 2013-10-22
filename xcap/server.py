@@ -167,6 +167,7 @@ class HTTPChannelRequest(channel.http.HTTPChannelRequest):
 
 class HTTPChannel(channel.http.HTTPChannel):
     chanRequestFactory = HTTPChannelRequest
+    inputTimeOut = 30
 
     def __init__(self):
         channel.http.HTTPChannel.__init__(self)
