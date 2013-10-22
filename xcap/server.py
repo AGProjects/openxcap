@@ -4,6 +4,9 @@
 
 """HTTP handling for the XCAP server"""
 
+from __future__ import absolute_import
+
+import resource as _resource
 import sys
 
 from application.configuration.datatypes import IPAddress, NetworkRangeList
@@ -59,6 +62,13 @@ if ServerConfig.root is None:
 if ServerConfig.backend is None:
     log.fatal("OpenXCAP needs a backend to be specified in order to run")
     sys.exit(1)
+
+
+# Increase the system limit for the maximum number of open file descriptors
+try:
+    _resource.setrlimit(_resource.RLIMIT_NOFILE, (99999, 99999))
+except ValueError:
+    log.warn("Could not raise open file descriptor limit")
 
 
 class XCAPRoot(resource.Resource, resource.LeafResource):
