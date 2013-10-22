@@ -42,7 +42,6 @@ class ServerConfig(ConfigSection):
     __section__ = 'Server'
 
     address = ConfigSetting(type=IPAddress, value='0.0.0.0')
-    port = 0
     root = ConfigSetting(type=XCAPRootURI, value=None)
     backend = ConfigSetting(type=Backend, value=None)
 
@@ -60,9 +59,6 @@ if ServerConfig.root is None:
 if ServerConfig.backend is None:
     log.fatal("OpenXCAP needs a backend to be specified in order to run")
     sys.exit(1)
-
-if ServerConfig.port:
-    log.warn("Port setting is deprecated, please specify the port in the root setting")
 
 
 class XCAPRoot(resource.Resource, resource.LeafResource):
