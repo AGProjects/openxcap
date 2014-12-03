@@ -1,3 +1,13 @@
+openxcap (2.2.0) unstable; urgency=medium
+
+  * Add a 30 second timeout to avoid keeping TCP lingering connections
+  * Removed deprecated port setting
+  * Raise open file descriptor limit on start
+  * Lower HTTP input timeout to 30 seconds
+  * Dropped Python < 2.7 support
+
+ -- Saul Ibarra <saul@ag-projects.com>  Wed, 03 Dec 2014 12:35:57 +0100
+
 openxcap (2.1.0) unstable; urgency=low
 
   * Adapted to changes in SIP SIMPLE SDK package structure
