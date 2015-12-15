@@ -17,7 +17,7 @@ from application import log
 import xcap
 from xcap import errors
 from xcap import element
-from xcap.interfaces.backend import StatusResponse
+from xcap.backend import StatusResponse
 
 
 class Backend(object):
@@ -25,7 +25,7 @@ class Backend(object):
     def __new__(typ, value):
         value = value.lower()
         try:
-            return __import__('xcap.interfaces.backend.%s' % value, globals(), locals(), [''])
+            return __import__('xcap.backend.%s' % value, globals(), locals(), [''])
         except (ImportError, AssertionError), e:
             log.fatal("Cannot load '%s' backend module: %s" % (value, str(e)))
             sys.exit(1)

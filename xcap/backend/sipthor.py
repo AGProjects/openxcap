@@ -44,7 +44,7 @@ from sipsimple.threading import run_in_twisted_thread
 
 import xcap
 from xcap.tls import Certificate, PrivateKey
-from xcap.interfaces.backend import StatusResponse
+from xcap.backend import StatusResponse
 from xcap.datatypes import XCAPRootURI
 from xcap.dbutil import make_random_etag
 from xcap.xcapdiff import Notifier

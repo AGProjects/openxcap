@@ -6,7 +6,8 @@ from lxml import etree
 from xcap import errors
 from xcap.appusage import ApplicationUsage
 from xcap.dbutil import make_etag
-from xcap.interfaces.backend import StatusResponse
+from xcap.backend import StatusResponse
+
 
 class WatchersApplication(ApplicationUsage):
     id = "org.openxcap.watchers"

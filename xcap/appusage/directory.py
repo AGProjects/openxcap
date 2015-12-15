@@ -6,7 +6,8 @@ from lxml import etree
 from twisted.internet import defer
 from xcap import errors
 from xcap.appusage import ApplicationUsage
-from xcap.interfaces.backend import StatusResponse
+from xcap.backend import StatusResponse
+
 
 class XCAPDirectoryApplication(ApplicationUsage):
     id = "org.openmobilealliance.xcap-directory"

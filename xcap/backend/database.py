@@ -16,8 +16,9 @@ from twisted.internet import defer
 from _mysql_exceptions import IntegrityError
 
 import xcap
-from xcap.interfaces.backend import IStorage, StatusResponse
+from xcap.backend import IStorage, StatusResponse
 from xcap.dbutil import connectionForURI, repeat_on_error, make_random_etag
+
 
 class Config(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__

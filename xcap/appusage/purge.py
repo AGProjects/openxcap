@@ -3,7 +3,8 @@
 
 from xcap import errors
 from xcap.appusage import ApplicationUsage
-from xcap.interfaces.backend import StatusResponse
+from xcap.backend import StatusResponse
+
 
 class PurgeApplication(ApplicationUsage):
     id = "org.openxcap.purge"

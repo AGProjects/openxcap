@@ -7,7 +7,8 @@ from twisted.internet import defer
 from xcap import errors
 from xcap.appusage import ApplicationUsage
 from xcap.dbutil import make_etag
-from xcap.interfaces.backend import StatusResponse
+from xcap.backend import StatusResponse
+
 
 class XCAPCapabilitiesApplication(ApplicationUsage):
     ## RFC 4825

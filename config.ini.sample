@@ -118,9 +118,8 @@ storage_db_uri = mysql://opensips:opensipsrw@localhost/opensips
 
 
 [OpenSIPS]
+; Publish xcap-diff event (using a SIP PUBLISH)
+; publish_xcapdiff = yes
 
-; The address and port of the xml-rpc management interface
-xmlrpc_url = http://sip.example.com:8080
-
-; Publish xcap-diff event via OpenSIPS management interface 
-; enable_publish_xcapdiff = yes
+; SIP proxy where the PUBLISH will be sent
+; outbound_sip_proxy = sip.example.com
