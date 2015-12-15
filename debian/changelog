@@ -1,3 +1,13 @@
+openxcap (2.3.0) unstable; urgency=medium
+
+  * Refactor xcapdiff publishing for OpenSIPS backend
+  * Fix dependency name
+  * Drop dependency on twisted-web
+  * Raise python-application version dependency
+  * Add dependency on python-sipsimple
+
+ -- Saul Ibarra <saul@ag-projects.com>  Mon, 14 Dec 2015 16:47:26 +0100
+
 openxcap (2.2.0) unstable; urgency=medium
 
   * Add a 30 second timeout to avoid keeping TCP lingering connections
