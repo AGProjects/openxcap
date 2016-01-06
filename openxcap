@@ -33,12 +33,6 @@ if __name__ == '__main__':
 
     (options, args) = parser.parse_args()
 
-    try:
-        xcap.dependencies.check()
-    except xcap.DependencyError, e:
-        log.fatal(str(e))
-        sys.exit(1)
-
     pidfile = options.pidfile
     process.system_config_directory = config_directory
 
