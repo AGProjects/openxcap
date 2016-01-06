@@ -1,7 +1,4 @@
 
-# Copyright (C) 2007-2010 AG Projects.
-#
-
 """TLS helper classes"""
 
 __all__ = ['Certificate', 'PrivateKey']

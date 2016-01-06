@@ -1,8 +1,4 @@
 
-# Copyright (C) 2007-2010 AG-Projects.
-#
-
-
 import re
 
 from application import log

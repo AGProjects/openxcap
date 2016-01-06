@@ -1,5 +1,3 @@
-# Copyright (C) 2011 AG-Projects.
-#
 
 from xcap import errors
 from xcap.appusage import ApplicationUsage

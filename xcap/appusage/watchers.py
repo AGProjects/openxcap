@@ -1,7 +1,4 @@
 
-# Copyright (C) 2007-2010 AG-Projects.
-#
-
 from lxml import etree
 from xcap import errors
 from xcap.appusage import ApplicationUsage

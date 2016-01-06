@@ -1,7 +1,4 @@
 
-# Copyright (c) 2007-2010 AG Projects. See LICENSE for details.
-#
-
 """Element handling as described in RFC 4825.
 
 This module implements

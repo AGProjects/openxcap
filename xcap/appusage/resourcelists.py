@@ -1,7 +1,4 @@
 
-# Copyright (C) 2007-2010 AG-Projects.
-#
-
 from application.configuration import ConfigSection, ConfigSetting
 from cStringIO import StringIO
 from lxml import etree

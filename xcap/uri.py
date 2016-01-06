@@ -1,7 +1,4 @@
 
-# Copyright (C) 2007-2010 AG-Projects.
-#
-
 """XCAP URI module
 
 http://tools.ietf.org/html/rfc4825#section-6

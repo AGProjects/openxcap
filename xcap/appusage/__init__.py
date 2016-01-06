@@ -1,7 +1,4 @@
 
-# Copyright (C) 2007-2010 AG-Projects.
-#
-
 """XCAP application usage module"""
 
 import os

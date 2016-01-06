@@ -1,7 +1,4 @@
 
-# Copyright (c) 2007-2010 AG Projects. See LICENSE for details.
-#
-
 """XCAP errors module"""
 
 from xml.sax.saxutils import quoteattr

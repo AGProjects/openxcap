@@ -1,7 +1,4 @@
 
-# Copyright (C) 2007-2010 AG-Projects.
-#
-
 """Interface to the backend subsystem"""
 
 __all__ = ['database', 'opensips']

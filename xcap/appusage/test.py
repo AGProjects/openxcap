@@ -1,7 +1,4 @@
 
-# Copyright (C) 2007-2010 AG-Projects.
-#
-
 from xcap.appusage import ApplicationUsage
 
 class TestApplication(ApplicationUsage):

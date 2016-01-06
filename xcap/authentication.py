@@ -1,7 +1,4 @@
 
-# Copyright (C) 2007-2010 AG Projects.
-#
-
 """XCAP authentication module"""
 
 # XXX this module should be either renamed or refactored as it does more then just auth.

@@ -1,7 +1,4 @@
 
-# Copyright (C) 2007-2010 AG Projects.
-#
-
 """XCAP resources module"""
 
 from twisted.web2 import http, resource, responsecode
