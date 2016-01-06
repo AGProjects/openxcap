@@ -14,7 +14,7 @@ def find_packages(toplevel):
 
 setup(name         = "openxcap",
       version      = get_version(),
-      author       = "Mircea Amarascu",
+      author       = "AG Projects",
       author_email = "support@ag-projects.com",
       url          = "http://openxcap.org/",
       description  = "An open source XCAP server.",
