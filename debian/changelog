@@ -1,3 +1,10 @@
+openxcap (2.4.0) unstable; urgency=medium
+
+  * Removed runtime dependency check
+  * Updated copyright years
+
+ -- Saul Ibarra <saul@ag-projects.com>  Wed, 06 Jan 2016 15:14:03 +0100
+
 openxcap (2.3.0) unstable; urgency=medium
 
   * Refactor xcapdiff publishing for OpenSIPS backend

@@ -1,3 +1,56 @@
+openxcap (2.4.0) unstable; urgency=medium
+
+  * Removed runtime dependency check
+  * Updated copyright years
+
+ -- Saul Ibarra <saul@ag-projects.com>  Wed, 06 Jan 2016 15:14:03 +0100
+
+openxcap (2.3.0) unstable; urgency=medium
+
+  * Refactor xcapdiff publishing for OpenSIPS backend
+  * Fix dependency name
+  * Drop dependency on twisted-web
+  * Raise python-application version dependency
+  * Add dependency on python-sipsimple
+
+ -- Saul Ibarra <saul@ag-projects.com>  Mon, 14 Dec 2015 16:47:26 +0100
+
+openxcap (2.2.0) unstable; urgency=medium
+
+  * Add a 30 second timeout to avoid keeping TCP lingering connections
+  * Removed deprecated port setting
+  * Raise open file descriptor limit on start
+  * Lower HTTP input timeout to 30 seconds
+  * Dropped Python < 2.7 support
+
+ -- Saul Ibarra <saul@ag-projects.com>  Wed, 03 Dec 2014 12:35:57 +0100
+
+openxcap (2.1.0) unstable; urgency=low
+
+  * Adapted to changes in SIP SIMPLE SDK package structure
+  * Added custom application to purge all server data (org.openxcap.purge)
+  * Separate pres-rules and OMA pres-rules applications
+  * Fixed creating route header for xcap-diff
+  * Fixed setting port number in DB URL
+  * Fixed unicode issues with SIPThor backend
+  * Refactor icon application to conform to standards
+  * Allow OpenXCAP to be started as non-root when running in foreground
+  * Send xcap-diff PUBLISH with expires set to 0
+
+ -- Saul Ibarra <saul@ag-projects.com>  Thu, 10 Jan 2013 01:17:03 +0100
+
+openxcap (2.0.1) unstable; urgency=low
+
+  * Added xcap-diff notification also for resource-lists and rls-services
+  * Added disabled_applications setting
+  * Use the local xml.xsd instead of importing the schema remotely
+  * Added missing XML declaration to xcap-directory schema
+  * Adapted to changes in python-application
+  * Bumped debian standards to version 3.9.2
+  * Reworked Debian packaging
+
+ -- Saul Ibarra <saul@ag-projects.com>  Tue, 07 Jun 2011 08:32:10 +0200
+
 openxcap (2.0.0) unstable; urgency=low
 
   * Added OMA support for Buddy Lists Management 
