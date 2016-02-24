@@ -309,7 +309,7 @@ class DatabaseConnection(object):
             check_etag(etag)
         xcap_app = xcap_docs.setdefault(uri.application_id, {})
         xcap_app[uri.doc_selector.document_path] = (document, new_etag)
-        return (found, etag, new_etag)
+        return found, etag, new_etag
 
     def _delete_operation(self, uri, check_etag, profile):
         xcap_docs = profile.setdefault("xcap", {})

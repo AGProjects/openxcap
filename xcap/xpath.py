@@ -289,7 +289,7 @@ class ElementSelector(list):
         except ValueError:
             return (self.namespace, qname)
         else:
-            return (self.namespaces[prefix], name)
+            return self.namespaces[prefix], name
 
     def replace_default_prefix(self, ns_prefix_mapping):
         steps = []

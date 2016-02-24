@@ -404,19 +404,19 @@ class NamespaceFilter:
             return (None, name)
         elif len(n)==2:
             if n[0]=="xmlns":
-                return (None, name)
+                return None, name
 
             try:
                 return (self.ns_map[n[0]], n[1])
             except KeyError:
                 self.parser.report_error(1902)
-                return (None, name)
+                return None, name
         elif is_attr:
-            return (None, name)
+            return None, name
         elif default_to != None:
             return (default_to, name)
         elif self.ns_map.has_key("") and name != "xmlns":
-            return (self.ns_map[""],name)
+            return self.ns_map[""], name
         else:
             return (None, name)
 

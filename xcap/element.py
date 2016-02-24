@@ -356,7 +356,7 @@ def find(document, element_selector):
     parser.parse(StringIO(document))
     if el.state == 'DONE':
         el.fix_end_pos(document)
-        return (el.start_pos, el.end_pos)
+        return el.start_pos, el.end_pos
     else:
         return LocatorError.generate_error(el, element_selector)
 

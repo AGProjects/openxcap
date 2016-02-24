@@ -204,7 +204,7 @@ def get_cred(request, default_realm):
 class XCAPAuthResource(HTTPAuthResource):
 
     def allowedMethods(self):
-        return ('GET', 'PUT', 'DELETE')
+        return 'GET', 'PUT', 'DELETE'
 
     def _updateRealm(self, realm):
         """Updates the realm of the attached credential factories."""
