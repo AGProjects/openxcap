@@ -335,7 +335,7 @@ class Storage(DBBase):
     def delete_document(self, uri, check_etag):
         return repeat_on_error(10, DeleteFailed, self.conn.runInteraction, self._delete_document, uri, check_etag)
 
-    def delete_documents(self, uri, check_etag):
+    def delete_documents(self, uri):
         return self.conn.runInteraction(self._delete_all_documents, uri)
 
     # Application-specific functions
