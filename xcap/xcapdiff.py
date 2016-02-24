@@ -33,11 +33,11 @@ def xml_document(sel, old_etag, new_etag):
     if old_etag:
         old_etag = ( ' previous-etag="%s"' % old_etag )
     else:
-	old_etag = ''
+        old_etag = ''
     if new_etag:
         new_etag = ( ' new-etag="%s"' % new_etag )
     else:
-	new_etag = ''
+        new_etag = ''
     return '<document%s sel="%s"%s/>' % (new_etag, sel, old_etag)
 
 
