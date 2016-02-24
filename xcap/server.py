@@ -10,6 +10,7 @@ from application.configuration.datatypes import IPAddress, NetworkRangeList
 from application.configuration import ConfigSection, ConfigSetting
 from application import log
 
+from twisted.internet import reactor
 from twisted.web2 import channel, resource, http, responsecode, http_headers, server
 from twisted.cred.portal import Portal
 from twisted.web2.auth import basic
@@ -228,21 +229,11 @@ class XCAPServer(object):
         log.msg("TLS started")
 
     def start(self):
-        if 'twisted.internet.reactor' not in sys.modules:
-            for name in ('epollreactor', 'kqreactor', 'pollreactor', 'selectreactor'):
-                try:    __import__('twisted.internet.%s' % name, globals(), locals(), fromlist=[name]).install()
-                except: continue
-                else:   break
-        from twisted.internet import reactor
-
         log.msg("Listening on: %s:%d" % (ServerConfig.address, ServerConfig.root.port))
         log.msg("XCAP root: %s" % ServerConfig.root)
         if ServerConfig.root.startswith('https'):
             self._start_https(reactor)
         else:
             reactor.listenTCP(ServerConfig.root.port, HTTPFactory(self.site), interface=ServerConfig.address)
-        self.run(reactor)
-
-    def run(self, reactor):
         reactor.run(installSignalHandlers=ServerConfig.backend.installSignalHandlers)
 
