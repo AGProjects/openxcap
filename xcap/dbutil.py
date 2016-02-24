@@ -62,6 +62,7 @@ def connectionForURI(uri):
     # falling back to twisted's cp_reconnect.
     # mysql's reconnect is preferred because it's better tested than twisted's
     # MySQLdb reconnect just works with version 1.2.2 it has been removed after
+    args = ()
     kwargs = {}
     if module == 'MySQLdb':
         MySQLdb = reflect.namedModule(module)
@@ -72,7 +73,6 @@ def connectionForURI(uri):
         kwargs.setdefault('user', user or '')
         kwargs.setdefault('passwd', password or '')
         kwargs.setdefault('db', db)
-        args = ()
 
     if 'reconnect' not in kwargs:
         # note that versions other than 1.2.2 of MySQLdb don't provide reconnect parameter.
