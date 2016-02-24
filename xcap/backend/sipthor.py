@@ -31,8 +31,7 @@ from thor.link import ControlLink, Notification, Request
 from thor.eventservice import EventServiceClient, ThorEvent
 from thor.entities import ThorEntitiesRoleMap, GenericThorEntity as ThorEntity
 
-from gnutls.interfaces.twisted import X509Credentials
-from gnutls.constants import COMP_DEFLATE, COMP_LZO, COMP_NULL
+from gnutls.interfaces.twisted import TLSContext, X509Credentials
 
 from sipsimple.core import Engine, FromHeader, Header, Publication, RouteHeader, SIPURI
 from sipsimple.threading import run_in_twisted_thread
@@ -161,9 +160,9 @@ class XCAPProvisioning(EventServiceClient):
         self.shutdown_message = ThorEvent('Thor.Leave', self.node.id)
         credentials = X509Credentials(ThorNodeConfig.certificate, ThorNodeConfig.private_key, [ThorNodeConfig.ca])
         credentials.verify_peer = True
-        credentials.session_params.compressions = (COMP_LZO, COMP_DEFLATE, COMP_NULL)
-        self.control = ControlLink(credentials)
-        EventServiceClient.__init__(self, ThorNodeConfig.domain, credentials)
+        tls_context = TLSContext(credentials)
+        self.control = ControlLink(tls_context)
+        EventServiceClient.__init__(self, ThorNodeConfig.domain, tls_context)
         process.signals.add_handler(signal.SIGHUP, self._handle_SIGHUP)
         process.signals.add_handler(signal.SIGINT, self._handle_SIGINT)
         process.signals.add_handler(signal.SIGTERM, self._handle_SIGTERM)

@@ -217,13 +217,14 @@ class XCAPServer(object):
         self.site = XCAPSite(root)
 
     def _start_https(self, reactor):
-        from gnutls.interfaces.twisted import X509Credentials
+        from gnutls.interfaces.twisted import TLSContext, X509Credentials
         cert, pKey = TLSConfig.certificate, TLSConfig.private_key
         if cert is None or pKey is None:
             log.fatal("the TLS certificates or the private key could not be loaded")
             sys.exit(1)
         credentials = X509Credentials(cert, pKey)
-        reactor.listenTLS(ServerConfig.root.port, HTTPFactory(self.site), credentials, interface=ServerConfig.address)
+        tls_context = TLSContext(credentials)
+        reactor.listenTLS(ServerConfig.root.port, HTTPFactory(self.site), tls_context, interface=ServerConfig.address)
         log.msg("TLS started")
 
     def start(self):
