@@ -19,18 +19,12 @@ DEFAULTS="/etc/default/openxcap"
 SERVER="$INSTALL_DIR/openxcap"
 PID="$RUNTIME_DIR/openxcap.pid"
 
-# Options for the OpenXCAP server. Do not include --pid <pidfile>
-# --pid <pidfile> will be added automatically if needed.
-OPTIONS=""
-
 NAME="openxcap"
 DESC="OpenXCAP server"
 
 test -f $SERVER || exit 0
 
-if [ "$PID" != "/var/run/openxcap/openxcap.pid" ]; then
-    OPTIONS="--pid $PID $OPTIONS"
-fi
+. /lib/lsb/init-functions
 
 # Load startup options if available
 if [ -f $DEFAULTS ]; then
@@ -44,13 +38,13 @@ fi
 
 start() {
     echo -n "Starting $DESC: $NAME "
-    start-stop-daemon --start --quiet --pidfile $PID --exec $SERVER -- $OPTIONS
+    start-stop-daemon --start --quiet --pidfile $PID --exec $SERVER
     echo "."
 }
 
 stop () {
     echo -n "Stopping $DESC: $NAME "
-    start-stop-daemon --stop --quiet --oknodo --signal 15 --pidfile $PID
+    start-stop-daemon --stop --quiet --oknodo --retry=TERM/15/KILL/5 --pidfile $PID
     echo "."
 }
 
@@ -63,7 +57,6 @@ case "$1" in
         ;;
     restart|force-reload)
         stop
-        #sleep 1
         start
         ;;
     *)
