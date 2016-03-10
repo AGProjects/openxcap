@@ -1,9 +1,10 @@
-openxcap (2.5.0) UNRELEASED; urgency=medium
+openxcap (2.5.0) unstable; urgency=medium
 
   * Fixed deleting documents in bulk in SIPThor backend
   * Adapted to API changes in python-gnutls 3.0 and SIPThor
+  * Improved Debian init file
 
- -- Saul Ibarra <saul@ag-projects.com>  Wed, 24 Feb 2016 13:58:23 +0100
+ -- Saul Ibarra <saul@ag-projects.com>  Thu, 10 Mar 2016 12:18:46 +0100
 
 openxcap (2.4.0) unstable; urgency=medium
 
