@@ -1,7 +1,7 @@
 OpenXCAP
 --------
 
-Copyright (c) 2007-2015 AG Projects
+Copyright (c) 2007-present AG Projects
 http://ag-projects.com
 
 Home page: http://openxcap.org
@@ -34,11 +34,11 @@ Components
 Dependencies
 ------------
 
- * Python 2.5 or 2.6 - http://www.python.org
+ * Python 2.7 - http://www.python.org
  * Twisted Core, Twisted Web and Twisted Web 2 >= 8.1.0 - http://twistedmatrix.com
  * python-lxml >= 2.0.7 - http://codespeak.net/lxml
- * python-application >= 1.2.0 - http://pypi.python.org/pypi/python-application
- * python-gnutls >=1.8.1 - http://pypi.python.org/pypi/python-gnutls
+ * python-application >= 1.4.0 - http://pypi.python.org/pypi/python-application
+ * python-gnutls >= 3.1.0 - http://pypi.python.org/pypi/python-gnutls
  * python-mysqldb >=1.2.2 - http://pypi.python.org/simple/mysql-python
  * python-imaging >=1.1.7 - http://pypi.python.org/simple/PIL/
 
@@ -52,7 +52,7 @@ architectures.
 Install AG Projects debian repository signing key:
 
 wget http://download.ag-projects.com/agp-debian-gpg.key
-sudo apt-key add agp-debian-gpg.key 
+sudo apt-key add agp-debian-gpg.key
 
 Add the following lines to /etc/apt/sources.list:
 
@@ -64,13 +64,9 @@ deb-src http://ag-projects.com/debian stable main
 deb http://ag-projects.com/debian unstable main
 deb-src http://ag-projects.com/debian unstable main
 
-# Ubuntu Karmic
-deb http://ag-projects.com/ubuntu karmic main
-deb-src http://ag-projects.com/ubuntu karmic main
-
-# Ubuntu Lucid
-deb http://ag-projects.com/ubuntu lucid main
-deb-src http://ag-projects.com/ubuntu lucid main
+# Ubuntu (run this as root)
+echo "deb     http://ag-projects.com/ubuntu `lsb_release -c -s` main" >> /etc/apt/sources.list
+echo "deb-src http://ag-projects.com/ubuntu `lsb_release -c -s` main" >> /etc/apt/sources.list
 
 Update the list of available packages:
 

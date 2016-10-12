@@ -43,9 +43,9 @@ Features
 --------
 
 The server is written in Python programming language and implements the
-following standards: 
+following standards:
 
-RFC4825, RFC4826, RFC4827, RFC5025, draft-ietf-simple-xcap-diff-09.txt
+RFC4825, RFC4826, RFC4827, RFC5025, 5874
 
  * Suport for multiple domains
  * Full and partial XML document manipulation
@@ -75,7 +75,7 @@ Supported XCAP applications
  * PIDF manipulation (auid = pidf-manipulation). Pidf-manipulation
    application usage defines how XCAP is used to manipulate the contents of
    PIDF based presence documents.
- * XCAP directory (auid = org.openmobilealliance.xcap-directory). 
+ * XCAP directory (auid = org.openmobilealliance.xcap-directory).
    Lists the documents stored in the XCAP server for a given user.
  * icon (auid = oma_status-icon). Manipulate the user icon for
    a given user and provide icon download capability from HTTP clients.
