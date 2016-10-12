@@ -1,3 +1,10 @@
+openxcap (2.6.0) unstable; urgency=medium
+
+  * Don't request a client certificate for HTTPS connections
+  * Raised python-gnutls version dependency
+
+ -- Saul Ibarra <saul@ag-projects.com>  Wed, 12 Oct 2016 12:55:42 +0200
+
 openxcap (2.5.0) unstable; urgency=medium
 
   * Fixed deleting documents in bulk in SIPThor backend
