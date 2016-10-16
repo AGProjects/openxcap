@@ -96,22 +96,12 @@ See INSTALL file.
 Support
 -------
 
-The project is developed and supported by AG Projects via the wiki
-collaboration system provided at
+The project is developed and supported by AG Projects. The support is
+provided on a best-effort basis. "best-effort" means that we try to solve
+the bugs you report or help fix your problems as soon as we can, subject to
+available resources.
 
-http://openxcap.org
+To request support you must use the mailing list available at
 
-To open ticket please Register first. The ticketing support system is
-available only for registered users. Please beware that the support is
-provided by the community on a best-effort basis.
-
-For help on the integration between OpenXCAP and OpenSIPS you may consult
-the mailing list users@lists.opensips.org. The mailing list archive is
-available at: http://lists.opensips.org/cgi-bin/mailman/listinfo/users
-
-
-Commercial support
-------------------
-
-The software is supported commercially by AG Projects http://ag-projects.com
+http://lists.ag-projects.com/mailman/listinfo/sipbeyondvoip
 
