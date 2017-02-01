@@ -1,3 +1,14 @@
+openxcap (2.6.1) unstable; urgency=medium
+
+  * Increased debian compatibility level to 9
+  * Updated debian standards version
+  * Added dependency on lsb-base
+  * Updated debian maintainer
+  * Fixed debian package description
+  * Do not add INSTALL file into the debian package
+
+ -- Dan Pascu <dan@ag-projects.com>  Wed, 01 Feb 2017 09:41:10 +0200
+
 openxcap (2.6.0) unstable; urgency=medium
 
   * Don't request a client certificate for HTTPS connections
