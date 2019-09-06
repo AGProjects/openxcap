@@ -21,12 +21,12 @@ class XCAPRootURI(str):
             if host and scheme in ('http', 'https'):
                 for u in valid_uris:
                     if u == uri or uri.startswith(u) or u.startswith(uri):
-                        log.warn("ignoring XCAP Root URI %r (similar to %r)" % (uri, u))
+                        log.warning('Ignoring XCAP Root URI %r (similar to %r)' % (uri, u))
                         break
                 else:
                     valid_uris.append(uri)
             else:
-                log.warn("Invalid XCAP Root URI: %r" % uri)
+                log.warning('Invalid XCAP Root URI: %r' % uri)
         if not valid_uris:
             return None
         instance = str.__new__(cls, valid_uris[0])

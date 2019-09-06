@@ -24,10 +24,10 @@ class Backend(object):
         try:
             return __import__('xcap.backend.%s' % value, globals(), locals(), [''])
         except (ImportError, AssertionError), e:
-            log.fatal("Cannot load '%s' backend module: %s" % (value, str(e)))
+            log.critical('Cannot load %r backend module: %s' % (value, e))
             sys.exit(1)
-        except Exception, e:
-            log.err()
+        except Exception:
+            log.exception()
             sys.exit(1)
 
 
@@ -40,7 +40,7 @@ class ServerConfig(ConfigSection):
     document_validation = True
 
 if ServerConfig.backend is None:
-    log.fatal("OpenXCAP needs a backend to be specified in order to run")
+    log.critical('OpenXCAP needs a backend to be specified in order to run')
     sys.exit(1)
 
 

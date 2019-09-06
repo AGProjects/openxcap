@@ -10,21 +10,20 @@ MEMORY_DEBUG = False
 
 if __name__ == '__main__':
     import sys
-    from optparse import OptionParser
-    from application.process import process, ProcessError
-    from application import log
     import xcap
+    from application import log
+    from application.process import process, ProcessError
+    from optparse import OptionParser
 
     name = 'openxcap'
+    fullname = 'OpenXCAP'
     description = 'An open source XCAP Server'
-    version = xcap.__version__
-    fullname = 'OpenXCAP %s' % version
 
     config_directory = '/etc/openxcap'
     runtime_directory = '/var/run/openxcap'
     default_pid = "%s/%s.pid" % (runtime_directory, name)
 
-    parser = OptionParser(version="%%prog %s" % version)
+    parser = OptionParser(version='%%prog %s' % xcap.__version__)
     parser.add_option("--no-fork", action="store_false", dest="fork", default=1,
                       help="run the process in the foreground (for debugging)")
     parser.add_option("--pid", dest="pidfile", default=default_pid,
@@ -32,6 +31,19 @@ if __name__ == '__main__':
                       metavar="File")
 
     (options, args) = parser.parse_args()
+
+    try:
+        from xcap.logutil import web_logger
+    except Exception as e:
+        log.critical('Failed to create %s: %s' % (fullname, e))
+        if not isinstance(e, (RuntimeError, OSError, IOError)):
+            log.exception()
+        sys.exit(1)
+
+    if web_logger.filename is None:  # access log is reported along with the rest of the applications's logging
+        log.Formatter.prefix_format = '{record.levelname:<8s} [{record.name}] '
+    else:
+        log.Formatter.prefix_format = '{record.levelname:<8s} '
 
     pidfile = options.pidfile
     process.system_config_directory = config_directory
@@ -43,13 +55,11 @@ if __name__ == '__main__':
             process.runtime_directory = runtime_directory
             process.daemonize(pidfile)
         except ProcessError, e:
-            log.msg("Fatal error: %s" % e)
+            log.critical('Fatal error: %s' % e)
             sys.exit(1)
-        else:
-            from xcap.logutil import start_log
-            start_log()
+        log.use_syslog(name)
 
-    log.msg("Starting %s" % fullname)
+    log.info('Starting %s' % fullname)
 
     try:
         if not options.fork and MEMORY_DEBUG:
@@ -58,9 +68,9 @@ if __name__ == '__main__':
         server = XCAPServer()
         server.start()
     except Exception, e:
-        log.fatal("failed to create %s: %s" % (fullname, e))
-        if e.__class__ is not RuntimeError:
-            log.err()
+        log.critical("Failed to create %s: %s" % (fullname, e))
+        if type(e) is not RuntimeError:
+            log.exception()
         sys.exit(1)
 
     if not options.fork and MEMORY_DEBUG:

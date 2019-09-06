@@ -180,7 +180,7 @@ class XCAPProvisioning(EventServiceClient):
         except LookupError:
             node = None
         except Exception:
-            log.err()
+            log.exception()
             node = None
         return node
 
@@ -227,21 +227,18 @@ class XCAPProvisioning(EventServiceClient):
                 networks[role] = network
             new_nodes = set([ThorEntityAddress(node.ip, getattr(node, 'control_port', None), getattr(node, 'version', 'unknown')) for node in role_map.get(role, [])])
             old_nodes = set(network.nodes)
-            ## compute set differences
             added_nodes = new_nodes - old_nodes
             removed_nodes = old_nodes - new_nodes
             if removed_nodes:
                 for node in removed_nodes:
                     network.remove_node(node)
                     self.control.discard_link((node.ip, node.control_port))
-                plural = len(removed_nodes) != 1 and 's' or ''
-                log.msg("removed %s node%s: %s" % (role, plural, ', '.join(removed_nodes)))
+                log.info('Removed %s nodes: %s' % (role, ', '.join(removed_nodes)))
             if added_nodes:
                 for node in added_nodes:
                     network.add_node(node)
-                plural = len(added_nodes) != 1 and 's' or ''
-                log.msg("added %s node%s: %s" % (role, plural, ', '.join(added_nodes)))
-            #print "Thor %s nodes: %s" % (role, str(network.nodes))
+                log.info('Added %s nodes: %s' % (role, ', '.join(added_nodes)))
+            # print('Thor %s nodes: %s' % (role, str(network.nodes)))
 
 
 class NotFound(Exception):
@@ -473,14 +470,14 @@ class SIPNotifier(object):
         handler(notification)
 
     def _NH_SIPPublicationDidSucceed(self, notification):
-        log.msg("PUBLISH for xcap-diff event successfully sent to %s for %s" % (notification.data.route_header.uri, notification.sender.from_header.uri))
+        log.info('PUBLISH for xcap-diff event successfully sent to %s for %s' % (notification.data.route_header.uri, notification.sender.from_header.uri))
 
     def _NH_SIPPublicationDidEnd(self, notification):
-        log.msg("PUBLISH for xcap-diff event ended for %s" % notification.sender.from_header.uri)
+        log.info('PUBLISH for xcap-diff event ended for %s' % notification.sender.from_header.uri)
         NotificationCenter().remove_observer(self, sender=notification.sender)
 
     def _NH_SIPPublicationDidFail(self, notification):
-        log.msg("PUBLISH for xcap-diff event failed to %s for %s" % (notification.data.route_header.uri, notification.sender.from_header.uri))
+        log.info('PUBLISH for xcap-diff event failed to %s for %s' % (notification.data.route_header.uri, notification.sender.from_header.uri))
         NotificationCenter().remove_observer(self, sender=notification.sender)
 
 

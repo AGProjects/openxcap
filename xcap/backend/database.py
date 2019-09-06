@@ -31,7 +31,7 @@ class Config(ConfigSection):
     xcap_table = 'xcap'
 
 if not Config.authentication_db_uri or not Config.storage_db_uri:
-    log.fatal("Authentication DB URI and Storage DB URI must be provided")
+    log.critical('Authentication DB URI and Storage DB URI must be provided')
     sys.exit(1)
 
 

@@ -77,14 +77,14 @@ class SIPNotifier(object):
         handler(notification)
 
     def _NH_SIPPublicationDidSucceed(self, notification):
-        log.msg("PUBLISH for xcap-diff event successfully sent to %s for %s" % (notification.data.route_header.uri, notification.sender.from_header.uri))
+        log.info('PUBLISH for xcap-diff event successfully sent to %s for %s' % (notification.data.route_header.uri, notification.sender.from_header.uri))
 
     def _NH_SIPPublicationDidEnd(self, notification):
-        log.msg("PUBLISH for xcap-diff event ended for %s" % notification.sender.from_header.uri)
+        log.info('PUBLISH for xcap-diff event ended for %s' % notification.sender.from_header.uri)
         notification.center.remove_observer(self, sender=notification.sender)
 
     def _NH_SIPPublicationDidFail(self, notification):
-        log.msg("PUBLISH for xcap-diff event failed to %s for %s" % (notification.data.route_header.uri, notification.sender.from_header.uri))
+        log.info('PUBLISH for xcap-diff event failed to %s for %s' % (notification.data.route_header.uri, notification.sender.from_header.uri))
         notification.center.remove_observer(self, sender=notification.sender)
 
 

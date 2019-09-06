@@ -1,274 +1,168 @@
 
 import os
 import re
-import logging
-from StringIO import StringIO
-from twisted.web2 import responsecode
+
 from application import log
 from application.configuration import ConfigSection, ConfigSetting
-from logging.handlers import RotatingFileHandler
+from application.python.types import Singleton
+from application.system import makedirs
+from logging.handlers import WatchedFileHandler
 
 import xcap
 
 
-class ResponseCodeList(set):
-    names = {}
+class Code(int):
+    def __new__(cls, x):
+        instance = super(Code, cls).__new__(cls, x)
+        if not 100 <= instance <= 999:
+            raise ValueError('Invalid HTTP response code: {}'.format(x))
+        return instance
 
-    for k, v in responsecode.__dict__.iteritems():
-        if isinstance(v, int) and 100<=v<=999:
-            names[k.replace('_', '').lower()] = v
-    del k, v
 
-    def __new__(cls, value):
-        if value.lower() in ('*', 'any', 'all', 'yes'):
-            return AnyResponseCode
-        return set.__new__(cls, value)
-
-    def __init__(self, value):
-        value = value.strip()
-        if value.lower() in ('none', '', 'no'):
-            return
-        for x in re.split(r'\s*,\s*', value):
-            x = x.lower()
-            n = self.names.get(x.replace(' ', '').replace('_', ''))
-            if n is None:
-                n = int(x)
-                if not 100<=n<=999:
-                    raise ValueError, '%s cannot be an HTTP error code' % n
-                self.add(n)
-            else:
-                self.add(n)
-
-class AnyResponseCode(ResponseCodeList):
-    def __new__(cls, value):
-        return set.__new__(cls)
-
-    def __init__(self, value):
-        pass
-
-    def __contains__(self, anything):
+class MatchAnyCode(object):
+    def __contains__(self, item):
         return True
 
     def __repr__(self):
-        return "AnyResponseCode"
+        return '{0.__class__.__name__}()'.format(self)
 
-AnyResponseCode = AnyResponseCode('')
+
+class ResponseCodeList(object):
+    def __init__(self, value):
+        value = value.strip().lower()
+        if value in ('all', 'any', 'yes', '*'):
+            self._codes = MatchAnyCode()
+        elif value in ('none', 'no'):
+            self._codes = set()
+        else:
+            self._codes = {Code(code) for code in re.split(r'\s*,\s*', value)}
+
+    def __contains__(self, item):
+        return item in self._codes
+
+    def __repr__(self):
+        if isinstance(self._codes, MatchAnyCode):
+            value = 'all'
+        elif not self._codes:
+            value = 'none'
+        else:
+            value = ','.join(sorted(self._codes))
+        return '{0.__class__.__name__}({1!r})'.format(self, value)
 
 
 class Logging(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
     __section__ = 'Logging'
 
-    # directory where access.log will be created
-    # if directory is empty, everything (access and error) will be
-    # printed to console
-    directory = '/var/log/openxcap'
+    directory = '/var/log/openxcap'  # directory where access.log will be created (if not specified, access logs will be logged as application log messages)
 
-    # each log message is followed by the headers of the request
-    log_request_headers = ConfigSetting(type=ResponseCodeList, value=[500])
-
-    log_request_body = ConfigSetting(type=ResponseCodeList, value=[500])
-
-    log_response_headers = ConfigSetting(type=ResponseCodeList, value=[500])
-
-    log_response_body = ConfigSetting(type=ResponseCodeList, value=[500])
-
-    log_stacktrace = ConfigSetting(type=ResponseCodeList, value=[500])
+    log_request = ConfigSetting(type=ResponseCodeList, value=ResponseCodeList('none'))
+    log_response = ConfigSetting(type=ResponseCodeList, value=ResponseCodeList('none'))
 
 
-def log_format_request_headers(code, r):
-    if matches(Logging.log_request_headers, code):
-        return format_headers(r, 'REQUEST headers:\n')
-    return ''
+class _LoggedTransaction(object):
+    def __init__(self, request, response):
+        self._request = request
+        self._response = response
 
-def log_format_response_headers(code, r):
-    if matches(Logging.log_response_headers, code):
-        return format_headers(r, 'RESPONSE headers:\n')
-    return ''
+    def __str__(self):
+        return self.access_info
 
-def log_format_request_body(code, request):
-    if matches(Logging.log_request_body, code):
-        return format_request_body(request)
-    return ''
+    @property
+    def access_info(self):
+        return '{request.remote_host} - {request.line!r} {response.code} {response.length} {request.user_agent!r} {response.etag!r}'.format(request=self._request, response=self._response)
 
-def log_format_response_body(code, response):
-    if matches(Logging.log_response_body, code):
-        return format_response_body(response)
-    return ''
+    #
+    # Request related properties
+    #
 
-def log_format_stacktrace(code, reason):
-    if reason is not None and matches(Logging.log_stacktrace, code):
-        return format_stacktrace(reason)
-    return ''
+    @property
+    def line(self):
+        return '{request.method} {request.uri} HTTP/{request.clientproto[0]}.{request.clientproto[1]}'.format(request=self._request)
 
-
-def matches(cfg, code):
-    return cfg == '*' or code in cfg
-
-def format_response_body(response):
-    res = ''
-    content_type = None
-    if hasattr(response, 'headers'):
-        content_type = response.headers.getRawHeaders('content-type')
-    if hasattr(response, 'stream') and hasattr(response.stream, 'mem'):
-        res = str(response.stream.mem)
-    if res:
-        msg = ''
-        if content_type:
-            for x in content_type:
-                msg += 'Content-Type: %s\n' % x
-        msg += res
-        return 'RESPONSE: ' + msg.replace('\n', '\n\t') + '\n'
-    return res
-
-def format_headers(r, msg='REQUEST headers:\n'):
-    res = ''
-    if hasattr(r, 'headers'):
-        for (k, v) in r.headers.getAllRawHeaders():
-            for x in v:
-                res += '\t%s: %s\n' % (k, x)
-    if res:
-        res = msg + res
-    return res
-
-def format_request_body(request):
-    res = ''
-    if hasattr(request, 'attachment'):
-        res = str(request.attachment)
-        if res:
-            return 'REQUEST: ' + res.replace('\n', '\n\t') + '\n'
-    return res
-
-def format_stacktrace(reason):
-    if hasattr(reason, 'getTracebackObject') and reason.getTracebackObject() is not None:
-        f = StringIO()
-        reason.printTraceback(file=f)
-        res = f.getvalue()
-        first, rest = res.split('\n', 1)
-        if rest[-1:]=='\n':
-            rest = rest[:-1]
-        if rest:
-            return first.replace('Traceback', 'TRACEBACK') + '\n\t' + rest.replace('\n', '\n\t')
-        return first
-    return ''
-
-def _repr(p):
-    if p is None:
-        return '-'
-    else:
-        return repr(p)
-
-def _str(p):
-    if p is None:
-        return '-'
-    else:
-        return str(p)
-
-def _etag(etag):
-    if etag is None:
-        return '-'
-    if hasattr(etag, 'generate'):
-        return etag.generate()
-    else:
-        return repr(etag)
-
-def get_ip(request):
-    if hasattr(request, 'remoteAddr'):
-        return str(getattr(request.remoteAddr, 'host', '-'))
-    else:
-        return '-'
-
-def get(obj, attr):
-    return _repr(getattr(obj, attr, None))
-
-def format_access_record(request, response):
-
-    def format_clientproto(proto):
+    @property
+    def remote_host(self):
         try:
-            return "HTTP/%d.%d" % (proto[0], proto[1])
-        except IndexError:
-            return ""
+            return self._request.remoteAddr.host
+        except AttributeError:
+            try:
+                return self._request.chanRequest.getRemoteHost().host
+            except (AttributeError, TypeError):
+                return '-'
 
-    ip = get_ip(request)
-    request_line = "'%s %s %s'" % (request.method, request.unparseURL(), format_clientproto(request.clientproto))
-    code = get(response, 'code')
+    @property
+    def user_agent(self):
+        return self._request.headers.getHeader('user-agent', '-')
 
-    if hasattr(request, 'stream'):
-        request_length = get(request.stream, 'length')
-    else:
-        request_length = '-'
+    @property
+    def request_content(self):
+        headers = '\n'.join('{}: {}'.format(name, header) for name, headers in self._request.headers.getAllRawHeaders() for header in headers)
+        body = getattr(self._request, 'attachment', '')
+        content = '\n\n'.join(item for item in (headers, body) if item)
+        return '\nRequest:\n\n{}\n\n'.format(content) if content else ''
 
-    if hasattr(response, 'stream'):
-        response_length = get(response.stream, 'length')
-    else:
-        response_length = '-'
+    #
+    # Response related properties
+    #
 
-    if hasattr(request, 'headers'):
-        user_agent = _repr(request.headers.getHeader('user-agent'))
-    else:
-        user_agent = '-'
+    @property
+    def code(self):
+        return self._response.code
 
-    if hasattr(response, 'headers'):
-        response_etag = _etag(response.headers.getHeader('etag'))
-    else:
-        response_etag = '-'
+    @property
+    def length(self):
+        return self._response.stream.length if self._response.stream else 0
 
-    params = [ip, request_line, code, request_length, response_length, user_agent, response_etag]
-    return ' '.join(params)
+    @property
+    def etag(self):
+        etag = self._response.getHeader('etag') or '-'
+        if hasattr(etag, 'tag'):
+            etag = etag.tag
+        return etag
 
-def format_log_message(request, response, reason):
-    msg = ''
-    info = ''
-    try:
-        msg = format_access_record(request, response)
-        code = getattr(response, 'code', None)
-        info += log_format_request_headers(code, request)
-        info += log_format_request_body(code, request)
-        info += log_format_response_headers(code, response)
-        info += log_format_response_body(code, response)
-        info += log_format_stacktrace(code, reason)
-    except Exception:
-        log.error('Formatting log message failed')
-        log.err()
-    if info[-1:]=='\n':
-        info = info[:-1]
-    if info:
-        info = '\n' + info
-    return msg + info
+    @property
+    def response_content(self):
+        headers = '\n'.join('{}: {}'.format(name, header) for name, headers in self._response.headers.getAllRawHeaders() for header in headers)
+        body = self._response.stream.mem if self._response.stream else ''
+        content = '\n\n'.join(item for item in (headers, body) if item)
+        return '\nResponse:\n\n{}\n\n'.format(content) if content else ''
 
-def log_access(request, response, reason=None):
-    if getattr(request, '_logged', False):
-        return
-    msg = format_log_message(request, response, reason)
-    request._logged = True
-    if msg and (response.stream is None or response.stream.length < 5000):
-        log.msg(AccessLog(msg))
 
-def log_error(request, response, reason):
-    msg = format_log_message(request, response, reason)
-    request._logged = True
-    if msg:
-        log.error(msg)
+class WEBLogger(object):
+    __metaclass__ = Singleton
 
-class AccessLog(str): pass
+    def __init__(self):
+        self.logger = log.get_logger('weblog')
+        self.logger.setLevel(log.level.INFO)
+        if Logging.directory:
+            if not os.path.exists(Logging.directory):
+                try:
+                    makedirs(Logging.directory)
+                except OSError as e:
+                    raise RuntimeError('Cannot create logging directory {}: {}'.format(Logging.directory, e))
+            self.filename = os.path.join(Logging.directory, 'access.log')
+            formatter = log.Formatter()
+            formatter.prefix_format = ''
+            handler = WatchedFileHandler(self.filename)
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
+            self.logger.propagate = False
+        else:
+            self.filename = None
 
-class IsAccessLog(logging.Filter):
-    def filter(self, record):
-        return isinstance(record.msg, AccessLog)
+    def log_access(self, request, response):
+        web_transaction = _LoggedTransaction(request, response)
+        self.logger.info(web_transaction.access_info)
+        if response.code in Logging.log_request:
+            request_content = web_transaction.request_content
+            if request_content:
+                self.logger.info(request_content)
+        if response.code in Logging.log_response and web_transaction.length < 5000:
+            response_content = web_transaction.response_content
+            if response_content:
+                self.logger.info(response_content)
 
-class IsNotAccessLog(logging.Filter):
-    def filter(self, record):
-        return not isinstance(record.msg, AccessLog)
 
-def start_log():
-    log.start_syslog('openxcap')
-    if Logging.directory:
-        if not os.path.exists(Logging.directory):
-            os.mkdir(Logging.directory)
-        handler = RotatingFileHandler(os.path.join(Logging.directory, 'access.log'), 'a', 2*1024*1024, 5)
-        handler.addFilter(IsAccessLog())
-        log.logger.addHandler(handler)
-        for handler in log.logger.handlers:
-            if isinstance(handler, log.SyslogHandler):
-                handler.addFilter(IsNotAccessLog())
-
+root_logger = log.get_logger()
+root_logger.name = 'server'
+web_logger = WEBLogger()

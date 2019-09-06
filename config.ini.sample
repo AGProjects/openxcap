@@ -54,16 +54,12 @@ allow_external_references = No
 
 ; directory=/var/log/openxcap 
 
-; The following parameters control what kind of information (like
-; stacktrace, body or headers) is logged for which response codes. The
-; values must be a comma-separated list of HTTP response codes or the  
-; keyword 'any' that matches all response codes.
+; The following parameters control the logging of requests/responses based
+; on the response code. The values must be a comma-separated list of HTTP
+; response codes or the keyword 'all' that matches all response codes.
 
-; log_stacktrace=500
-; log_response_headers=500
-; log_response_body=500
-; log_request_headers=500
-; log_request_body=500
+; log_request=500
+; log_response=500
 
 
 [Authentication]
