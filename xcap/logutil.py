@@ -70,15 +70,14 @@ class _LoggedTransaction(object):
 
     @property
     def access_info(self):
-        return '{request.remote_host} - {request.line!r} {response.code} {response.length} {request.user_agent!r} {response.etag!r}'.format(request=self._request, response=self._response)
-
-    #
-    # Request related properties
-    #
+        return '{0.remote_host} - {0.request_line!r} {0.response_code} {0.response_length} {0.user_agent!r} {0.etag!r}'.format(self)
 
     @property
-    def line(self):
-        return '{request.method} {request.uri} HTTP/{request.clientproto[0]}.{request.clientproto[1]}'.format(request=self._request)
+    def etag(self):
+        etag = self._response.headers.getHeader('etag') or '-'
+        if hasattr(etag, 'tag'):
+            etag = etag.tag
+        return etag
 
     @property
     def remote_host(self):
@@ -95,30 +94,23 @@ class _LoggedTransaction(object):
         return self._request.headers.getHeader('user-agent', '-')
 
     @property
+    def request_line(self):
+        return '{request.method} {request.uri} HTTP/{request.clientproto[0]}.{request.clientproto[1]}'.format(request=self._request)
+
+    @property
     def request_content(self):
         headers = '\n'.join('{}: {}'.format(name, header) for name, headers in self._request.headers.getAllRawHeaders() for header in headers)
         body = getattr(self._request, 'attachment', '')
         content = '\n\n'.join(item for item in (headers, body) if item)
         return '\nRequest:\n\n{}\n\n'.format(content) if content else ''
 
-    #
-    # Response related properties
-    #
-
     @property
-    def code(self):
+    def response_code(self):
         return self._response.code
 
     @property
-    def length(self):
+    def response_length(self):
         return self._response.stream.length if self._response.stream else 0
-
-    @property
-    def etag(self):
-        etag = self._response.getHeader('etag') or '-'
-        if hasattr(etag, 'tag'):
-            etag = etag.tag
-        return etag
 
     @property
     def response_content(self):
@@ -157,7 +149,7 @@ class WEBLogger(object):
             request_content = web_transaction.request_content
             if request_content:
                 self.logger.info(request_content)
-        if response.code in Logging.log_response and web_transaction.length < 5000:
+        if response.code in Logging.log_response and web_transaction.response_length < 5000:
             response_content = web_transaction.response_content
             if response_content:
                 self.logger.info(response_content)
