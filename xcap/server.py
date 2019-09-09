@@ -106,20 +106,7 @@ class Request(server.Request):
         return server.Request.writeResponse(self, response)
 
 
-class HTTPChannelRequest(channel.http.HTTPChannelRequest):
-    _base = channel.http.HTTPChannelRequest
-
-    def gotInitialLine(self, line):
-        self._initial_line = line
-        return self._base.gotInitialLine(self, line)
-
-    def createRequest(self):
-        self._base.createRequest(self)
-        self.request._initial_line = self._initial_line
-
-
 class HTTPChannel(channel.http.HTTPChannel):
-    chanRequestFactory = HTTPChannelRequest
     inputTimeOut = 30
 
     def __init__(self):
