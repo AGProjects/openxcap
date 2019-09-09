@@ -28,6 +28,7 @@ from xcap.xpath import AttributeSelector, NamespaceSelector
 
 server.VERSION = "OpenXCAP/%s" % xcap.__version__
 
+
 class AuthenticationConfig(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
     __section__ = 'Authentication'
@@ -37,6 +38,7 @@ class AuthenticationConfig(ConfigSection):
     default_realm = ConfigSetting(type=str, value=None)
     trusted_peers = ConfigSetting(type=NetworkRangeList, value=NetworkRangeList('none'))
 
+
 class ServerConfig(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
     __section__ = 'Server'
@@ -45,12 +47,14 @@ class ServerConfig(ConfigSection):
     root = ConfigSetting(type=XCAPRootURI, value=None)
     backend = ConfigSetting(type=Backend, value=None)
 
+
 class TLSConfig(ConfigSection):
     __cfgfile__ = xcap.__cfgfile__
     __section__ = 'TLS'
 
     certificate = ConfigSetting(type=Certificate, value=None)
     private_key = ConfigSetting(type=PrivateKey, value=None)
+
 
 if ServerConfig.root is None:
     log.critical('The XCAP root URI is not defined')
@@ -137,13 +141,11 @@ class HTTPFactory(channel.HTTPFactory):
 
 
 class XCAPSite(server.Site):
-
     def __call__(self, *args, **kwargs):
         return Request(site=self, *args, **kwargs)
 
 
 class XCAPServer(object):
-
     def __init__(self):
         portal = Portal(authentication.XCAPAuthRealm())
         if AuthenticationConfig.cleartext_passwords:
@@ -161,7 +163,7 @@ class XCAPServer(object):
         elif auth_type == 'digest':
             credential_factory = tweak_DigestCredentialFactory('MD5', auth_type)
         else:
-            raise ValueError("Invalid authentication type: '%s'. Please check the configuration." % auth_type)
+            raise ValueError('Invalid authentication type: %r. Please check the configuration.' % auth_type)
 
         root = authentication.XCAPAuthResource(XCAPRoot(),
                                                (credential_factory,),

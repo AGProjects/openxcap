@@ -3,23 +3,23 @@
 
 __all__ = ['Certificate', 'PrivateKey']
 
-from gnutls.crypto import X509Certificate,  X509PrivateKey
-
 from application import log
 from application.process import process
+from gnutls.crypto import X509Certificate,  X509PrivateKey
 
 
-class _FileError(Exception): pass
+class _FileError(Exception):
+    pass
 
 
-def file_content(file):
+def file_content(filename):
     path = process.configuration.file(filename)
     if path is None:
-        raise _FileError("File '%s' does not exist" % file)
+        raise _FileError('File %r does not exist' % filename)
     try:
         f = open(path, 'rt')
     except Exception:
-        raise _FileError("File '%s' could not be open" % file)
+        raise _FileError('File %r could not be open' % filename)
     try:
         return f.read()
     finally:
