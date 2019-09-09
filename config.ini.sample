@@ -56,10 +56,11 @@ allow_external_references = No
 
 ; The following parameters control the logging of requests/responses based
 ; on the response code. The values must be a comma-separated list of HTTP
-; response codes or the keyword 'all' that matches all response codes.
+; response codes or one of the keywords 'all' or 'none' to match all or
+; no response codes respectively. Default is none.
 
-; log_request=500
-; log_response=500
+; log_request=none
+; log_response=none
 
 
 [Authentication]
