@@ -102,7 +102,7 @@ class _LoggedTransaction(object):
         headers = '\n'.join('{}: {}'.format(name, header) for name, headers in self._request.headers.getAllRawHeaders() for header in headers)
         body = getattr(self._request, 'attachment', '')
         content = '\n\n'.join(item for item in (headers, body) if item)
-        return '\nRequest:\n\n{}\n\n'.format(content) if content else ''
+        return 'Request:\n\n{}\n'.format(content) if content else ''
 
     @property
     def response_code(self):
@@ -117,7 +117,7 @@ class _LoggedTransaction(object):
         headers = '\n'.join('{}: {}'.format(name, header) for name, headers in self._response.headers.getAllRawHeaders() for header in headers)
         body = self._response.stream.mem if self._response.stream else ''
         content = '\n\n'.join(item for item in (headers, body) if item)
-        return '\nResponse:\n\n{}\n\n'.format(content) if content else ''
+        return 'Response:\n\n{}\n'.format(content) if content else ''
 
 
 class WEBLogger(object):
