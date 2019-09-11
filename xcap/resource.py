@@ -1,9 +1,9 @@
 
 """XCAP resources module"""
 
-from twisted.web2 import http, resource, responsecode
-from twisted.web2.http_headers import ETag, MimeType
-from twisted.web2.static import MetaDataMixin
+from xcap.web import http, resource, responsecode
+from xcap.web.http_headers import ETag, MimeType
+from xcap.web.static import MetaDataMixin
 
 
 class XCAPResource(resource.Resource, resource.LeafResource, MetaDataMixin):

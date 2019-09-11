@@ -8,8 +8,6 @@ from zope.interface import Interface, implements
 from twisted.internet import defer
 from twisted.python import failure
 from twisted.cred import credentials, portal, checkers, error as credError
-from twisted.web2 import http, server, stream, responsecode, http_headers
-from twisted.web2.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 
 from application.configuration.datatypes import NetworkRangeList
 from application.configuration import ConfigSection, ConfigSetting
@@ -23,7 +21,9 @@ from xcap.datatypes import XCAPRootURI
 from xcap.appusage import getApplicationForURI, namespaces, public_get_applications
 from xcap.errors import ResourceNotFound
 from xcap.uri import XCAPUser, XCAPUri
-from twisted.web2.auth import basic, digest
+from xcap.web import http, server, stream, responsecode, http_headers
+from xcap.web.auth import basic, digest
+from xcap.web.auth.wrapper import HTTPAuthResource, UnauthorizedResponse
 
 
 # body of 404 error message to render when user requests xcap-root

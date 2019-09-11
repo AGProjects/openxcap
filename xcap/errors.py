@@ -2,8 +2,8 @@
 """XCAP errors module"""
 
 from xml.sax.saxutils import quoteattr
-from twisted.web2 import http_headers
-from twisted.web2.http import Response, HTTPError
+from xcap.web import http_headers
+from xcap.web.http import Response, HTTPError
 
 __all__ = [
     'XCAPError',

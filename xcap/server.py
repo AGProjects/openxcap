@@ -11,7 +11,6 @@ from application.configuration import ConfigSection, ConfigSetting
 from application import log
 
 from twisted.internet import reactor
-from twisted.web2 import channel, resource, http, responsecode, server
 from twisted.cred.portal import Portal
 
 import xcap
@@ -21,6 +20,7 @@ from xcap.appusage import getApplicationForURI, Backend
 from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute, XCAPNamespaceBinding
 from xcap.logutil import web_logger
 from xcap.tls import Certificate, PrivateKey
+from xcap.web import channel, resource, http, responsecode, server
 from xcap.xpath import AttributeSelector, NamespaceSelector
 
 
