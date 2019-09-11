@@ -13,8 +13,6 @@ from application import log
 from twisted.internet import reactor
 from twisted.web2 import channel, resource, http, responsecode, server
 from twisted.cred.portal import Portal
-from twisted.web2.auth import basic
-from xcap.tweaks import tweak_DigestCredentialFactory
 
 import xcap
 from xcap import authentication
@@ -146,9 +144,9 @@ class XCAPServer(object):
 
         auth_type = AuthenticationConfig.type
         if auth_type == 'basic':
-            credential_factory = basic.BasicCredentialFactory(auth_type)
+            credential_factory = authentication.BasicCredentialFactory(auth_type)
         elif auth_type == 'digest':
-            credential_factory = tweak_DigestCredentialFactory('MD5', auth_type)
+            credential_factory = authentication.DigestCredentialFactory('MD5', auth_type)
         else:
             raise ValueError('Invalid authentication type: %r. Please check the configuration.' % auth_type)
 

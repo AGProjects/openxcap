@@ -2,9 +2,7 @@
 """XCAP authentication module"""
 
 # XXX this module should be either renamed or refactored as it does more then just auth.
-
-from xcap import tweaks; tweaks.tweak_BasicCredentialFactory()
-
+from hashlib import md5
 from zope.interface import Interface, implements
 
 from twisted.internet import defer
@@ -25,6 +23,7 @@ from xcap.datatypes import XCAPRootURI
 from xcap.appusage import getApplicationForURI, namespaces, public_get_applications
 from xcap.errors import ResourceNotFound
 from xcap.uri import XCAPUser, XCAPUri
+from twisted.web2.auth import basic, digest
 
 
 # body of 404 error message to render when user requests xcap-root
@@ -334,3 +333,34 @@ class XCAPAuthResource(HTTPAuthResource):
             d.addCallback(_renderResource)
 
         return d
+
+
+class BasicCredentials(credentials.UsernamePassword):
+    """Custom Basic Credentials, which support both plain and hashed checks."""
+
+    implements(credentials.IUsernamePassword, digest.IUsernameDigestHash)
+
+    def __init__(self, username, password, realm):
+        credentials.UsernamePassword.__init__(self, username, password)
+        self.realm = realm
+
+    @property
+    def hash(self):
+        return md5('{0.username}:{0.realm}:{0.password}'.format(self)).hexdigest()
+
+    def checkHash(self, digestHash):
+        return digestHash == self.hash
+
+
+class BasicCredentialFactory(basic.BasicCredentialFactory):
+    def decode(self, response, request):
+        credential = super(BasicCredentialFactory, self).decode(response, request)
+        return BasicCredentials(credential.username, credential.password, self.realm)
+
+
+class DigestCredentialFactory(digest.DigestCredentialFactory):
+    def generateOpaque(self, nonce, clientip):
+        return super(DigestCredentialFactory, self).generateOpaque(nonce=nonce, clientip=clientip or '')
+
+    def verifyOpaque(self, opaque, nonce, clientip):
+        return super(DigestCredentialFactory, self).verifyOpaque(opaque=opaque, nonce=nonce, clientip=clientip or '')
