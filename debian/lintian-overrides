@@ -1,0 +1,2 @@
+# This file may contain passwords.
+openxcap: non-standard-file-perm etc/openxcap/config.ini 0600 != 0644

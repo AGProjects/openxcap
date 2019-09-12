@@ -1,12 +1,10 @@
-recursive-include debian   changelog compat control copyright
-recursive-include debian   pycompat pyversions rules
-recursive-include debian   *.dirs *.init *.postinst *.postrm *.docs *.install *.default
+recursive-include debian   changelog compat control copyright docs rules
+recursive-include debian   format lintian-overrides openxcap.service
 recursive-include opensips *.cfg
 recursive-include scripts  *.py *.sql
-recursive-include tls      .placeholder
-recursive-include xcap/appusage/xml-schemas  *.xsd
-recursive-include test *
-prune debian/tmp
+recursive-include tls      README
+recursive-include test     *
+prune debian/.debhelper
 prune debian/openxcap
-prune debian/python-module-stampdir
-include INSTALL LICENSE MANIFEST.in TODO config.ini.sample
+prune debian/tmp
+include INSTALL LICENSE MANIFEST.in TODO

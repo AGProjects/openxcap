@@ -3,14 +3,22 @@
 #export DH_VERBOSE=1
 
 %:
-	dh $@ --with python2
+	dh $@ --with python2 --buildsystem=pybuild
 
 override_dh_clean:
 	dh_clean
 	rm -rf build dist MANIFEST
 
-override_dh_install:
-	dh_install
-	install -m 0644 config.ini.sample debian/openxcap/etc/openxcap/config.ini
+override_dh_auto_install:
+	dh_auto_install
+	mv debian/openxcap/etc/openxcap/config.ini.sample debian/openxcap/etc/openxcap/config.ini
 
-.PHONY: override_dh_clean override_dh_install
+override_dh_installsystemd:
+	dh_installsystemd --no-start
+
+override_dh_fixperms:
+	dh_fixperms
+	chmod 600 debian/openxcap/etc/openxcap/config.ini
+
+override_dh_auto_test:
+        # do not run tests as they require a configured openxcap server running
