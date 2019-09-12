@@ -1,8 +1,8 @@
 recursive-include debian   changelog compat control copyright docs rules
 recursive-include debian   format lintian-overrides openxcap.service
 recursive-include scripts  *.py *.sql
+recursive-include test     *.py *.xsd
 recursive-include tls      README
-recursive-include test     *
 prune debian/.debhelper
 prune debian/openxcap
 prune debian/tmp
