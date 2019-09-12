@@ -1,5 +1,5 @@
 recursive-include debian   changelog compat control copyright docs rules
-recursive-include debian   format lintian-overrides logrotate *.service
+recursive-include debian   format lintian-overrides logrotate service
 recursive-include scripts  *.py *.sql
 recursive-include test     *.py *.xsd
 recursive-include tls      README
