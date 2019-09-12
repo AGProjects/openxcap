@@ -6,7 +6,7 @@ from application import log
 from application.configuration import ConfigSection, ConfigSetting
 from application.python.types import Singleton
 from application.system import makedirs
-from logging.handlers import WatchedFileHandler
+from logging import FileHandler
 
 import xcap
 
@@ -135,7 +135,7 @@ class WEBLogger(object):
             self.filename = os.path.join(Logging.directory, 'access.log')
             formatter = log.Formatter()
             formatter.prefix_format = ''
-            handler = WatchedFileHandler(self.filename)
+            handler = FileHandler(self.filename)
             handler.setFormatter(formatter)
             self.logger.addHandler(handler)
             self.logger.propagate = False
