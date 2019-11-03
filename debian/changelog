@@ -1,3 +1,46 @@
+openxcap (2.7.0) unstable; urgency=medium
+
+  * Refactored openxcap script and runtime logic
+
+  - Adapt to process changes in python-application 2.8.0
+  - Use argparse to handle command line arguments
+  - Replaced --pid with --config-dir and --runtime-dir
+  - Added --systemd option for running as a systemd service
+  - Added --debug option to enable verbose logging
+  - Added --debug-memory option to eanble memory debugging
+  - Added code to wait for network to become available on startup
+
+  * Refactored debian packaging
+
+  - Increased debian compatibility level to 11
+  - Updated build and package dependencies
+  - Switched from init script to systemd service
+  - Install README to the debian package docs
+  - Install the configuration sample and extra data files from setup.py
+
+  * Split debian package dependencies one per line
+  * Updated python-application version dependency
+  * Removed no longer needed dependency
+  * Embedded the twisted.web2 framework
+  * Simplified credential factories and removed tweaks
+  * Improved formatting for logged requests and responses
+  * Improved settings description and fixed default value
+  * Some PEP-8 compliance fixes
+
+  * Refactored logging
+
+  - Adapted to logging changes in python-application 2.8.0
+  - Simplified and compacted the web access logging code
+  - Separated the web access logger from the main logger
+  - Got rid of logging filters which improved performance
+  - Reorganized logging related configuration options
+
+  * Switched from WatchedFileHandler to FileHandler for access logs
+  * Added debian logrotate file
+  * Fixed web logging code
+
+ -- Adrian Georgescu <ag@ag-projects.com>  Sun, 03 Nov 2019 09:41:10 -0300
+
 openxcap (2.6.1) unstable; urgency=medium
 
   * Increased debian compatibility level to 9
