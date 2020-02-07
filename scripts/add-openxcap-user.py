@@ -1,8 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/python2
+
 """This is an example that shows how a new user could be added to
 `subscriber' table. It does NOT actually create a new record in
 the database.
 """
+
 import sys
 from hashlib import md5
 
