@@ -1,7 +1,5 @@
 #!/usr/bin/make -f
 
-#export DH_VERBOSE=1
-
 %:
 	dh $@ --with python2 --buildsystem=pybuild
 
@@ -22,3 +20,4 @@ override_dh_fixperms:
 
 override_dh_auto_test:
         # do not run tests as they require a configured openxcap server running
+
