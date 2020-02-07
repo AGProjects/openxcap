@@ -1,45 +1,52 @@
 openxcap (2.7.0) unstable; urgency=medium
 
-  * Refactored openxcap script and runtime logic
-
-  - Adapt to process changes in python-application 2.8.0
-  - Use argparse to handle command line arguments
-  - Replaced --pid with --config-dir and --runtime-dir
-  - Added --systemd option for running as a systemd service
-  - Added --debug option to enable verbose logging
-  - Added --debug-memory option to eanble memory debugging
-  - Added code to wait for network to become available on startup
-
-  * Refactored debian packaging
-
-  - Increased debian compatibility level to 11
-  - Updated build and package dependencies
-  - Switched from init script to systemd service
-  - Install README to the debian package docs
-  - Install the configuration sample and extra data files from setup.py
-
-  * Split debian package dependencies one per line
-  * Updated python-application version dependency
-  * Removed no longer needed dependency
-  * Embedded the twisted.web2 framework
-  * Simplified credential factories and removed tweaks
-  * Improved formatting for logged requests and responses
-  * Improved settings description and fixed default value
-  * Some PEP-8 compliance fixes
-
   * Refactored logging
-
-  - Adapted to logging changes in python-application 2.8.0
-  - Simplified and compacted the web access logging code
-  - Separated the web access logger from the main logger
-  - Got rid of logging filters which improved performance
-  - Reorganized logging related configuration options
-
-  * Switched from WatchedFileHandler to FileHandler for access logs
-  * Added debian logrotate file
+    - Adapted to logging changes in python-application 2.8.0
+    - Simplified and compacted the web access logging code
+    - Separated the web access logger from the main logger
+    - Got rid of logging filters which improved performance
+    - Reorganized logging related configuration options
+  * Refactored openxcap script and runtime logic
+    - Adapt to process changes in python-application 2.8.0
+    - Use argparse to handle command line arguments
+    - Replaced --pid with --config-dir and --runtime-dir
+    - Added --systemd option for running as a systemd service
+    - Added --debug option to enable verbose logging
+    - Added --debug-memory option to eanble memory debugging
+    - Added code to wait for network to become available on startup
+  * Some PEP-8 compliance fixes
+  * Removed no longer used code
+  * Improved settings description and fixed default value
+  * Added boring file
   * Fixed web logging code
+  * Improved formatting for logged requests and responses
+  * Simplified credential factories and removed tweaks
+  * Embedded the twisted.web2 framework
+  * Removed no longer needed dependency
+  * Updated python-application version dependency
+  * Split debian package dependencies one per line
+  * Refactored debian packaging
+    - Increased debian compatibility level to 11
+    - Use pybuild as the debian build system
+    - Updated build and package dependencies
+    - Switched from init script to systemd service
+    - Install README to the debian package docs
+    - Removed no longer used pycompat and pyversions debian files
+    - Removed no longer used openxcap.dirs and openxcap.install debian files
+    - Install the configuration sample and extra data files from setup.py
+  * Removed opensips configuration sample
+  * Removed duplicate changelog file
+  * Do not include python bytecode files in the test directory
+  * Synchronized LICENSE with debian/copyright and updated copyright years
+  * Added debian logrotate file
+  * Removed package prefix from service file name
+  * Switched from WatchedFileHandler to FileHandler for access logs
+  * Made MANIFEST.in more explicit and avoid unnecessary prune commands
+  * Added changelog for version 2.7.0
+  * Removed commented out variable in debian rules
+  * Explicitly use python2 in shebang lines
 
- -- Adrian Georgescu <ag@ag-projects.com>  Sun, 03 Nov 2019 09:41:10 -0300
+ -- Dan Pascu <dan@ag-projects.com>  Fri, 07 Feb 2020 18:23:35 +0200
 
 openxcap (2.6.1) unstable; urgency=medium
 
