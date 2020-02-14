@@ -2,18 +2,19 @@
 # Copyright (C) 2007-2010 AG-Projects.
 #
 
-import sys
 import os
-import unittest
 import re
-import types
 import socket
+import sys
 import time
 import traceback
-from optparse import OptionParser, SUPPRESS_HELP
-from lxml import etree
+import types
+import unittest
+
 from copy import copy
 from ConfigParser import SafeConfigParser as ConfigParser
+from lxml import etree
+from optparse import OptionParser, SUPPRESS_HELP
 from xcaplib import xcapclient
 
 
