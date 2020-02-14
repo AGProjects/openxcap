@@ -14,22 +14,7 @@ from optparse import OptionParser, SUPPRESS_HELP
 from lxml import etree
 from copy import copy
 from ConfigParser import SafeConfigParser as ConfigParser
-
-xcaplib_min_version = (1, 0, 9)
-
-sys.path.append('../../../python-xcaplib')
-import xcaplib
-try:
-    xcaplib.version_info
-except AttributeError:
-    raise ImportError('Need python-xcaplib of version at least %s.%s.%s' % xcaplib_min_version)
-
-if xcaplib.version_info[:3]<xcaplib_min_version:
-    raise ImportError('Need python-xcaplib of version at least %s.%s.%s, you have %s.%s.%s' % \
-                      (xcaplib_min_version + xcaplib.version_info[:3]))
-
 from xcaplib import xcapclient
-del sys.path[-1]
 
 
 apps = ['pres-rules',
