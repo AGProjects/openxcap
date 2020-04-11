@@ -166,9 +166,9 @@ class XCAPProvisioning(EventServiceClient):
         tls_context = TLSContext(credentials)
         self.control = ControlLink(tls_context)
         EventServiceClient.__init__(self, ThorNodeConfig.domain, tls_context)
-        process.signals.add_handler(signal.SIGHUP, self._handle_SIGHUP)
-        process.signals.add_handler(signal.SIGINT, self._handle_SIGINT)
-        process.signals.add_handler(signal.SIGTERM, self._handle_SIGTERM)
+        process.signals.add_handler(signal.SIGHUP, self._handle_signal)
+        process.signals.add_handler(signal.SIGINT, self._handle_signal)
+        process.signals.add_handler(signal.SIGTERM, self._handle_signal)
 
     def _disconnect_all(self, result):
         self.control.disconnect_all()
