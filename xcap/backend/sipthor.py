@@ -35,6 +35,8 @@ from gnutls.interfaces.twisted import TLSContext, X509Credentials
 
 from sipsimple.core import Engine, FromHeader, Header, Publication, RouteHeader, SIPURI
 from sipsimple.threading import run_in_twisted_thread
+from sipsimple.configuration.datatypes import Port
+
 
 import xcap
 from xcap.tls import Certificate, PrivateKey
@@ -61,6 +63,7 @@ class ServerConfig(ConfigSection):
 
     address = ConfigSetting(type=IPAddress, value='0.0.0.0')
     root = ConfigSetting(type=XCAPRootURI, value=None)
+    tcp_port = ConfigSetting(type=Port, value=35060)
 
 
 class JSONValidator(validators.Validator):
@@ -447,6 +450,7 @@ class SIPNotifier(object):
         self.engine = Engine()
         self.engine.start(
            ip_address=None if ServerConfig.address == '0.0.0.0' else ServerConfig.address,
+           tcp_port=ServerConfig.tcp_port,
            user_agent="OpenXCAP %s" % xcap.__version__,
         )
 
@@ -461,7 +465,7 @@ class SIPNotifier(object):
                                       duration=0,
                                       extra_headers=[Header('Thor-Scope', 'publish-xcap')])
             NotificationCenter().add_observer(self, sender=publication)
-            route_header = RouteHeader(SIPURI(host=str(destination_node), port='5060', parameters=dict(transport='udp')))
+            route_header = RouteHeader(SIPURI(host=str(destination_node), port='5060', parameters=dict(transport='tcp')))
             publication.publish(body, route_header, timeout=5)
 
     @run_in_twisted_thread
