@@ -1,3 +1,11 @@
+openxcap (2.7.1) unstable; urgency=medium
+
+  * Fixed installing SIP Thor signal handlers
+  * Switch SIP Thor publisher transport to TCP 
+  * Improved logging
+
+ -- Adrian Georgescu <ag@ag-projects.com>  Sun, 12 Apr 2020 02:35:27 +0200
+
 openxcap (2.7.0) unstable; urgency=medium
 
   * Refactored logging
