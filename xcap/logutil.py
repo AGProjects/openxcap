@@ -102,7 +102,7 @@ class _LoggedTransaction(object):
         headers = '\n'.join('{}: {}'.format(name, header) for name, headers in self._request.headers.getAllRawHeaders() for header in headers)
         body = getattr(self._request, 'attachment', '')
         content = '\n\n'.join(item for item in (headers, body) if item)
-        return 'Request:\n\n{}\n'.format(content) if content else ''
+        return '{}'.format(content) if content else ''
 
     @property
     def response_code(self):
@@ -117,7 +117,7 @@ class _LoggedTransaction(object):
         headers = '\n'.join('{}: {}'.format(name, header) for name, headers in self._response.headers.getAllRawHeaders() for header in headers)
         body = self._response.stream.mem if self._response.stream else ''
         content = '\n\n'.join(item for item in (headers, body) if item)
-        return 'Response:\n\n{}\n'.format(content) if content else ''
+        return '{}'.format(content) if content else ''
 
 
 class WEBLogger(object):
@@ -144,14 +144,25 @@ class WEBLogger(object):
 
     def log_access(self, request, response):
         web_transaction = _LoggedTransaction(request, response)
-        self.logger.info(web_transaction.access_info)
+        if web_transaction.response_code == 200:
+            print(web_transaction.access_info)
+
         if response.code in Logging.log_request:
-            request_content = web_transaction.request_content
+            self.logger.info(web_transaction.access_info)
+            request_content = web_transaction.request_content[0:500]
             if request_content:
+                self.logger.info("\n")
+                self.logger.info("Request from %s: %s" % (web_transaction.remote_host, request.uri))
+                self.logger.info("---")
                 self.logger.info(request_content)
-        if response.code in Logging.log_response and web_transaction.response_length < 5000:
-            response_content = web_transaction.response_content
+
+        if response.code in Logging.log_response:
+            self.logger.info(web_transaction.access_info)
+            response_content = web_transaction.response_content[0:500]
             if response_content:
+                self.logger.info("\n")
+                self.logger.info("Response: %d" % web_transaction.response_code)
+                self.logger.info("---")
                 self.logger.info(response_content)
 
 
