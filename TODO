@@ -1,0 +1,3 @@
+ * Check why xcap-diff notifications are resent even if client acked it
+ * Migrate to Python3
+
