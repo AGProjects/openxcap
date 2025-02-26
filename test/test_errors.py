@@ -3,7 +3,7 @@
 # Copyright (C) 2007-2025 AG-Projects.
 #
 
-from . import common as c
+import common as c
 from urllib.parse import urlparse
 
 class ErrorsTest(c.XCAPTest):

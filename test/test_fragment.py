@@ -3,7 +3,7 @@
 # Copyright (C) 2007-2025 AG-Projects.
 #
 
-from . import common
+import common
 
 document = """<?xml version="1.0" encoding="UTF-8"?>
 <resource-lists xmlns="urn:ietf:params:xml:ns:resource-lists">

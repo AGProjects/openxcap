@@ -3,7 +3,7 @@
 # Copyright (C) 2007-2025 AG-Projects.
 #
 
-from .common import *
+from common import *
 
 app = 'test-app'
 

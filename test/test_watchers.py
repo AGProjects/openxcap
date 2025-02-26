@@ -3,7 +3,7 @@
 # Copyright (C) 2007-2025 AG-Projects.
 #
 
-from .common import XCAPTest, runSuiteFromModule
+from common import XCAPTest, runSuiteFromModule
 
 
 watchers = """<?xml version='1.0' encoding='utf-8'?>

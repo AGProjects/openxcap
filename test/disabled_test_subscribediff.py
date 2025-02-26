@@ -20,7 +20,7 @@ import time
 from queue import Queue, Empty
 from optparse import OptionValueError
 
-from .common import *
+from common import *
 
 from pypjua import *
 from xcap.xcapdiff import xml_document, xml_xcapdiff

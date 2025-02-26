@@ -3,7 +3,7 @@
 # Copyright (C) 2007-2025 AG-Projects.
 #
 
-from .common import *
+from common import *
 
 pres_rules_xml = """<?xml version="1.0" encoding="UTF-8"?>
     <ruleset xmlns="urn:ietf:params:xml:ns:common-policy" xmlns:pr="urn:ietf:params:xml:ns:pres-rules" xmlns:cp="www.counterpath.com/privacy-lists">

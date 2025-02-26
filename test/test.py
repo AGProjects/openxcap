@@ -7,7 +7,7 @@ import sys
 import os
 import traceback
 
-from . import common as c
+import common as c
 
 class TestHarness(object):
     """A test harness for OpenXCAP."""
