@@ -10,13 +10,16 @@ __all__ = ['parse_node_selector', 'AttributeSelector', 'DocumentSelector', 'Elem
 
 # Errors
 
+
 class Error(ValueError): pass
 
+
 class NodeParsingError(Error):
-    http_error = 400
+    status_code = 400
+
 
 class DocumentSelectorError(Error):
-    http_error = 404
+    status_code = 404
 
 
 # XPath tokenizer
@@ -28,16 +31,19 @@ class List(list):
         except LookupError:
             return default
 
+
 class Op(str):
     tag = False
+
 
 class Tag(str):
     tag = True
 
+
 class XPathTokenizer(object):
 
     @classmethod
-    def tokens(cls, selector):
+    def tokens(cls, selector, namespaces={}):
         """
         >>> xpath_tokenizer('resource-lists')
         ['resource-lists']
@@ -61,20 +67,29 @@ class XPathTokenizer(object):
             if len(s) > 1 and s[0] == s[-1] and s[0] in '"\'':
                 return s[1:-1]
             raise NodeParsingError
+        if 'namespace::*' in selector:
+            if 'namespace' not in namespaces:
+                namespaces['namespace'] = 'namespace'  # or another relevant URI for namespace
 
         tokens = List()
         prev = None
-        for op, tag in ElementPath.xpath_tokenizer(selector):
-            if prev == '=':
-                unq = unquote_attr_value
-            else:
-                unq = lambda x:x
-            if op:
-                x = Op(unq(op))
-            else:
-                x = Tag(unq(tag))
-            tokens.append(x)
-            prev = x
+        try:
+            for op, tag in ElementPath.xpath_tokenizer(selector, namespaces):
+                if 'namespace::' in tag:
+                    tokens.append(NamespaceSelector())  # Mapping namespace::* to NamespaceSelector
+                else:
+                    if prev == '=':
+                        unq = unquote_attr_value
+                    else:
+                        unq = lambda x: x
+                    if op:
+                        x = Op(unq(op))
+                    else:
+                        x = Tag(unq(tag))
+                    tokens.append(x)
+                    prev = x
+        except SyntaxError as e:
+            raise NodeParsingError(e)
         return tokens
 
 
@@ -84,32 +99,35 @@ def read_element_tag(lst, index, namespace, namespaces):
     if index == len(lst):
         raise NodeParsingError
     elif lst[index] == '*':
-        return '*', index+1
-    elif lst.get(index+1) == ':':
+        return '*', index + 1
+    elif lst.get(index + 1) == ':':
         if not lst[index].tag:
             raise NodeParsingError
-        if not lst.get(index+2) or not lst.get(index+2).tag:
+        if not lst.get(index + 2) or not lst.get(index + 2).tag:
             raise NodeParsingError
         try:
             namespaces[lst[index]]
         except LookupError:
             raise NodeParsingError
-        return (namespaces[lst[index]], lst[index+2]), index+3
+        return (namespaces[lst[index]], lst[index + 2]), index + 3
     else:
-        return (namespace, lst[index]), index+1
+        return (namespace, lst[index]), index + 1
+
 
 def read_position(lst, index):
-    if lst.get(index) == '[' and lst.get(index+2) == ']':
-        return int(lst[index+1]), index+3
+    if lst.get(index) == '[' and lst.get(index + 2) == ']':
+        return int(lst[index + 1]), index + 3
     return None, index
+
 
 # XML attributes don't belong to the same namespace as containing tag
 def read_att_test(lst, index, _namespace, namespaces):
-    if lst.get(index) == '[' and lst.get(index+1) == '@' and lst.get(index+3) == '=' and lst.get(index+5) == ']':
-        return (None, lst[index+2]), lst[index+4], index+6
-    elif lst.get(index) == '[' and lst.get(index+1) == '@' and lst.get(index+3) == ':' and lst.get(index+5) == '=' and lst.get(index+7) == ']':
-        return (namespaces[lst[index+2]], lst[index+4]), lst[index+6], index+8
+    if lst.get(index) == '[' and lst.get(index + 1) == '@' and lst.get(index + 3) == '=' and lst.get(index + 5) == ']':
+        return (None, lst[index + 2]), lst[index + 4], index + 6
+    elif lst.get(index) == '[' and lst.get(index + 1) == '@' and lst.get(index + 3) == ':' and lst.get(index + 5) == '=' and lst.get(index + 7) == ']':
+        return (namespaces[lst[index + 2]], lst[index + 4]), lst[index + 6], index + 8
     return None, None, index
+
 
 class Step(object):
 
@@ -151,21 +169,24 @@ class Step(object):
         args = [repr(x) for x in args]
         return 'Step(%s)' % ', '.join(args)
 
+
 def read_step(lst, index, namespace, namespaces):
     if lst.get(index) == '@':
-        return AttributeSelector(lst[index+1]), index+2
-    elif lst.get(index) == 'namespace' and lst.get(index+1) == '::' and lst.get(index+2) == '*':
-        return NamespaceSelector(), index+3
+        return AttributeSelector(lst[index + 1]), index + 2
+    elif lst.get(index) == '{namespace}:*':
+        return NamespaceSelector(), index + 1
     else:
         tag, index = read_element_tag(lst, index, namespace, namespaces)
         position, index = read_position(lst, index)
         att_name, att_value, index = read_att_test(lst, index, namespace, namespaces)
         return Step(tag, position, att_name, att_value), index
 
+
 def read_slash(lst, index):
     if lst.get(index) == '/':
-        return index+1
+        return index + 1
     raise NodeParsingError
+
 
 def read_node_selector(lst, namespace, namespaces):
     index = 0
@@ -186,6 +207,7 @@ def read_node_selector(lst, namespace, namespaces):
         index = read_slash(lst, index)
     return ElementSelector(steps, namespace, namespaces), terminal_selector
 
+
 def parse_node_selector(selector, namespace=None, namespaces=dict()):
     """
     >>> parse_node_selector('/resource-lists', None, {})
@@ -193,13 +215,13 @@ def parse_node_selector(selector, namespace=None, namespaces=dict()):
     >>> parse_node_selector('/resource-lists/list[1]/entry[@uri="sip:bob@example.com"]', None, {})
     ([Step((None, 'resource-lists')), Step((None, 'list'), 1), Step((None, 'entry'), None, (None, 'uri'), 'sip:bob@example.com')], None)
     >>> parse_node_selector('/*/list[1][@name="friends"]/@name')
-    ([Step('*'), Step((None, 'list'), 1, (None, 'name'), 'friends')], AttributeSelector('name'))
+([Step('*'), Step((None, 'list'), 1, (None, 'name'), 'friends')], AttributeSelector('name'))
     >>> parse_node_selector('/*[10][@att="val"]/namespace::*')
     ([Step('*', 10, (None, 'att'), 'val')], NamespaceSelector())
     >>> x = parse_node_selector('/resource-lists/list[@name="friends"]/external[@anchor="http://xcap.example.org/resource-lists/users/sip:a@example.org/index/~~/resource-lists/list%5b@name=%22mkting%22%5d"]')
     """
     try:
-        tokens = XPathTokenizer.tokens(selector)
+        tokens = XPathTokenizer.tokens(selector, namespaces)
         element_selector, terminal_selector = read_node_selector(tokens, namespace, namespaces)
         element_selector._original_selector = selector
         return element_selector, terminal_selector
@@ -216,6 +238,7 @@ def parse_node_selector(selector, namespace=None, namespaces=dict()):
 class TerminalSelector(object):
     pass
 
+
 class AttributeSelector(TerminalSelector):
 
     def __init__(self, attribute):
@@ -226,6 +249,7 @@ class AttributeSelector(TerminalSelector):
 
     def __repr__(self):
         return 'AttributeSelector(%r)' % self.attribute
+
 
 class DocumentSelector(str):
     """Constructs a DocumentSelector containing the application_id, context, user_id
@@ -248,13 +272,13 @@ class DocumentSelector(str):
             selector = selector[:-1]
         if not selector:
             raise DocumentSelectorError("Document selector does not contain auid")
-        segments  = selector.split('/')
+        segments = selector.split('/')
         if len(segments) < 2:
             raise DocumentSelectorError("Document selector does not contain context: %r" % selector)
         self.application_id = segments[0]
         self.context = segments[1]
         if self.context not in ("users", "global"):
-            raise DocumentSelectorError("Document selector context must be either 'users' or 'global', not %r: %r" % \
+            raise DocumentSelectorError("Document selector context must be either 'users' or 'global', not %r: %r" %
                                         (self.context, selector))
         self.user_id = None
         if self.context == "users":
@@ -272,9 +296,10 @@ class DocumentSelector(str):
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__, str.__repr__(self))
 
+
 class ElementSelector(list):
 
-    XML_TAG_REGEXP = re.compile('\s*<([^ >/]+)')
+    XML_TAG_REGEXP = re.compile(r'\s*<([^ >/]+)')
 
     def __init__(self, lst, namespace, namespaces):
         list.__init__(self, lst)
@@ -309,13 +334,14 @@ class ElementSelector(list):
         'watcher'
         """
         if self and self[-1].name == '*' and self[-1].position is None:
-            m = self.XML_TAG_REGEXP.match(element_body)
+            m = self.XML_TAG_REGEXP.match(element_body.decode())
             if m:
                 (name, ) = m.groups()
                 result = copy(self)
                 result[-1].name = self._parse_qname(name)
                 return result
         return self
+
 
 class NamespaceSelector(TerminalSelector):
 
@@ -325,9 +351,10 @@ class NamespaceSelector(TerminalSelector):
     def __repr__(self):
         return 'NamespaceSelector()'
 
+
 class NodeSelector(object):
 
-    XMLNS_REGEXP = re.compile("xmlns\((?P<nsdata>.*?)\)")
+    XMLNS_REGEXP = re.compile(r"xmlns\((?P<nsdata>.*?)\)")
     XPATH_DEFAULT_PREFIX = 'default'
 
     def __init__(self, selector, namespace=None):
@@ -371,5 +398,3 @@ class NodeSelector(object):
         ns_bindings = self.ns_bindings.copy()
         ns_bindings[self.XPATH_DEFAULT_PREFIX] = default_ns
         return ns_bindings
-
-
