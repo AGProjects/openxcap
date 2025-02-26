@@ -9,8 +9,10 @@ from xcaplib.httpclient import HTTPResponse
 
 DEBUG = 0
 
+
 def make_client(options):
     return XCAPClient(options.xcap_root, options.sip_address, options.password)
+
 
 class XCAPClient(object):
     """Wrapper of command-line utility xcapclient.
