@@ -7,8 +7,12 @@
 # Inaki Baz Castillo <ibc@aliax.net>
 
 import unittest
+import os
 import sys
-sys.path = ['../..'] + sys.path
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from common import *
 import xcap.xpath
 from xcap.uri import XCAPUri
 
@@ -81,5 +85,5 @@ class XPathTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    runSuiteFromModule()
 
