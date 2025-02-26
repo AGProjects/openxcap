@@ -1,8 +1,8 @@
 
 from application.configuration import ConfigSection, ConfigSetting
-from cStringIO import StringIO
+from io import StringIO
 from lxml import etree
-from urllib import unquote
+from urllib.parse import unquote
 
 import xcap
 from xcap import errors
@@ -40,7 +40,7 @@ def parseExternalListURI(node_uri, default_realm):
         raise errors.ConstraintFailureError("Resource selector missing")
     try:
         uri = XCAPUri(xcap_root, resource_selector, namespaces)
-    except (DocumentSelectorError, NodeParsingError), e:
+    except (DocumentSelectorError, NodeParsingError) as e:
         raise errors.ConstraintFailureError(phrase=str(e))
     else:
         if uri.user.domain is None:
@@ -87,7 +87,7 @@ class PresenceRulesApplication(ApplicationUsage):
             tree = etree.parse(xml)
             root = tree.getroot()
 
-            if oma_namespace in root.nsmap.values():
+            if oma_namespace in list(root.nsmap.values()):
                 # Condition constraints
                 for element in root.iter(conditions_tag):
                     if any([len(element.findall(item)) > 1 for item in (identity_tag, oma_external_list_tag, oma_other_identity_tag, oma_anonymous_request_tag)]):

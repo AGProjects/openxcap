@@ -20,7 +20,7 @@ try:
         except LookupError:
             return str
 except ImportError:
-    from xml.unicode.iso8859 import wstring
+    from xml.str.iso8859 import wstring
     def to_xml_string(str,encoding):
         if string.lower(self._encoding) == 'utf-8':
             return str

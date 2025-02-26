@@ -91,28 +91,28 @@ class AttributesImpl:
         for (aname, avalue) in self._attrs:
             if aname == name:
                 return avalue
-        raise KeyError, name
+        raise KeyError(name)
 
     def getValueByQName(self, name):
         for (aname, avalue) in self._attrs:
             if aname == name:
                 return avalue
-        raise KeyError, name
+        raise KeyError(name)
 
     def getNameByQName(self, name):
         for (aname, avalue) in self._attrs:
             if aname == name:
                 return name
-        raise KeyError, name
+        raise KeyError(name)
 
     def getQNameByName(self, name):
         return self.getNameByQName(name)
 
     def getNames(self):
-        return map(lambda x: x[0], self._attrs)
+        return [x[0] for x in self._attrs]
 
     def getQNames(self):
-        return map(lambda x: x[0], self._attrs)
+        return [x[0] for x in self._attrs]
 
     def __len__(self):
         return len(self._attrs)
@@ -121,7 +121,7 @@ class AttributesImpl:
         for (aname, avalue) in self._attrs:
             if aname == name:
                 return avalue
-        raise KeyError, name
+        raise KeyError(name)
 
     def keys(self):
         return self.getNames()
@@ -144,7 +144,7 @@ class AttributesImpl:
         return self._attrs
 
     def values(self):
-        return map(lambda x: x[1], self._attrs)
+        return [x[1] for x in self._attrs]
 
 # ---
 

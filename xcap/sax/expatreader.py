@@ -214,7 +214,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
             # document. When feeding chunks, they are not normally final -
             # except when invoked from close.
             self._parser.Parse(data, isFinal)
-        except expat.error, e:
+        except expat.error as e:
             exc = SAXParseException(expat.ErrorString(e.code), e, self)
             # FIXME: when to invoke error()?
             self._err_handler.fatalError(exc)
@@ -331,7 +331,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
 
         newattrs = {}
         qnames = {}
-        for (aname, value) in attrs.items():
+        for (aname, value) in list(attrs.items()):
             parts = aname.split()
             length = len(parts)
             if length == 1:
@@ -417,7 +417,7 @@ class ExpatParser(xmlreader.IncrementalParser, xmlreader.Locator):
 # ---
 
 def create_parser(*args, **kwargs):
-    return apply(ExpatParser, args, kwargs)
+    return ExpatParser(*args, **kwargs)
 
 # ---
 

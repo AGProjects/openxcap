@@ -325,7 +325,7 @@ class NamespaceFilter:
         # attrs=attrs.copy()   Will have to do this if more filters are made
 
         # Find declarations, update self.ns_map and self.ns_stack
-        for (a,v) in attrs.items():
+        for (a,v) in list(attrs.items()):
             if a[:6]=="xmlns:":
                 prefix=a[6:]
                 if string.find(prefix,":")!=-1:
@@ -338,7 +338,7 @@ class NamespaceFilter:
             else:
                 continue
 
-            if self.ns_map.has_key(prefix):
+            if prefix in self.ns_map:
                 old_ns[prefix]=self.ns_map[prefix]
             if v:
                 self.ns_map[prefix]=v
@@ -355,10 +355,10 @@ class NamespaceFilter:
         ns = cooked_name[0]
 
         rawnames = {}
-        for (a,v) in attrs.items():
+        for (a,v) in list(attrs.items()):
             del attrs[a]
             aname = self.__process_name(a, is_attr=1)
-            if attrs.has_key(aname):
+            if aname in attrs:
                 self.parser.report_error(1903)
             attrs[aname] = v
             rawnames[aname] = a
@@ -415,7 +415,7 @@ class NamespaceFilter:
             return None, name
         elif default_to != None:
             return (default_to, name)
-        elif self.ns_map.has_key("") and name != "xmlns":
+        elif "" in self.ns_map and name != "xmlns":
             return self.ns_map[""], name
         else:
             return (None, name)

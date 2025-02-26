@@ -143,7 +143,7 @@ class StatusResponse (Response):
             "</html>",
         ))
 
-        if type(output) == unicode:
+        if type(output) == str:
             output = output.encode("utf-8")
             mime_params = {"charset": "utf-8"}
         else:

@@ -203,7 +203,7 @@ def parse_node_selector(selector, namespace=None, namespaces=dict()):
         element_selector, terminal_selector = read_node_selector(tokens, namespace, namespaces)
         element_selector._original_selector = selector
         return element_selector, terminal_selector
-    except NodeParsingError, e:
+    except NodeParsingError as e:
         e.args = ('Failed to parse node: %r' % selector,)
         raise
     except Exception:
@@ -360,7 +360,7 @@ class NodeSelector(object):
     def replace_default_prefix(self, defprefix=None, append_terminal=True):
         if defprefix is None:
             defprefix = self.XPATH_DEFAULT_PREFIX
-        namespace2prefix = dict((v, k) for (k, v) in self.ns_bindings.iteritems())
+        namespace2prefix = dict((v, k) for (k, v) in self.ns_bindings.items())
         namespace2prefix[self.element_selector.namespace] = defprefix
         res = self.element_selector.replace_default_prefix(namespace2prefix)
         if append_terminal and self.terminal_selector:

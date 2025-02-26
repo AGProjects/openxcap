@@ -7,9 +7,9 @@ infrastructure.
 """
 
 # System Imports
-import cgi, time, urlparse
-from urllib import quote, unquote
-from urlparse import urlsplit
+import cgi, time, urllib.parse
+from urllib.parse import quote, unquote
+from urllib.parse import urlsplit
 
 import weakref
 
@@ -170,10 +170,10 @@ class Request(http.Request):
                        error.defaultErrorHandler, defaultHeadersFilter]
 
     def __init__(self, *args, **kw):
-        if kw.has_key('site'):
+        if 'site' in kw:
             self.site = kw['site']
             del kw['site']
-        if kw.has_key('prepathuri'):
+        if 'prepathuri' in kw:
             self._initialprepath = kw['prepathuri']
             del kw['prepathuri']
 
@@ -209,7 +209,7 @@ class Request(http.Request):
         else:
             hostport = host + ':' + str(port)
 
-        return urlparse.urlunparse((
+        return urllib.parse.urlunparse((
             scheme, hostport, path,
             params, querystring, fragment))
 
@@ -228,19 +228,19 @@ class Request(http.Request):
         else:
             # It is an absolute uri, use standard urlparse
             (self.scheme, self.host, self.path,
-             self.params, self.querystring, fragment) = urlparse.urlparse(self.uri)
+             self.params, self.querystring, fragment) = urllib.parse.urlparse(self.uri)
 
         if self.querystring:
             self.args = cgi.parse_qs(self.querystring, True)
         else:
             self.args = {}
 
-        path = map(unquote, self.path[1:].split('/'))
+        path = list(map(unquote, self.path[1:].split('/')))
         if self._initialprepath:
             # We were given an initial prepath -- this is for supporting
             # CGI-ish applications where part of the path has already
             # been processed
-            prepath = map(unquote, self._initialprepath[1:].split('/'))
+            prepath = list(map(unquote, self._initialprepath[1:].split('/')))
 
             if path[:len(prepath)] == prepath:
                 self.prepath = prepath
@@ -360,7 +360,7 @@ class Request(http.Request):
 
         if updatepaths:
             # We found a Resource... update the request.prepath and postpath
-            for x in xrange(len(path) - len(newpath)):
+            for x in range(len(path) - len(newpath)):
                 self.prepath.append(self.postpath.pop(0))
 
         child = self._getChild(None, newres, newpath, updatepaths=updatepaths)
@@ -436,7 +436,7 @@ class Request(http.Request):
 
         segments = path.split("/")
         assert segments[0] == "", "URL path didn't begin with '/': %s" % (path,)
-        segments = map(unquote, segments[1:])
+        segments = list(map(unquote, segments[1:]))
 
         def notFound(f):
             f.trap(http.HTTPError)

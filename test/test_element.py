@@ -3,7 +3,7 @@
 # Copyright (C) 2007-2010 AG-Projects.
 #
 
-from common import *
+from .common import *
 
 xml = """<?xml version="1.0" encoding="UTF-8"?>
    <resource-lists xmlns="urn:ietf:params:xml:ns:resource-lists">
@@ -60,7 +60,7 @@ class ElementTest(XCAPTest):
         self.assertHeader(r, 'ETag')
         self.assertHeader(r, 'Content-type', 'application/xcap-el+xml')
 
-        print 'WARNING: test with URI in att_value is disabled'
+        print('WARNING: test with URI in att_value is disabled')
 #         r = self.get('resource-lists', '/resource-lists/list[@name="friends"]/external[@anchor="http://xcap.example.org/resource-lists/users/sip:a@example.org/index/~~/resource-lists/list%5b@name=&quot;mkting&quot;5d"]')
 #         self.assertBody(r, external)
 #         self.assertHeader(r, 'ETag')

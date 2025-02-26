@@ -1,9 +1,8 @@
-from __future__ import generators
 
-from urllib import quote, string
+from urllib.parse import quote
 
 import UserDict, math, time
-from cStringIO import StringIO
+from io import StringIO
 
 from xcap.web import http_headers, iweb, stream, responsecode
 from twisted.internet import defer, address
@@ -35,10 +34,10 @@ class HeaderAdapter(UserDict.DictMixin):
             yield k, ', '.join(v)
 
     def keys(self):
-        return [k for k, _ in self.iteritems()]
+        return [k for k, _ in self.items()]
 
     def __iter__(self):
-        for k, _ in self.iteritems():
+        for k, _ in self.items():
             yield k
 
     def has_key(self, name):
@@ -85,7 +84,7 @@ class OldRequestAdapter(pb.Copyable, components.Componentized, object):
 
         def _set(self, newheaders):
             headers = http_headers.Headers()
-            for n,v in newheaders.items():
+            for n,v in list(newheaders.items()):
                 headers.setRawHeaders(n, (v,))
             newheaders = headers
             getattr(self, where).headers = newheaders
@@ -192,7 +191,7 @@ class OldRequestAdapter(pb.Copyable, components.Componentized, object):
 
     def setLastModified(self, when):
         # Never returns CACHED -- can it and still be compliant?
-        when = long(math.ceil(when))
+        when = int(math.ceil(when))
         self.response.headers.setHeader('last-modified', when)
         return None
 
@@ -201,7 +200,7 @@ class OldRequestAdapter(pb.Copyable, components.Componentized, object):
         return None
 
     def getAllHeaders(self):
-        return dict(self.headers.iteritems())
+        return dict(iter(self.headers.items()))
 
     def getRequestHostname(self):
         return self.request.host
@@ -411,7 +410,7 @@ class OldResourceAdapter(object):
         return "<%s @ 0x%x adapting %r>" % (self.__class__.__name__, id(self), self.original)
 
     def locateChild(self, req, segments):
-        import server
+        from . import server
         request = iweb.IOldRequest(req)
         if self.original.isLeaf:
             return self, server.StopTraversal

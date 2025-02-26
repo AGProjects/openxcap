@@ -1,9 +1,9 @@
 
 """HTTP handling for the XCAP server"""
 
-from __future__ import absolute_import
 
-import resource as _resource
+
+from . import resource as _resource
 import sys
 
 from application.configuration.datatypes import IPAddress, NetworkRangeList

@@ -40,9 +40,7 @@ class PlainPasswordChecker(database.PlainPasswordChecker): pass
 class HashPasswordChecker(database.HashPasswordChecker): pass
 
 
-class SIPNotifier(object):
-    __metaclass__ = Singleton
-
+class SIPNotifier(object, metaclass=Singleton):
     implements(IObserver)
 
     def __init__(self):

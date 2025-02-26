@@ -15,7 +15,7 @@ class ParserFactory:
     def __init__(self,list=[]):
         # Python 2 compatibility: let consider environment variables
         # and properties override list argument
-        if os.environ.has_key("PY_SAX_PARSER"):
+        if "PY_SAX_PARSER" in os.environ:
             list = string.split(os.environ["PY_SAX_PARSER"], ",")
         _key = "python.xml.sax.parser"
         if sys.platform[:4] == "java" \
@@ -56,18 +56,18 @@ class ParserFactory:
         # We now support both, as well as None (which was the default)
         if parser_list is None:
             parser_list = []
-        elif type(parser_list) == types.StringType:
+        elif type(parser_list) == bytes:
             parser_list = [parser_list]
 
         for parser_name in parser_list+self.parsers:
             try:
                 return self._create_parser(parser_name)
-            except ImportError,e:
-                if sys.modules.has_key(parser_name):
+            except ImportError as e:
+                if parser_name in sys.modules:
                     # The parser module was found, but importing it
                     # failed unexpectedly, pass this exception through
                     raise
-            except _exceptions.SAXReaderNotAvailable, e:
+            except _exceptions.SAXReaderNotAvailable as e:
                 # The parser module detected that it won't work properly,
                 # so mark it as unusable, and try the next one
                 def _create_parser(msg = str(e)):
@@ -77,7 +77,7 @@ class ParserFactory:
         raise _exceptions.SAXReaderNotAvailable("No parsers found", None)
 
 # --- Experimental extension to Parser interface
-import saxlib
+from . import saxlib
 class ExtendedParser(saxlib.Parser):
     "Experimental unofficial SAX level 2 extended parser interface."
 

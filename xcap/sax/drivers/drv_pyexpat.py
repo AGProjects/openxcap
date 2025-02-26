@@ -19,7 +19,7 @@ try:
 except ImportError:
     raise SAXReaderNotAvailable("expat not supported",None)
 
-import urllib2,types
+import urllib.request, urllib.error, urllib.parse,types
 
 # --- SAX_expat
 
@@ -56,7 +56,7 @@ class SAX_expat(saxlib.Parser,saxlib.Locator):
         self.doc_handler.processingInstruction(target,data)
 
     def parse(self,sysID):
-        self.parseFile(urllib2.urlopen(sysID),sysID)
+        self.parseFile(urllib.request.urlopen(sysID),sysID)
 
     def parseFile(self,fileobj,sysID=None):
         self.reset()
@@ -164,7 +164,7 @@ class LazyAttributeMap:
     def getName(self, i):
         try:
             return self.list[2*i]
-        except IndexError,e:
+        except IndexError as e:
             return None
 
     def getType(self, i):
@@ -172,7 +172,7 @@ class LazyAttributeMap:
 
     def getValue(self, i):
         try:
-            if type(i)==types.IntType:
+            if type(i)==int:
                 return self.list[2*i+1]
             else:
                 for ix in range(0,len(self.list),2):
@@ -180,14 +180,14 @@ class LazyAttributeMap:
                         return self.list[ix+1]
 
                 return None
-        except IndexError,e:
+        except IndexError as e:
             return None
 
     def __len__(self):
         return len(self.list)/2
 
     def __getitem__(self, key):
-        if type(key)==types.IntType:
+        if type(key)==int:
             return self.list[2*key+1]
         else:
             for ix in range(0,len(self.list),2):

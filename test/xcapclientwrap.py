@@ -33,7 +33,7 @@ class XCAPClient(object):
             params += ['-c', 'users']
         if filename is not None:
             params += ['--filename', filename]
-        for k, v in (headers or {}).iteritems():
+        for k, v in (headers or {}).items():
             if v is None:
                 params += ['--add-header', k]
             else:
@@ -63,11 +63,11 @@ class XCAPClient(object):
         p = Popen(params, stdin=input and PIPE, stdout=PIPE, stderr=PIPE, env=os.environ)
         (stdout, stderr) = p.communicate(input=input)
         if DEBUG:
-            print '\n______________'
-            print stdout
-            print '--------------'
-            print stderr
-            print '^^^^^^^^^^^^^^'
+            print('\n______________')
+            print(stdout)
+            print('--------------')
+            print(stderr)
+            print('^^^^^^^^^^^^^^')
         code, comment, etag, content_type = parse_stderr(stderr)
 
         hdrs = headers()
@@ -76,8 +76,8 @@ class XCAPClient(object):
             if code is None:
                 code, comment = 200, 'OK'
         else:
-            assert code is not None, `stderr`
-            assert comment is not None, `stderr`
+            assert code is not None, repr(stderr)
+            assert comment is not None, repr(stderr)
 
         if etag is not None:
             hdrs['ETag'] = etag

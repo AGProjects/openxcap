@@ -16,7 +16,7 @@ class XCAPDirectoryApplication(ApplicationUsage):
         sip_uri = "sip:%s@%s" % (uri.user.username, uri.user.domain)
         root = etree.Element("xcap-directory", nsmap={None: self.default_ns})
         if docs:
-            for k, v in docs.iteritems():
+            for k, v in docs.items():
                 folder = etree.SubElement(root, "folder", attrib={'auid': k})
                 for item in v:
                     # We may have more than one document for the same application

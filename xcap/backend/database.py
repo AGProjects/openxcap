@@ -164,8 +164,7 @@ class MultipleResultsError(Error):
     def __init__(self, params):
         Exception.__init__(self, 'database request has more than one result: ' + repr(params))
 
-class Storage(DBBase):
-    __metaclass__ = Singleton
+class Storage(DBBase, metaclass=Singleton):
     implements(IStorage)
 
     app_mapping = {"pres-rules"                             : 1<<1,
@@ -206,7 +205,7 @@ class Storage(DBBase):
             raise MultipleResultsError(params)
         elif result:
             doc, etag = result[0]
-            if isinstance(doc, unicode):
+            if isinstance(doc, str):
                 doc = doc.encode('utf-8')
             check_etag(etag)
             response = StatusResponse(200, etag, doc)
@@ -373,8 +372,8 @@ class Storage(DBBase):
         result = trans.fetchall()
         docs = {}
         for r in result:
-            app = [k for k, v in self.app_mapping.iteritems() if v == r[0]][0]
-            if docs.has_key(app):
+            app = [k for k, v in self.app_mapping.items() if v == r[0]][0]
+            if app in docs:
                 docs[app].append((r[1], r[2]))
             else:
                 docs[app] = [(r[1], r[2])]  # Ex: {'pres-rules': [('index.html', '4564fd9c9a2a2e3e796310b00c9908aa')]}
@@ -394,7 +393,7 @@ def storage_db_connection(uri):
     conn = connectionForURI(uri)
     def cb(res):
         if res[0:1][0:1] and res[0][0]:
-            print '%s xcap documents in the database' % res[0][0]
+            print('%s xcap documents in the database' % res[0][0])
         return res
     def eb(fail):
         fail.printTraceback()

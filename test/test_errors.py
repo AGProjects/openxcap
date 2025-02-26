@@ -3,8 +3,8 @@
 # Copyright (C) 2007-2010 AG-Projects.
 #
 
-import common as c
-from urlparse import urlparse
+from . import common as c
+from urllib.parse import urlparse
 
 class ErrorsTest(c.XCAPTest):
 
@@ -23,7 +23,7 @@ class ErrorsTest(c.XCAPTest):
 
     def test_gibberish(self):
         response = self.communicate('\r\r\r\n\r\n')
-        assert '400 Bad Request' in response, `response`
+        assert '400 Bad Request' in response, repr(response)
 
     def test409(self):
         self.put('resource-lists', 'xxx', status=409)

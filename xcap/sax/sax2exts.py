@@ -4,7 +4,7 @@ Various extensions to the core SAX 2.0 API.
 $Id: sax2exts.py,v 1.5 2001/12/30 22:17:03 loewis Exp $
 """
 
-import saxexts,saxlib
+from . import saxexts,saxlib
 
 # In SAX2, validation is turned-on through a property. Make sure
 # that all parsers returned from this factory are validating

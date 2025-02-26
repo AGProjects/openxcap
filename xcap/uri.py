@@ -31,7 +31,7 @@ Meanwhile, the safe approach is to use &quot;
 
 """
 
-from urllib import unquote
+from urllib.parse import unquote
 from xcap.xpath import DocumentSelector, NodeSelector
 
 
@@ -51,7 +51,7 @@ class XCAPUser(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self.username) and bool(self.domain)
 
     def __str__(self):

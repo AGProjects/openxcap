@@ -203,12 +203,12 @@ class DigestCredentialFactory(object):
         self.algorithm = algorithm
         self.realm = realm
 
-        c = tuple([random.randrange(sys.maxint) for _ in range(3)])
+        c = tuple([random.randrange(sys.maxsize) for _ in range(3)])
 
         self.privateKey = '%d%d%d' % c
 
     def generateNonce(self):
-        c = tuple([random.randrange(sys.maxint) for _ in range(3)])
+        c = tuple([random.randrange(sys.maxsize) for _ in range(3)])
         c = '%d%d%d' % c
         return c
 

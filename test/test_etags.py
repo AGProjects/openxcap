@@ -3,7 +3,7 @@
 # Copyright (C) 2007-2010 AG-Projects.
 #
 
-from common import *
+from .common import *
 
 resource_list_xml = """<?xml version="1.0" encoding="UTF-8"?>
    <resource-lists xmlns="urn:ietf:params:xml:ns:resource-lists">
@@ -78,7 +78,7 @@ class ETagTest2(XCAPTest):
     def test_conditional_PUT(self):
         r = self.put('resource-lists', resource_list_xml)
         etag = self.assertETag(r)
-        assert etag is not None, `etag`
+        assert etag is not None, repr(etag)
 
         # Test conditional PUT logic
         ## Alice and Bob initially share the same etag

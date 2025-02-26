@@ -27,7 +27,7 @@ class SAX_XPValParser(SAX_XPParser):
             self.doc_handler.startElement(name,
                                           XPAttributes(attrs,\
                                                        self.parser.dtd.get_elem(name)))
-        except KeyError,e:
+        except KeyError as e:
             self.doc_handler.startElement(name,XPAttributes(attrs,None))
 
     # --- EXPERIMENTAL PYTHON SAX EXTENSIONS:
@@ -56,15 +56,15 @@ class XPAttributes(saxutils.AttributeMap):
         return "CDATA"        # Used for undeclared elements
 
     def getType(self, i):
-        if type(i)==types.IntType:
+        if type(i)==int:
             try:
-                i=self.map.keys()[i]
-            except KeyError,e:
+                i=list(self.map.keys())[i]
+            except KeyError as e:
                 return "CDATA"
 
         try:
             return self.elemdecl.get_attr(i).get_type()
-        except KeyError,e:
+        except KeyError as e:
             return "CDATA"
 
 # --- Global functions

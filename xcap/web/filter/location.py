@@ -1,5 +1,5 @@
 from xcap.web import responsecode
-import urlparse
+import urllib.parse
 
 __all__ = ['addLocation']
 
@@ -16,7 +16,7 @@ def addLocation(request, location):
             # Check to see whether we have an absolute URI or not.
             # If not, have the request turn it into an absolute URI.
             #
-            (scheme, host, path, params, querystring, fragment) = urlparse.urlparse(location)
+            (scheme, host, path, params, querystring, fragment) = urllib.parse.urlparse(location)
 
             if scheme == "":
                 uri = request.unparseURL(path=location)

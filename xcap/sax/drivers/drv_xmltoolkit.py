@@ -7,7 +7,7 @@ version="0.20"
 import sys
 
 from xml.sax import saxlib,saxutils
-import XMLFactory,XMLClient,urllib2
+import XMLFactory,XMLClient,urllib.request,urllib.error,urllib.parse
 
 class SAX_XTClient(saxlib.Parser,XMLClient.ClientBase):
 
@@ -57,7 +57,7 @@ class SAX_XTClient(saxlib.Parser,XMLClient.ClientBase):
         pass  # SAX ignores comments
 
     def parse(self, sysID):
-        i=urllib2.urlopen(sysID)
+        i=urllib.request.urlopen(sysID)
         self.parseFile(i)
         i.close()
 

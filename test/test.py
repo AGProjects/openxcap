@@ -7,7 +7,7 @@ import sys
 import os
 import traceback
 
-import common as c
+from . import common as c
 
 class TestHarness(object):
     """A test harness for OpenXCAP."""
@@ -49,10 +49,10 @@ def run():
 
     if options.list:
         for x in t.test_suites:
-            print x.modname
+            print(x.modname)
             for i in x:
-                print ' - ', i
-            print
+                print(' - ', i)
+            print()
         return
 
     c.process_options(options)

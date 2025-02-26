@@ -11,10 +11,10 @@ import xmllib
 
 # Make it generate Unicode if possible, UTF-8 else
 try:
-    unicode("")
+    str("")
 except NameError:
-    from xml.unicode.iso8859 import wstring
-    def unicode(str, encoding):
+    from xml.str.iso8859 import wstring
+    def str(str, encoding):
         return wstring.decode(encoding, str).utf8()
 
 # --- SAX_XLParser
@@ -29,17 +29,17 @@ class SAX_XLParser(pylibs.LibParser, xmllib.XMLParser):
         self.reset()
 
     def _convert(self, str):
-        return unicode(str, self.encoding)
+        return str(str, self.encoding)
 
     def unknown_starttag(self, tag, attributes):
-        tag = unicode(tag, self.encoding)
+        tag = str(tag, self.encoding)
         newattr = {}
-        for k, v in attributes.items():
-            newattr[unicode(k, self.encoding)] = unicode(v, self.encoding)
+        for k, v in list(attributes.items()):
+            newattr[str(k, self.encoding)] = str(v, self.encoding)
         self.doc_handler.startElement(tag, saxutils.AttributeMap(newattr))
 
     def handle_endtag(self, tag, method):
-        self.doc_handler.endElement(unicode(tag, self.encoding))
+        self.doc_handler.endElement(str(tag, self.encoding))
 
     def handle_proc(self, name, data):
         self.doc_handler.processingInstruction(name, data[1:])
@@ -51,12 +51,12 @@ class SAX_XLParser(pylibs.LibParser, xmllib.XMLParser):
 
     def handle_data(self, data):
         "Handles PCDATA."
-        data = unicode(data, self.encoding)
+        data = str(data, self.encoding)
         self.doc_handler.characters(data, 0, len(data))
 
     def handle_cdata(self, data):
         "Handles CDATA marked sections."
-        data = unicode(data, self.encoding)
+        data = str(data, self.encoding)
         self.doc_handler.characters(data, 0, len(data))
 
     def getLineNumber(self):

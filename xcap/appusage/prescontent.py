@@ -1,5 +1,5 @@
 
-from cStringIO import StringIO
+from io import StringIO
 from lxml import etree
 from xcap import errors
 from xcap.appusage import ApplicationUsage

@@ -14,7 +14,7 @@ from application.configuration import ConfigSection, ConfigSetting
 
 import struct
 import socket
-import urlparse
+import urllib.parse
 
 import xcap
 from xcap.datatypes import XCAPRootURI
@@ -63,7 +63,7 @@ def generateWWWAuthenticate(headers):
 
         try:
             l = []
-            for k,v in dict(challenge).iteritems():
+            for k,v in dict(challenge).items():
                 l.append("%s=%s" % (k, k in ("algorithm", "stale") and v or http_headers.quoteString(v)))
 
             _generated.append("%s %s" % (scheme, ", ".join(l)))
@@ -207,12 +207,12 @@ class XCAPAuthResource(HTTPAuthResource):
 
     def _updateRealm(self, realm):
         """Updates the realm of the attached credential factories."""
-        for factory in self.credentialFactories.values():
+        for factory in list(self.credentialFactories.values()):
             factory.realm = realm
 
     def authenticate(self, request):
         """Authenticates an XCAP request."""
-        parsed_url = urlparse.urlparse(request.uri)
+        parsed_url = urllib.parse.urlparse(request.uri)
         if request.port in (80, 443):
             uri = request.scheme + "://" + request.host + parsed_url.path
         else:
@@ -239,7 +239,7 @@ class XCAPAuthResource(HTTPAuthResource):
         self._updateRealm(realm)
 
         # If we receive a GET to a 'public GET application' we will not authenticate it
-        if request.method == "GET" and public_get_applications.has_key(xcap_uri.application_id):
+        if request.method == "GET" and xcap_uri.application_id in public_get_applications:
             return self.portal.login(PublicGetApplicationCredentials(),
                                      None,
                                      IPublicGetApplication

@@ -29,7 +29,7 @@ IPushProducer, which will write to a consumer. The second is a
 consumer which is a stream, so that other producers can write to it.
 """
 
-from __future__ import generators
+
 
 import copy, os, types, sys
 from zope.interface import Interface, Attribute, implements
@@ -269,7 +269,7 @@ class MemoryStream(SimpleStream):
         SimpleStream.close(self)
 
 components.registerAdapter(MemoryStream, str, IByteStream)
-components.registerAdapter(MemoryStream, types.BufferType, IByteStream)
+components.registerAdapter(MemoryStream, memoryview, IByteStream)
 
 ##############################
 ####    CompoundStream    ####
@@ -864,7 +864,7 @@ class _StreamIterator(object):
 
     def __iter__(self):
         return self
-    def next(self):
+    def __next__(self):
         if self.done:
             raise StopIteration
         return self.value
@@ -880,7 +880,7 @@ class _IteratorStream(object):
         
     def read(self):
         try:
-            val = self._gen.next()
+            val = next(self._gen)
         except StopIteration:
             return None
         else:

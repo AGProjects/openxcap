@@ -17,7 +17,7 @@ the content of a new element. For RFC compliant behavior, fix such requests
 by replacing '*' with the root tag of the new element.
 """
 
-from StringIO import StringIO
+from io import StringIO
 from xcap import uri
 from xml import sax
 
@@ -513,7 +513,7 @@ class _test(object):
             r = doc.xpath(xpath_expr, namespaces=namespaces)
         except etree.XPathEvalError:
             return uri.NodeParsingError
-        except Exception, ex:
+        except Exception as ex:
             traceback.print_exc()
             return ex
         if len(r)==1:
@@ -527,9 +527,9 @@ class _test(object):
         try:
             selector = uri.parse_node_selector(xpath_expr, namespace, namespaces)[0]
             return get(source, selector)
-        except (uri.NodeParsingError, SelectorError), ex :
+        except (uri.NodeParsingError, SelectorError) as ex :
             return ex.__class__
-        except Exception, ex:
+        except Exception as ex:
             traceback.print_exc()
             return ex
 
@@ -538,9 +538,9 @@ class _test(object):
         try:
             selector = uri.parse_node_selector(xpath_expr, namespace, namespaces)[0]
             return put(source, selector, element)[0]
-        except (uri.NodeParsingError, SelectorError), ex :
+        except (uri.NodeParsingError, SelectorError) as ex :
             return ex.__class__
-        except Exception, ex:
+        except Exception as ex:
             traceback.print_exc()
             return ex
 
@@ -558,8 +558,8 @@ class _test(object):
             def check(expected, argument, **kwargs):
                 result = xpath_get(argument, **kwargs)
                 if expected != result:
-                    print 'EXPR: %s(%r)\nEXPECT: %r\nRESULT: %r\n' % \
-                          (xpath_get.__name__, argument, expected, result)
+                    print('EXPR: %s(%r)\nEXPECT: %r\nRESULT: %r\n' % \
+                          (xpath_get.__name__, argument, expected, result))
                 #else:
                     #print '%s(%r)..ok!' % (xpath_get.__name__, argument)
 
@@ -650,9 +650,9 @@ class _test(object):
         retrieved = cls.xcap_get(expr, source=source)
         retrieved2 = cls.lxml_xpath_get(expr, source=source)
         if retrieved2 != retrieved:
-            print 'xcap_get and lxml_xcap_get results differ! %r' % expr
-            print 'xcap_get: %s' % retrieved
-            print 'lxml_xpath_get: %s' % retrieved2
+            print('xcap_get and lxml_xcap_get results differ! %r' % expr)
+            print('xcap_get: %s' % retrieved)
+            print('lxml_xpath_get: %s' % retrieved2)
         return retrieved
 
     # if true, ignore the value to put and put '*' instead, so it can be easily spotted by human
@@ -661,7 +661,7 @@ class _test(object):
     @classmethod
     def check(cls, insert_pos, what, expected, source=source2, **kwargs):
         if cls.simplify_check:
-            if isinstance(expected, basestring):
+            if isinstance(expected, str):
                 expected = expected.replace(what, '*')
                 what = '*'
         result = cls.xcap_put(insert_pos, what, source=source, **kwargs)
@@ -672,17 +672,17 @@ class _test(object):
             result_check = lambda s: s == expected
 
         if not result_check(result):
-            print 'insert_pos: %s' % insert_pos
-            print 'result: %s' % result
-            print 'expected: %s' % expected
+            print('insert_pos: %s' % insert_pos)
+            print('result: %s' % result)
+            print('expected: %s' % expected)
             return
 
         if not cls.simplify_check:
             retrieved = cls.xcap_get2(insert_pos, result)
             if retrieved != what.strip():
-                print 'GET(PUT(x))!=x'
-                print 'PUT: %r' % what
-                print 'GOT: %r' % retrieved
+                print('GET(PUT(x))!=x')
+                print('PUT: %r' % what)
+                print('GOT: %r' % retrieved)
 
     @classmethod
     def test_put0(cls):
@@ -698,9 +698,9 @@ class _test(object):
 
         retrieved = cls.xcap_get(pos, result, namespace, namespaces)
         if retrieved != what.strip():
-            print 'GET(PUT(x))!=x'
-            print 'PUT: %r' % what
-            print 'GOT: %r' % retrieved
+            print('GET(PUT(x))!=x')
+            print('PUT: %r' % what)
+            print('GOT: %r' % retrieved)
 
 
     @classmethod
@@ -861,7 +861,7 @@ class _test(object):
 
 if __name__ == "__main__":
     from xcap import __version__ as xcap_version
-    print __file__, xcap_version
+    print(__file__, xcap_version)
     import doctest
     doctest.testmod()
     from lxml import etree

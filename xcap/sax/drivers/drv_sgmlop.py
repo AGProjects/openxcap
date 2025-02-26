@@ -9,7 +9,7 @@ version="0.12"
 from xml.parsers import sgmlop
 from xml.sax import saxlib,saxutils
 from xml.sax import SAXException
-import urllib2,string
+import urllib.request, urllib.error, urllib.parse,string
 
 # --- Driver
 
@@ -24,7 +24,7 @@ class Parser(saxlib.Parser):
         self.doc_handler=dh
 
     def parse(self, url):
-        self.parseFile(urllib2.urlopen(url))
+        self.parseFile(urllib.request.urlopen(url))
 
     def parseFile(self, file):
         self._parsing = 1

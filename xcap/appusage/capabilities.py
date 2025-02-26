@@ -25,7 +25,7 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
         namespaces = etree.SubElement(root, "namespaces")
 
         from xcap.appusage import applications
-        for (id, app) in applications.items():
+        for (id, app) in list(applications.items()):
             etree.SubElement(auids, "auid").text = id
             etree.SubElement(namespaces, "namespace").text = app.default_ns
         self.doc = etree.tostring(root, encoding="UTF-8", pretty_print=True, xml_declaration=True)

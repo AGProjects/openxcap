@@ -41,9 +41,9 @@ def parseURI(uri):
         try:
             port = int(port)
         except ValueError:
-            raise ValueError, "port must be integer, got '%s' instead" % port
+            raise ValueError("port must be integer, got '%s' instead" % port)
         if not (1 <= port <= 65535):
-            raise ValueError, "port must be integer in the range 1-65535, got '%d' instead" % port
+            raise ValueError("port must be integer in the range 1-65535, got '%d' instead" % port)
     else:
         port = None
     db = rest
@@ -103,17 +103,17 @@ if __name__=='__main__':
     from twisted.internet import defer
 
     def s():
-        print 's()'
+        print('s()')
         return defer.succeed(True)
     def f():
-        print 'f()'
+        print('f()')
         return defer.fail(ZeroDivisionError())
 
     def getcb(msg):
         def callback(x):
-            print '%s callback: %r' % (msg, x)
+            print('%s callback: %r' % (msg, x))
         def errback(x):
-            print '%s errback: %r' % (msg, x)
+            print('%s errback: %r' % (msg, x))
         return callback, errback
 
     # calls s()'s callback

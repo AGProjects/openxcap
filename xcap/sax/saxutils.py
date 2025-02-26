@@ -5,19 +5,19 @@ convenience of application and driver writers.
 $Id: saxutils.py,v 1.35 2004/03/20 07:46:04 fdrake Exp $
 """
 
-import os, urlparse, urllib2, types
-import handler
-import xmlreader
+import os, urllib.parse, urllib.request, urllib.error, urllib.parse, types
+from . import handler
+from . import xmlreader
 import sys, _exceptions, saxlib
 
 try:
-    _StringTypes = [types.StringType, types.UnicodeType]
+    _StringTypes = [bytes, str]
 except AttributeError: # 1.5 compatibility:UnicodeType not defined
-    _StringTypes = [types.StringType]
+    _StringTypes = [bytes]
 
 def __dict_replace(s, d):
     """Replace substrings of a string using a dictionary."""
-    for key, value in d.items():
+    for key, value in list(d.items()):
         s = s.replace(key, value)
     return s
 
@@ -173,7 +173,7 @@ class ErrorRaiser:
             raise exception
 
 # --- AttributesImpl now lives in xmlreader
-from xmlreader import AttributesImpl
+from .xmlreader import AttributesImpl
 
 # --- XMLGenerator is the SAX2 ContentHandler for writing back XML
 import codecs
@@ -197,7 +197,7 @@ else:
                 try:
                     stream.write(c)
                 except UnicodeError:
-                    stream.write(u"&#%d;" % ord(c))
+                    stream.write("&#%d;" % ord(c))
 
 def writeattr(stream, text):
     countdouble = text.count('"')
@@ -250,7 +250,7 @@ class XMLGenerator(handler.ContentHandler):
 
     def startElement(self, name, attrs):
         self._out.write('<' + name)
-        for (name, value) in attrs.items():
+        for (name, value) in list(attrs.items()):
             self._out.write(' %s=' % name)
             writeattr(self._out, value)
         self._out.write('>')
@@ -275,7 +275,7 @@ class XMLGenerator(handler.ContentHandler):
                 self._out.write(' xmlns:%s="%s"' % (k,v))
         self._undeclared_ns_maps = []
 
-        for (name, value) in attrs.items():
+        for (name, value) in list(attrs.items()):
             if name[0] is None:
                 name = name[1]
             elif self._current_context[name[0]] is None:
@@ -519,8 +519,8 @@ def prepare_input_source(source, base = ""):
             source.setSystemId(os.path.join(basehead, sysid))
             f = open(sysid, "rb")
         else:
-            source.setSystemId(urlparse.urljoin(base, sysid))
-            f = urllib2.urlopen(source.getSystemId())
+            source.setSystemId(urllib.parse.urljoin(base, sysid))
+            f = urllib.request.urlopen(source.getSystemId())
 
         source.setByteStream(f)
 
@@ -542,12 +542,12 @@ class AttributeMap:
         self.map=map
 
     def getLength(self):
-        return len(self.map.keys())
+        return len(list(self.map.keys()))
 
     def getName(self, i):
         try:
-            return self.map.keys()[i]
-        except IndexError,e:
+            return list(self.map.keys())[i]
+        except IndexError as e:
             return None
 
     def getType(self, i):
@@ -555,30 +555,30 @@ class AttributeMap:
 
     def getValue(self, i):
         try:
-            if type(i)==types.IntType:
+            if type(i)==int:
                 return self.map[self.getName(i)]
             else:
                 return self.map[i]
-        except KeyError,e:
+        except KeyError as e:
             return None
 
     def __len__(self):
         return len(self.map)
 
     def __getitem__(self, key):
-        if type(key)==types.IntType:
-            return self.map.keys()[key]
+        if type(key)==int:
+            return list(self.map.keys())[key]
         else:
             return self.map[key]
 
     def items(self):
-        return self.map.items()
+        return list(self.map.items())
 
     def keys(self):
-        return self.map.keys()
+        return list(self.map.keys())
 
     def has_key(self,key):
-        return self.map.has_key(key)
+        return key in self.map
 
     def get(self, key, alternative=None):
         return self.map.get(key, alternative)
@@ -587,7 +587,7 @@ class AttributeMap:
         return AttributeMap(self.map.copy())
 
     def values(self):
-        return self.map.values()
+        return list(self.map.values())
 
 # --- Event broadcasting object
 
@@ -605,7 +605,7 @@ class EventBroadcaster:
 
         def __call__(self,*rest):
             for obj in self.list:
-                apply(getattr(obj,self.name), rest)
+                getattr(obj,self.name)(*rest)
 
     def __init__(self,list):
         self.list=list
@@ -617,7 +617,7 @@ class EventBroadcaster:
         return "<EventBroadcaster instance at %d>" % id(self)
 
 # --- ESIS document handler
-import saxlib
+from . import saxlib
 class ESISDocHandler(saxlib.HandlerBase):
     "A SAX document handler that produces naive ESIS output."
 
@@ -632,7 +632,7 @@ class ESISDocHandler(saxlib.HandlerBase):
     def startElement(self,name,amap):
         "Receive an event signalling the start of an element."
         self.writer.write("("+name+"\n")
-        for a_name in amap.keys():
+        for a_name in list(amap.keys()):
             self.writer.write("A"+a_name+" "+amap[a_name]+"\n")
 
     def endElement(self,name):
@@ -659,7 +659,7 @@ class Canonizer(saxlib.HandlerBase):
     def startElement(self,name,amap):
         self.writer.write("<"+name)
 
-        a_names=amap.keys()
+        a_names=list(amap.keys())
         a_names.sort()
 
         for a_name in a_names:
@@ -713,7 +713,7 @@ class mllib:
         self.reset()
 
     def reset(self):
-        import saxexts # only used here
+        from . import saxexts # only used here
         self.parser=saxexts.XMLParserFactory.make_parser()
         self.handler=mllib.Handler(self.parser,self)
         self.handler.reset()

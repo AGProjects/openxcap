@@ -2,7 +2,7 @@
 import socket
 import warnings
 
-from cStringIO import StringIO
+from io import StringIO
 from twisted.internet import interfaces, protocol, reactor
 from twisted.protocols import policies, basic
 from twisted.python import log
@@ -555,7 +555,7 @@ class HTTPChannelRequest(HTTPParser):
         This method is not intended for users.
         """
         if not self.queued:
-            raise RuntimeError, "noLongerQueued() got called unnecessarily."
+            raise RuntimeError("noLongerQueued() got called unnecessarily.")
 
         self.queued = 0
 
@@ -580,7 +580,7 @@ class HTTPChannelRequest(HTTPParser):
         """
         
         if self.producer:
-            raise ValueError, "registering producer %s before previous one (%s) was unregistered" % (producer, self.producer)
+            raise ValueError("registering producer %s before previous one (%s) was unregistered" % (producer, self.producer))
         
         self.producer = producer
         
@@ -891,7 +891,7 @@ class HTTPFactory(protocol.ServerFactory):
         
         p = protocol.ServerFactory.buildProtocol(self, addr)
         
-        for arg,value in self.protocolArgs.iteritems():
+        for arg,value in self.protocolArgs.items():
             setattr(p, arg, value)
         return p
 

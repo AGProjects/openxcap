@@ -60,13 +60,13 @@ class UserChanges(object):
     
     def unload_changes(self, xcap_root):
         docs = []
-        for uri, (old_etag, etag) in self.changes.iteritems():
+        for uri, (old_etag, etag) in self.changes.items():
             docs.append(xml_document(uri, old_etag, etag))
         result = xml_xcapdiff(xcap_root, '\n'.join(docs))
         self.changes.clear()
         return result
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.changes.__nonzero__()
 
 

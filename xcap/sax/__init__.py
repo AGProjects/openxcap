@@ -16,13 +16,13 @@ parse, parseString     - parse a document, using a provided handler
 
 """
 
-from xmlreader import InputSource
-from handler import ContentHandler, ErrorHandler
-from _exceptions import SAXException, SAXNotRecognizedException,\
+from .xmlreader import InputSource
+from .handler import ContentHandler, ErrorHandler
+from ._exceptions import SAXException, SAXNotRecognizedException,\
                         SAXParseException, SAXNotSupportedException,\
                         SAXReaderNotAvailable
 
-from sax2exts import make_parser
+from .sax2exts import make_parser
 
 def parse(filename_or_stream, handler, errorHandler=ErrorHandler()):
     parser = make_parser()
@@ -32,9 +32,9 @@ def parse(filename_or_stream, handler, errorHandler=ErrorHandler()):
 
 def parseString(string, handler, errorHandler=ErrorHandler()):
     try:
-        from cStringIO import StringIO
+        from io import StringIO
     except ImportError:
-        from StringIO import StringIO
+        from io import StringIO
 
     if errorHandler is None:
         errorHandler = ErrorHandler()

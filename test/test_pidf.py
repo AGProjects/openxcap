@@ -3,7 +3,7 @@
 # Copyright (C) 2007-2010 AG-Projects.
 #
 
-from common import *
+from .common import *
 
 pidf_xml = """<?xml version='1.0' encoding='UTF-8'?>
         <presence xmlns='urn:ietf:params:xml:ns:pidf' 

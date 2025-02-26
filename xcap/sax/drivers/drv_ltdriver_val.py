@@ -4,7 +4,7 @@ A validating-mode SAX driver for the LT XML Python interface.
 
 version="0.10"
 
-import drv_ltdriver
+from . import drv_ltdriver
 from XMLinter import *
 
 class SAX_XMLinter_val(drv_ltdriver.SAX_XMLinter):

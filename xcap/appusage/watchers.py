@@ -16,7 +16,7 @@ class WatchersApplication(ApplicationUsage):
         root = etree.Element("watchers", nsmap={None: self.default_ns})
         for watcher in watchers:
             watcher_elem = etree.SubElement(root, "watcher")
-            for name, value in watcher.iteritems():
+            for name, value in watcher.items():
                 etree.SubElement(watcher_elem, name).text = value
         doc = etree.tostring(root, encoding="utf-8", pretty_print=True, xml_declaration=True)
         #self.validate_document(doc)

@@ -74,7 +74,7 @@ class Syntax:
 
     def __init__(self):
         if self.__class__ is Syntax:
-            raise RuntimeError, "Syntax must be subclassed to be used!"
+            raise RuntimeError("Syntax must be subclassed to be used!")
 
 
 class SGMLSyntax(Syntax):
@@ -106,19 +106,19 @@ class DoctypeInfo:
         self.__attribs = {}
 
     def is_empty(self, gi):
-        return self.__empties.has_key(gi)
+        return gi in self.__empties
 
     def get_empties_list(self):
-        return self.__empties.keys()
+        return list(self.__empties.keys())
 
     def has_element_content(self, gi):
-        return self.__elements_only.has_key(gi)
+        return gi in self.__elements_only
 
     def get_element_containers_list(self):
-        return self.__elements_only.keys()
+        return list(self.__elements_only.keys())
 
     def get_attributes_list(self, gi):
-        return self.__attribs.get(gi, {}).keys()
+        return list(self.__attribs.get(gi, {}).keys())
 
     def get_attribute_info(self, gi, attr):
         return self.__attribs[gi][attr]
@@ -134,13 +134,13 @@ class DoctypeInfo:
             d = self.__attribs[gi]
         except KeyError:
             d = self.__attribs[gi] = {}
-        if not d.has_key(attr):
+        if attr not in d:
             d[attr] = (type, decl, default)
         else:
-            print "<%s> attribute %s already defined" % (gi, attr)
+            print("<%s> attribute %s already defined" % (gi, attr))
 
     def load_pubtext(self, pubtext):
-        raise NotImplementedError, "sublasses must implement load_pubtext()"
+        raise NotImplementedError("sublasses must implement load_pubtext()")
 
 
 class _XMLDTDLoader(xml.parsers.xmlproc.xmlapp.DTDConsumer):
@@ -196,7 +196,7 @@ class SGMLDoctypeInfo(DoctypeInfo):
             pubtext = string.lstrip(pubtext)
             # maybe need to remove/collect tag occurance specifiers
             # ...
-            raise NotImplementedError, "implementation incomplete"
+            raise NotImplementedError("implementation incomplete")
             #
             m = self.__element_prefix_search(pubtext)
 
@@ -249,7 +249,7 @@ class XmlWriter:
 
     def endDocument(self):
         if self.__stack:
-            raise RuntimeError, "open element stack cannot be empty on close"
+            raise RuntimeError("open element stack cannot be empty on close")
 
     def startElement(self, tag, attrs={}):
         if self.__pending_doctype:
@@ -257,7 +257,7 @@ class XmlWriter:
         self._check_pending_content()
         self.__pushtag(tag)
         self.__check_flowing(tag, attrs)
-        if attrs.has_key("xml:lang"):
+        if "xml:lang" in attrs:
             self.__lang = attrs["xml:lang"]
             del attrs["xml:lang"]
         if self._packing:
@@ -284,7 +284,7 @@ class XmlWriter:
         line = stag + a
         self._offset = self._offset + len(line)
         a = ''
-        for k, v in attrs.items():
+        for k, v in list(attrs.items()):
             if v is None:
                 continue
             v = str(v)
@@ -448,8 +448,7 @@ class XmlWriter:
         self._flowing, self.__lang, expected_tag, \
                        self._packing, self._dtdflowing = state
         if tag != expected_tag:
-            raise RuntimeError, \
-                  "expected </%s>, got </%s>" % (expected_tag, tag)
+            raise RuntimeError("expected </%s>, got </%s>" % (expected_tag, tag))
         self._prefix = self._prefix[:-self.indentation]
 
     def __pushtag(self, tag):
@@ -476,7 +475,7 @@ class XmlWriter:
             if info is not None:
                 self._flowing = info[2] != "preserve"
                 self._dtdflowing = self._flowing
-        if attrs.has_key("xml:space"):
+        if "xml:space" in attrs:
             self._flowing = attrs["xml:space"] != "preserve"
             del attrs["xml:space"]
 

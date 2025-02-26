@@ -55,7 +55,7 @@ class JavaSAXParser(xmlreader.XMLReader, ContentHandler):
         self._source = saxutils.prepare_input_source(source)
         try:
             self._parser.parse(source)
-        except SAXException, e:
+        except SAXException as e:
             raise _exceptions.SAXException("", e)
 
     def getFeature(self, name):
@@ -174,7 +174,7 @@ class AttributesImpl:
         return list
 
     def values(self):
-        return map(self._attrs.getValue, self._attrs.getQNames())
+        return list(map(self._attrs.getValue, self._attrs.getQNames()))
 
     def get(self, name, alt = None):
         value = self._attrs.getValue(name)
@@ -203,9 +203,9 @@ def create_java_parser(jdriver = None):
             return factory.newSAXParser().getXMLReader()
         else:
             return XMLReaderFactory.createXMLReader()
-    except ParserConfigurationException, e:
+    except ParserConfigurationException as e:
         raise SAXReaderNotAvailable(e.getMessage())
-    except SAXException, e:
+    except SAXException as e:
         raise SAXReaderNotAvailable(e.getMessage())
 
 def create_parser(jdriver = None):

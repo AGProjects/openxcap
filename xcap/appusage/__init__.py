@@ -4,7 +4,7 @@
 import os
 import sys
 
-from cStringIO import StringIO
+from io import StringIO
 from lxml import etree
 
 from application.configuration import ConfigSection, ConfigSetting
@@ -23,7 +23,7 @@ class Backend(object):
         value = value.lower()
         try:
             return __import__('xcap.backend.%s' % value, globals(), locals(), [''])
-        except (ImportError, AssertionError), e:
+        except (ImportError, AssertionError) as e:
             log.critical('Cannot load %r backend module: %s' % (value, e))
             sys.exit(1)
         except Exception:
@@ -88,10 +88,10 @@ class ApplicationUsage(object):
         try:
             xml_doc = etree.parse(StringIO(xcap_doc))
             # XXX do not use TreeBuilder here
-        except etree.XMLSyntaxError, ex:
+        except etree.XMLSyntaxError as ex:
             ex.http_error = errors.NotWellFormedError(comment=str(ex))
             raise
-        except Exception, ex:
+        except Exception as ex:
             ex.http_error = errors.NotWellFormedError()
             raise
         self._check_UTF8_encoding(xml_doc)
@@ -144,7 +144,7 @@ class ApplicationUsage(object):
 
         try:
             result = element.put(response.data, fixed_element_selector, element_body)
-        except element.SelectorError, ex:
+        except element.SelectorError as ex:
             ex.http_error = errors.NoParentError(comment=str(ex))
             raise
 
@@ -175,10 +175,10 @@ class ApplicationUsage(object):
     def put_element(self, uri, element_body, check_etag):
         try:
             element.check_xml_fragment(element_body)
-        except element.sax.SAXParseException, ex:
+        except element.sax.SAXParseException as ex:
             ex.http_error = errors.NotXMLFragmentError(comment=str(ex))
             raise
-        except Exception, ex:
+        except Exception as ex:
             ex.http_error = errors.NotXMLFragmentError()
             raise
         d = self.get_document(uri, check_etag)
@@ -225,7 +225,7 @@ class ApplicationUsage(object):
         try:
             xpath = uri.node_selector.replace_default_prefix()
             attribute = xml_doc.xpath(xpath, namespaces = ns_dict)
-        except Exception, ex:
+        except Exception as ex:
             ex.http_error = errors.ResourceNotFound()
             raise
         if not attribute:
@@ -250,7 +250,7 @@ class ApplicationUsage(object):
         ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
             elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
-        except Exception, ex:
+        except Exception as ex:
             ex.http_error = errors.ResourceNotFound()
             raise
         if not elem:
@@ -280,7 +280,7 @@ class ApplicationUsage(object):
         ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
             elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
-        except Exception, ex:
+        except Exception as ex:
             ex.http_error = errors.NoParentError()
             raise
         if not elem:
@@ -309,7 +309,7 @@ class ApplicationUsage(object):
         ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
             elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
-        except Exception, ex:
+        except Exception as ex:
             ex.http_error =  errors.ResourceNotFound()
             raise
         if not elem:
@@ -318,7 +318,7 @@ class ApplicationUsage(object):
             raise errors.ResourceNotFound('XPATH expression is ambiguous')
         elem = elem[0]
         namespaces = ''
-        for prefix, ns in elem.nsmap.items():
+        for prefix, ns in list(elem.nsmap.items()):
             namespaces += ' xmlns%s="%s"' % (prefix and ':%s' % prefix or '', ns)
         result = '<%s %s/>' % (elem.tag, namespaces)
         return StatusResponse(200, response.etag, result)
@@ -363,7 +363,7 @@ applications.update(public_get_applications)
 for application in ServerConfig.disabled_applications:
     applications.pop(application, None)
 
-namespaces = dict((k, v.default_ns) for (k, v) in applications.items())
+namespaces = dict((k, v.default_ns) for (k, v) in list(applications.items()))
 
 def getApplicationForURI(xcap_uri):
     return applications.get(xcap_uri.application_id, None)

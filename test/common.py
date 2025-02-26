@@ -12,7 +12,7 @@ import types
 import unittest
 
 from copy import copy
-from ConfigParser import SafeConfigParser as ConfigParser
+from configparser import SafeConfigParser as ConfigParser
 from lxml import etree
 from optparse import OptionParser, SUPPRESS_HELP
 from xcaplib import xcapclient
@@ -74,7 +74,7 @@ class XCAPTest(unittest.TestCase):
     def assertHeader(self, r, key, value=None, msg=None):
         """Fail if (key, [value]) not in r.headers."""
         lowkey = key.lower()
-        for k, v in r.headers.items():
+        for k, v in list(r.headers.items()):
             if k.lower() == lowkey:
                 if value is None or str(value) == v:
                     return v
@@ -228,7 +228,7 @@ class TestLoader(unittest.TestLoader):
         tests = []
         for name in dir(module):
             obj = getattr(module, name)
-            if (isinstance(obj, (type, types.ClassType)) and
+            if (isinstance(obj, type) and
                 issubclass(obj, unittest.TestCase)):
                 tests.append(self.loadTestsFromTestCase(obj))
                 if hasattr(obj, 'setupOptionParser'):
@@ -237,7 +237,7 @@ class TestLoader(unittest.TestLoader):
 
 
 def loadSuiteFromModule(module, option_parser):
-    if isinstance(module, basestring):
+    if isinstance(module, str):
         module = sys.modules[module]
     suite = TestLoader().loadTestsFromModule_wparser(module, option_parser)
     return suite
@@ -249,12 +249,12 @@ def run_suite(suite, options, args):
     if options.debug:
         try:
             suite.debug()
-        except Exception, ex:
-            print '%s: %s' % (ex.__class__.__name__, ex)
+        except Exception as ex:
+            print('%s: %s' % (ex.__class__.__name__, ex))
             for x in dir(ex):
                 attr = getattr(ex, x)
                 if x[:1]!='_' and not callable(attr):
-                    print '%s: %r' % (x, attr)
+                    print('%s: %r' % (x, attr))
             raise
     else:
         unittest.TextTestRunner(verbosity=2).run(suite)
@@ -305,7 +305,7 @@ def process_options(options):
     elif options.client == 'xcaplib':
         pass
     else:
-        import xcapclientwrap
+        from . import xcapclientwrap
         xcapclientwrap.XCAPClient.XCAPCLIENT = options.client
         XCAPTest.new_client = lambda self: xcapclientwrap.make_client(self.options)
     if options.start_server is not None:
@@ -365,7 +365,7 @@ class InProcessServer(object):
             options.password = '123'
 
     def start(self):
-        print 'STARTING SERVER on %s' % self.root
+        print('STARTING SERVER on %s' % self.root)
         start_server(file(self.config_filename))
 
     def stop(self):
@@ -379,7 +379,7 @@ def enable_eventlet():
     from xcaplib import httpclient
     # replacing all the references to the old urllib2 in xcaplib:
     httpclient.urllib2 = urllib2
-    httpclient.HTTPRequest.__bases__ = (urllib2.Request,)
+    httpclient.HTTPRequest.__bases__ = (urllib.request.Request,)
     global socket, time
     socket = greensocket
     time = greentime

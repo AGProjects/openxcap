@@ -8,11 +8,11 @@ import types, string
 
 from xml.sax import SAXNotSupportedException, SAXNotRecognizedException
 from xml.sax.xmlreader import IncrementalParser
-from drv_sgmllib import SgmllibDriver
+from .drv_sgmllib import SgmllibDriver
 
 class HtmllibDriver(SgmllibDriver):
 
-    from htmlentitydefs import entitydefs
+    from html.entities import entitydefs
 
 # ---
 

@@ -17,10 +17,10 @@
 
 import re
 import time
-from Queue import Queue, Empty
+from queue import Queue, Empty
 from optparse import OptionValueError
 
-from common import *
+from .common import *
 
 from pypjua import *
 from xcap.xcapdiff import xml_document, xml_xcapdiff
@@ -84,13 +84,13 @@ def event_handler(event_name, **kwargs):
             direction = "RECEIVED"
         else:
             direction = "SENDING"
-        print "%s: Packet %d, +%s" % (direction, packet_count, (kwargs["timestamp"] - start_time))
-        print "%(timestamp)s: %(source_ip)s:%(source_port)d --> %(destination_ip)s:%(destination_port)d" % kwargs
-        print kwargs["data"]
+        print("%s: Packet %d, +%s" % (direction, packet_count, (kwargs["timestamp"] - start_time)))
+        print("%(timestamp)s: %(source_ip)s:%(source_port)d --> %(destination_ip)s:%(destination_port)d" % kwargs)
+        print(kwargs["data"])
     elif event_name=='log':
         pass
     else:
-        print 'UNHANDLED EVENT', event_name, kwargs
+        print('UNHANDLED EVENT', event_name, kwargs)
 
 
 def get(queue, blocking=True, timeout=1):
@@ -143,7 +143,7 @@ class Test(XCAPTest):
 
                 while time.time() < end:
                     get(queue, timeout=0.1)
-                self.failUnless(is_subscribed, 'SUBSCRIBE failed')
+                self.assertTrue(is_subscribed, 'SUBSCRIBE failed')
 
     #             try:
     #                 X = queue.get(True, timeout = 1)

@@ -27,7 +27,7 @@ class UnauthorizedResponse(http.StatusResponse):
             "You are not authorized to access this resource.")
 
         authHeaders = []
-        for factory in factories.itervalues():
+        for factory in factories.values():
             authHeaders.append((factory.scheme,
                                 factory.getChallenge(remoteAddr)))
 

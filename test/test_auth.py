@@ -3,7 +3,7 @@
 # Copyright (C) 2007-2010 AG-Projects.
 #
 
-from common import *
+from .common import *
 
 class AuthTest(XCAPTest):
     
@@ -34,9 +34,9 @@ class AuthTest(XCAPTest):
         #self.client.account = account
 
 for app in apps:
-    exec """class AuthTest_%s(AuthTest):
+    exec("""class AuthTest_%s(AuthTest):
     app = %r
-""" % (app.replace('-', '_').replace('.', '_'), app)
+""" % (app.replace('-', '_').replace('.', '_'), app))
 
 del AuthTest
 

@@ -151,8 +151,7 @@ class GetSIPWatchers(Request):
         return instance
 
 
-class XCAPProvisioning(EventServiceClient):
-    __metaclass__ = Singleton
+class XCAPProvisioning(EventServiceClient, metaclass=Singleton):
     topics = ["Thor.Members"]
 
     def __init__(self):
@@ -217,7 +216,7 @@ class XCAPProvisioning(EventServiceClient):
         else:
             dburi = None
         self._database.update_dburi(dburi)
-        all_roles = role_map.keys() + networks.keys()
+        all_roles = list(role_map.keys()) + list(networks.keys())
         for role in all_roles:
             try:
                 network = networks[role] ## avoid setdefault here because it always evaluates the 2nd argument
@@ -252,9 +251,7 @@ class NoDatabase(Exception):
     pass
 
 
-class DatabaseConnection(object):
-    __metaclass__ = Singleton
-
+class DatabaseConnection(object, metaclass=Singleton):
     def __init__(self):
         self.dburi = None
 
@@ -356,7 +353,7 @@ class DatabaseConnection(object):
             if update:
                 db_account.profile = profile
             transaction.commit(close=True)
-        except Exception, e:
+        except Exception as e:
             if transaction:
                 transaction.rollback()
             reactor.callFromThread(defer.errback, e)
@@ -440,9 +437,7 @@ class HashPasswordChecker(SipthorPasswordChecker):
                 self._checkedPassword, credentials.username, credentials.realm)
 
 
-class SIPNotifier(object):
-    __metaclass__ = Singleton
-
+class SIPNotifier(object, metaclass=Singleton):
     implements(IObserver)
 
     def __init__(self):
@@ -485,9 +480,7 @@ class SIPNotifier(object):
         NotificationCenter().remove_observer(self, sender=notification.sender)
 
 
-class Storage(object):
-    __metaclass__ = Singleton
-
+class Storage(object, metaclass=Singleton):
     def __init__(self):
         self._database = DatabaseConnection()
         self._provisioning = XCAPProvisioning()
@@ -513,7 +506,8 @@ class Storage(object):
         failure.trap(NotFound)
         return StatusResponse(404)
 
-    def _got_document(self, (doc, etag), check_etag):
+    def _got_document(self, xxx_todo_changeme, check_etag):
+        (doc, etag) = xxx_todo_changeme
         check_etag(etag)
         return StatusResponse(200, etag, doc.encode('utf-8'))
 
@@ -570,7 +564,7 @@ class Storage(object):
                 watcher["online"] = str(watcher["online"]).lower()
             return watchers
         else:
-            print "error: %s" % response
+            print("error: %s" % response)
 
     def get_documents_list(self, uri):
         result = self._database.get_documents_list(uri)
@@ -581,9 +575,9 @@ class Storage(object):
     def _got_documents_list(self, xcap_docs):
         docs = {}
         if xcap_docs:
-            for k, v in xcap_docs.iteritems():
-                for k2, v2 in v.iteritems():
-                    if docs.has_key(k):
+            for k, v in xcap_docs.items():
+                for k2, v2 in v.items():
+                    if k in docs:
                         docs[k].append((k2, v2[1]))
                     else:
                         docs[k] = [(k2, v2[1])]

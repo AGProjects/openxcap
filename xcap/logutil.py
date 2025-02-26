@@ -120,9 +120,7 @@ class _LoggedTransaction(object):
         return '{}'.format(content) if content else ''
 
 
-class WEBLogger(object):
-    __metaclass__ = Singleton
-
+class WEBLogger(object, metaclass=Singleton):
     def __init__(self):
         self.logger = log.get_logger('weblog')
         self.logger.setLevel(log.level.INFO)
@@ -145,7 +143,7 @@ class WEBLogger(object):
     def log_access(self, request, response):
         web_transaction = _LoggedTransaction(request, response)
         if web_transaction.response_code == 200:
-            print(web_transaction.access_info)
+            print((web_transaction.access_info))
 
         if response.code in Logging.log_request:
             self.logger.info(web_transaction.access_info)

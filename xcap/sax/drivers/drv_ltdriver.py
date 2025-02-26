@@ -69,9 +69,9 @@ class SAX_XMLinter(saxlib.Parser):
             elif bit.type=="bad":
                 self.err_handler.fatalError(saxlib.SAXException("Syntax error",None))
             elif bit.type=="pi":
-                print "?pi"
+                print("?pi")
             else:
-                print "###"+bit.type
+                print("###"+bit.type)
 
             bit=GetNextBit(file)
 
@@ -111,7 +111,7 @@ class AttributeItem:
             return self.list[key][0]
 
     def keys(self):
-        return map(name,self.list)
+        return list(map(name,self.list))
 
     def has_key(self, key):
         return GetAttrVal(self.item,key)

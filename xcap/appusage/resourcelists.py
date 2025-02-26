@@ -1,9 +1,9 @@
 
 from application.configuration import ConfigSection, ConfigSetting
-from cStringIO import StringIO
+from io import StringIO
 from lxml import etree
-from urllib import unquote
-from urlparse import urlparse
+from urllib.parse import unquote
+from urllib.parse import urlparse
 
 import xcap
 from xcap import errors
@@ -40,7 +40,7 @@ def parseExternalListURI(node_uri, default_realm):
         raise errors.ConstraintFailureError("Resource selector missing")
     try:
         uri = XCAPUri(xcap_root, resource_selector, namespaces)
-    except (DocumentSelectorError, NodeParsingError), e:
+    except (DocumentSelectorError, NodeParsingError) as e:
         raise errors.ConstraintFailureError(phrase=str(e))
     else:
         if uri.user.domain is None:
@@ -115,7 +115,7 @@ class ResourceListsApplication(ApplicationUsage):
                                 raise ValueError
                         except LookupError:
                             raise ValueError
-                    except (DocumentSelectorError, NodeParsingError), e:
+                    except (DocumentSelectorError, NodeParsingError) as e:
                         raise errors.ConstraintFailureError(phrase=str(e))
                     except ValueError:
                         raise errors.ConstraintFailureError
