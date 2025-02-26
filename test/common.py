@@ -12,7 +12,7 @@ import types
 import unittest
 
 from copy import copy
-from configparser import SafeConfigParser as ConfigParser
+from configparser import ConfigParser
 from lxml import etree
 from optparse import OptionParser, SUPPRESS_HELP
 from xcaplib import xcapclient
