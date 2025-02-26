@@ -119,7 +119,7 @@ class DocumentTest(XCAPTest):
         xml = validate_xcaps_error(r.body)
         namespaces={'d': 'urn:ietf:params:xml:ns:xcap-error'}
         field = xml.xpath('/d:xcap-error/d:uniqueness-failure/d:exists/@field', namespaces=namespaces)
-        [name] = etree.fromstring(resource_lists_xml_non_unique_list).xpath(field[0])
+        [name] = etree.fromstring(resource_lists_xml_non_unique_list.encode()).xpath(field[0])
         assert name=='friends', name
 
 #TODO

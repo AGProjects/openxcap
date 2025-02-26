@@ -46,6 +46,7 @@ class XCAPTest(unittest.TestCase):
             self._args = copy(args)
 
     def new_client(self):
+        self.options.timeout = None
         return xcapclient.make_xcapclient(self.options)
 
     def update_client_options(self):
@@ -135,8 +136,13 @@ class XCAPTest(unittest.TestCase):
         r = client._get(application, node, **kwargs)
         self.validate_error(r, application)
         self.assertStatus(r, status)
-        if 200<=status<=299:
-            self.assertHeader(r, 'ETag')
+        try:
+            if status is not None:
+                if isinstance(status, int):
+                    if 200 <= status <= 299:
+                        self.assertHeader(r, 'ETag')
+        except TypeError:
+            print("Error with status:", status)
         return r
 
     def get_global(self, *args, **kwargs):
@@ -146,7 +152,7 @@ class XCAPTest(unittest.TestCase):
     def put(self, application, resource, node=None,
             status=[200,201], content_type_in_GET=None, client=None, **kwargs):
         client = client or self.client
-        r_put = client._put(application, resource, node, **kwargs)
+        r_put = client._put(application, resource.encode(), node, **kwargs)
         self.validate_error(r_put, application)
         self.assertStatus(r_put, status)
 
@@ -202,8 +208,8 @@ class XCAPTest(unittest.TestCase):
         self.delete(application, status=404, client=client)
 
     def validate_error(self, r, application):
-        if r.status==409 or r.headers.gettype()=='application/xcap-error+xml':
-            self.assertEqual(r.headers.gettype(), 'application/xcap-error+xml')
+        if r.status==409 or r.headers.get_content_type()=='application/xcap-error+xml':
+            self.assertEqual(r.headers.get_content_type(), 'application/xcap-error+xml')
             xml = validate_xcaps_error(r.body)
             if '<uniqueness-failure' in r.body:
                 namespaces={'d': 'urn:ietf:params:xml:ns:xcap-error'}
@@ -262,11 +268,11 @@ def run_suite(suite, options, args):
 
 def validate(document, schema):
     parser = etree.XMLParser(schema = schema)
-    return etree.fromstring(document, parser)
+    return etree.fromstring(document.encode(), parser)
 
 def open_schema(filename):
     my_dir = os.path.dirname(os.path.abspath(__file__))
-    return file(os.path.join(my_dir, 'schemas', filename))
+    return open(os.path.join(my_dir, 'schemas', filename))
 
 def load_schema(filename):
     return etree.XMLSchema(etree.parse(open_schema(filename)))

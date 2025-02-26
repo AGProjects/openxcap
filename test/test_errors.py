@@ -18,19 +18,19 @@ class ErrorsTest(c.XCAPTest):
             s = c.socket.ssl(s)
             s.write(data)
             return s.read(1024*8)
-        s.send(data)
+        s.send(data.encode())
         return s.recv(1024*8)
 
     def test_gibberish(self):
         response = self.communicate('\r\r\r\n\r\n')
-        assert '400 Bad Request' in response, repr(response)
+        assert '400 Bad Request' in response.decode(), repr(response)
 
     def test409(self):
         self.put('resource-lists', 'xxx', status=409)
 
     def check(self, code, message, *uris):
         for uri in uris:
-            r = self.client.con.request('GET', uri)
+            r = self.client.client.request('GET', uri)
             self.assertEqual(r.status, code)
             self.assertInBody(r, message)
 
@@ -61,10 +61,10 @@ class ErrorsTest(c.XCAPTest):
         # XXX test for multiple matches
 
     def test405(self):
-        r = self.client.con.request('POST', '')
+        r = self.client.client.request('POST', '')
         self.assertEqual(r.status, 405)
 
-        r = self.client.con.request('XXX', '')
+        r = self.client.client.request('XXX', '')
         self.assertEqual(r.status, 405) # but apache responds with 501
 
     # 412: tested in test_etags.py

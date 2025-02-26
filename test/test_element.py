@@ -97,7 +97,7 @@ class ElementTest(XCAPTest):
 
         # 415 content type not set
         self.put('resource-lists', nancy, '/resource-lists/list[@name="friends"]',
-                 headers={'Content-Type' : None},status=415)
+                 headers={'Content-Type': ''},status=415)
 
         # 409 <not-xml-frag>
         r = self.put('resource-lists', broken, '/resource-lists/list[@name="friends"]', status=409)
