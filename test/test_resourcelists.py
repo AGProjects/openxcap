@@ -1,6 +1,6 @@
-#!/usr/bin/python2
+#!/usr/bin/env python3
 
-# Copyright (C) 2007-2010 AG-Projects.
+# Copyright (C) 2007-2025 AG-Projects.
 #
 
 from .common import *

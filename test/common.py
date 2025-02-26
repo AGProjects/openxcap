@@ -1,5 +1,5 @@
 
-# Copyright (C) 2007-2010 AG-Projects.
+# Copyright (C) 2007-2025 AG-Projects.
 #
 
 import os
