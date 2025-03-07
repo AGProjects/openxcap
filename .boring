@@ -7,7 +7,7 @@
 (^|/)\.DS_Store$
 (^|/)Thumbs\.db$
 (^|/)core(\.[0-9]+)?$
-\.(pyc|pyo|o|so|orig|rej|prof|bak|BAK|tmp|wpr|wpu|swp|swo|komodoproject)$
+\.(pyc|pyo|o|so|orig|rej|prof|bak|BAK|tmp|wpr|wpu|swp|swo|komodoproject|ini|swp)$
 
 (^|/)\.idea($|/)
 (^|/)\.komodotools($|/)
@@ -17,3 +17,4 @@
 ^config\.ini$
 ^build($|/)
 ^dist($|/)
+^var($|/)
