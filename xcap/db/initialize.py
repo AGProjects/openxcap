@@ -11,9 +11,6 @@ from xcap.configuration import ServerConfig
 
 
 class DatabaseConfig(XCAPDatabaseConfig):
-    __cfgfile__ = 'config.ini'
-    __section__ = 'Database'
-
     authentication_db_uri = ''
     storage_db_uri = ''
 
