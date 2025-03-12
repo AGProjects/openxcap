@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from xcap.appusage import getApplicationForURI
 from xcap.authentication import AuthenticationManager
-from xcap.schemas import XCAPData
 from xcap.services.xcap_service import get_xcap_resource
 from xcap.uri import XCAPUri
 
@@ -26,8 +25,8 @@ async def handle_root(xcap_uri: XCAPUri = Depends(auth_manager.authenticate_requ
     pass
 
 
-@router.get("/xcap-root/{namespace}/{resource_path:path}", response_model=XCAPData)
-@router.get("/xcap-root@{domain}/{namespace}/{resource_path:path}", response_model=XCAPData)
+@router.get("/xcap-root/{namespace}/{resource_path:path}")
+@router.get("/xcap-root@{domain}/{namespace}/{resource_path:path}")
 async def read_xcap_data(
     namespace: str,
     resource_path: str,
@@ -46,8 +45,8 @@ async def post_not_allowed(request: Request):
     raise HTTPException(status_code=405, detail="POST method is not allowed here")
 
 
-@router.put("/xcap-root/{namespace}/{resource_path:path}", response_model=XCAPData)
-@router.put("/xcap-root@{domain}/{namespace}/{resource_path:path}", response_model=XCAPData)
+@router.put("/xcap-root/{namespace}/{resource_path:path}")
+@router.put("/xcap-root@{domain}/{namespace}/{resource_path:path}")
 async def update_xcap_data_route(
     namespace: str,
     resource_path: str,
