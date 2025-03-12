@@ -1,6 +1,20 @@
 import datetime
-from typing import List, Optional, Union
+from typing import List, Optional
 
+from fastapi import Request
+
+
+def get_client_ip(request: Request) -> Optional[str]:
+    forwarded_for = request.headers.get('X-Forwarded-For')
+
+    if forwarded_for:
+        client_ip = forwarded_for.split(',')[0].strip()
+    elif request.client:
+        client_ip = request.client.host
+    else:
+        client_ip = None
+
+    return client_ip
 
 def tokenize(header, foldCase=True):
     """Tokenize a string according to normal HTTP header parsing rules.
