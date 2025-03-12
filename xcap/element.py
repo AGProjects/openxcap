@@ -18,14 +18,15 @@ by replacing '*' with the root tag of the new element.
 """
 
 from io import StringIO
-from xcap import uri
 from xml import sax
+
+from xcap import uri
 
 
 def make_parser():
     parser = sax.make_parser(['xcap.sax.expatreader'])
     parser.setFeature(sax.handler.feature_namespaces, 1)
-    parser.setFeature(sax.handler.feature_namespace_prefixes, 1)
+    #parser.setFeature(sax.handler.feature_namespace_prefixes, 1)
     return parser
 
 class ThrowEventsAway(sax.ContentHandler):
@@ -66,7 +67,7 @@ def check_xml_fragment(element_str):
     parser.setFeature(sax.handler.feature_namespaces, 0)
     parser.setFeature(sax.handler.feature_namespace_prefixes, 0)
     parser.setContentHandler(ThrowEventsAway())
-    parser.parse(StringIO(element_str))
+    parser.parse(StringIO(element_str.decode()))
 
 class Step(object):
     # to be matched against uri.Step
@@ -105,6 +106,7 @@ class ContentHandlerBase(sax.ContentHandler):
         self.end_pos_2 = end_pos_2
 
     def fix_end_pos(self, document):
+        document = document.decode()
         if self.end_tag is not None and self.end_tag in document[self.end_pos:self.end_pos_2]:
             if self.end_pos_2 is None:
                 self.end_pos = 1 + document.index('>', self.end_pos)
@@ -135,6 +137,8 @@ class ElementLocator(ContentHandlerBase):
         self.set_end_pos(None, None, None)
 
     def startElementNS(self, name, qname, attrs):
+        if not qname:
+            qname = name
         #print '-' * (len(self.path) + self.skiplevel), '<', name, '/' + '/'.join(map(str, self.path))
         if self.state=='DONE' and self.end_pos_2 is None:
             self.end_pos_2 = self.pos()
@@ -198,7 +202,9 @@ class ElementLocator(ContentHandlerBase):
         if len(self.path)==len(self.selector) and self.state=='FOUND':
             self.set_state('DONE')
             # QQQ why qname passed to endElementNS is None?
-            qname = self.path[-1].name
+            qname = self.path[-1].name[1]
+            if not qname:
+                qname=''
             self.set_end_pos(self.pos(), '</' + qname + '>')
             # where does pos() point to? two cases:
             # 1. <name>....*HERE*</name>
@@ -233,6 +239,8 @@ class InsertPointLocator(ContentHandlerBase):
         self.set_end_pos(None, None, None)
 
     def startElementNS(self, name, qname, attrs):
+        if not qname:
+            qname = name
         #print '<' * (1+len(self.path) + self.skiplevel), name, '/' + '/'.join(map(str, self.path)),
         #print self.curstep, self.skiplevel
 
@@ -290,8 +298,11 @@ class InsertPointLocator(ContentHandlerBase):
             self.skiplevel -= 1
             return
 
-        qname = self.path[-1].name
+        # qname = self.path[-1].name
 
+        qname = self.path[-1].name[1]
+        if not qname:
+            qname=''
         curstep = self.selector[-1]
         if len(self.path)==len(self.selector):
             parent = self.path[-2]
@@ -353,7 +364,7 @@ def find(document, element_selector):
     parser = make_parser()
     el = ElementLocator(element_selector)
     parser.setContentHandler(el)
-    parser.parse(StringIO(document))
+    parser.parse(StringIO(document.decode()))
     if el.state == 'DONE':
         el.fix_end_pos(document)
         return el.start_pos, el.end_pos
@@ -400,7 +411,7 @@ def put(document, element_selector, element_str):
         ipl = InsertPointLocator(element_selector)
         parser = make_parser()
         parser.setContentHandler(ipl)
-        parser.parse(StringIO(document))
+        parser.parse(StringIO(document.decode()))
         if ipl.state == 'DONE':
             ipl.fix_end_pos(document)
             start, end = ipl.end_pos, ipl.end_pos
@@ -576,12 +587,12 @@ class _test(object):
 
             # there're minor differences between lxml/xpath and this module:
             if xpath_get == cls.lxml_xpath_get:
-                check(uri.NodeParsingError, '/labels\label')
+                check(uri.NodeParsingError, r'/labels\label')
                 check(None, '/')
                 expected1 = '<el1/>'
                 expected2 = None
             else:
-                check(None, '/labels\label')
+                check(None, r'/labels\label')
                 check(uri.NodeParsingError, '/')
                 expected1 = '<el1></el1>'
                 expected2 = '<rl:entry uri="sip:joe@example.com"/>'
@@ -594,7 +605,6 @@ class _test(object):
                   source=cls.rls_services_xml,
                   namespace="urn:ietf:params:xml:ns:rls-services",
                   namespaces={'rl': 'urn:ietf:params:xml:ns:resource-lists'})
-
 
             check(emph1, '/labels/*[1]/quote/emph')
             check(emph1, '/labels/label[1]/quote/emph')
@@ -864,8 +874,9 @@ if __name__ == "__main__":
     print(__file__, xcap_version)
     import doctest
     doctest.testmod()
-    from lxml import etree
     import traceback
+
+    from lxml import etree
     _test.test_get()
     _test.test_put0()
     _test.test_put1()
