@@ -31,37 +31,43 @@ Meanwhile, the safe approach is to use &quot;
 
 """
 
+from typing import Any, Optional, Union
 from urllib.parse import unquote
+
+from xcap.configuration.datatypes import XCAPRootURI
 from xcap.xpath import DocumentSelector, NodeSelector
 
 
 class XCAPUser(object):
 
-    def __init__(self, username, domain):
+    def __init__(self, username: Optional[str] = None, domain: Optional[str] = None):
         self.username = username
         self.domain = domain
 
     @property
-    def uri(self):
+    def uri(self) -> str:
         return 'sip:%s@%s' % (self.username, self.domain)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return isinstance(other, XCAPUser) and self.uri == other.uri
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self.__eq__(other)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.username) and bool(self.domain)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "%s@%s" % (self.username, self.domain)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'XCAPUser(%r, %r)' % (self.username, self.domain)
 
+    def __hash__(self) -> int:
+        return hash(self.username)
+
     @classmethod
-    def parse(cls, user_id, default_domain=None):
+    def parse(cls, user_id: str, default_domain: Optional[str] = None) -> "XCAPUser":
         if user_id.startswith("sip:"):
             user_id = user_id[4:]
         _split = user_id.split('@', 1)
@@ -69,14 +75,14 @@ class XCAPUser(object):
         if len(_split) == 2:
             domain = _split[1]
         else:
-            domain = default_domain
+            domain = default_domain if default_domain else ''
         return cls(username, domain)
 
 
 class XCAPUri(object):
     """An XCAP URI containing the XCAP root, document selector and node selector."""
 
-    def __init__(self, xcap_root, resource_selector, namespaces):
+    def __init__(self, xcap_root: XCAPRootURI, resource_selector: str, namespaces: dict[Any, Any]):
         "namespaces maps application id to default namespace"
         self.xcap_root = xcap_root
         self.resource_selector = unquote(resource_selector)
@@ -94,15 +100,14 @@ class XCAPUri(object):
         doc_selector = _split[0]
         self.doc_selector = DocumentSelector(doc_selector)
         self.application_id = self.doc_selector.application_id
+        self.node_selector: Union[NodeSelector, None] = None
         if len(_split) == 2:
             self.node_selector = NodeSelector(_split[1], namespaces.get(self.application_id))
-        else:
-            self.node_selector = None
         if self.doc_selector.user_id:
             self.user = XCAPUser.parse(self.doc_selector.user_id, realm)
         else:
             self.user = XCAPUser(None, realm)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.xcap_root + self.resource_selector
 
