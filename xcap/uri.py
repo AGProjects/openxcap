@@ -31,7 +31,7 @@ Meanwhile, the safe approach is to use &quot;
 
 """
 
-from typing import Any, Optional, Union
+from typing import Any, Dict, Optional, Union
 from urllib.parse import unquote
 
 from xcap.configuration.datatypes import XCAPRootURI
@@ -82,7 +82,7 @@ class XCAPUser(object):
 class XCAPUri(object):
     """An XCAP URI containing the XCAP root, document selector and node selector."""
 
-    def __init__(self, xcap_root: XCAPRootURI, resource_selector: str, namespaces: dict[Any, Any]):
+    def __init__(self, xcap_root: XCAPRootURI, resource_selector: str, namespaces: Dict[Any, Any]):
         "namespaces maps application id to default namespace"
         self.xcap_root = xcap_root
         self.resource_selector = unquote(resource_selector)

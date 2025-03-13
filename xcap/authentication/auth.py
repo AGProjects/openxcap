@@ -3,7 +3,7 @@ import hashlib
 import socket
 import struct
 import time
-from typing import Optional
+from typing import Dict, Optional
 from uuid import uuid4
 
 from fastapi import HTTPException, Request
@@ -18,7 +18,7 @@ from xcap.uri import XCAPUri
 from xcap.xpath import DocumentSelectorError, NodeParsingError
 
 # In-memory nonce cache with expiration time (for demonstration purposes)
-nonce_cache: dict[int, str] = {}
+nonce_cache: Dict[int, str] = {}
 NONCE_EXPIRATION_TIME = 900  # 15 minutes for nonce expiration
 
 WELCOME = ('<html><head><title>Not Found</title></head>'
