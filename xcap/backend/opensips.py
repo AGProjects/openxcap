@@ -1,121 +1,123 @@
-
-"""Implementation of an OpenSIPS backend."""
-
 import re
+from typing import Union
 
 from application import log
-from application.configuration import ConfigSection, ConfigSetting
-from application.configuration.datatypes import IPAddress
-from application.notification import IObserver, NotificationCenter
+from application.configuration import ConfigSetting
+from application.notification import (IObserver, Notification,
+                                      NotificationCenter)
 from application.python import Null
 from application.python.types import Singleton
-from sipsimple.core import Engine, FromHeader, Header, Publication, RouteHeader, SIPURI
 from sipsimple.configuration.datatypes import SIPProxyAddress
-from sipsimple.threading import run_in_twisted_thread
-from zope.interface import implements
+from sipsimple.core import (SIPURI, Engine, FromHeader, Header, Publication,
+                            RouteHeader)
+from sipsimple.lookup import DNSLookup
+from sipsimple.threading.green import run_in_green_thread
+from starlette.background import BackgroundTask
+from zope.interface import implementer
 
-import xcap
-from xcap.datatypes import XCAPRootURI
-from xcap.backend import database
+from xcap import __version__
+from xcap.backend import StatusResponse
+from xcap.backend.database import DatabaseStorage, PasswordChecker
+from xcap.configuration import OpensipsConfig as XCAPOpensipsConfig
+from xcap.configuration import ServerConfig
+from xcap.types import CheckETagType
+from xcap.uri import XCAPUri
 from xcap.xcapdiff import Notifier
 
 
-class ServerConfig(ConfigSection):
-    __cfgfile__ = xcap.__cfgfile__
-    __section__ = 'Server'
-
-    address = ConfigSetting(type=IPAddress, value='0.0.0.0')
-    root = ConfigSetting(type=XCAPRootURI, value=None)
+class OpensipsConfig(XCAPOpensipsConfig):
+    outbound_sip_proxy = ConfigSetting(type=SIPProxyAddress, value=None)
 
 
-class Config(ConfigSection):
-    __cfgfile__ = xcap.__cfgfile__
-    __section__ = 'OpenSIPS'
-
-    publish_xcapdiff = False
-    outbound_sip_proxy = ''
-
-
-class PlainPasswordChecker(database.PlainPasswordChecker): pass
-class HashPasswordChecker(database.HashPasswordChecker): pass
-
-
+@implementer(IObserver)
 class SIPNotifier(object, metaclass=Singleton):
-    implements(IObserver)
 
     def __init__(self):
         self.engine = Engine()
         self.engine.start(
-           ip_address=None if ServerConfig.address == '0.0.0.0' else ServerConfig.address,
-           user_agent="OpenXCAP %s" % xcap.__version__,
+            ip_address=None if ServerConfig.address == '0.0.0.0' else ServerConfig.address,
+            tcp_port=ServerConfig.tcp_port,
+            user_agent="OpenXCAP %s" % __version__,
         )
         self.sip_prefix_re = re.compile('^sips?:')
         try:
-            self.outbound_proxy = SIPProxyAddress.from_description(Config.outbound_sip_proxy)
+            outbound_sip_proxy = OpensipsConfig.outbound_sip_proxy
+            self.outbound_proxy = SIPURI(host=outbound_sip_proxy.host,
+                                         port=outbound_sip_proxy.port,
+                                         parameters={'transport': 'tcp'})
         except ValueError:
-            log.warning('Invalid SIP proxy address specified: %s' % Config.outbound_sip_proxy)
+            log.warning('Invalid SIP proxy address specified: %s' % OpensipsConfig.outbound_sip_proxy)
             self.outbound_proxy = None
+        NotificationCenter().add_observer(self)
 
-    def send_publish(self, uri, body):
-        if self.outbound_proxy is None:
+    @run_in_green_thread
+    def send_publish(self, uri, body=None):
+        if self.outbound_proxy is None or body is None:
             return
-        uri = self.sip_prefix_re.sub('', uri)
-        publication = Publication(FromHeader(SIPURI(uri)),
+
+        self.body = body
+        self.uri = self.sip_prefix_re.sub('', uri)
+        lookup = DNSLookup()
+        NotificationCenter().add_observer(self, sender=lookup)
+        lookup.lookup_sip_proxy(self.outbound_proxy, ["udp", "tcp", "tls"])
+
+    def handle_notification(self, notification: Notification) -> None:
+        handler = getattr(self, '_NH_%s' % notification.name, Null)
+        handler(notification)
+
+    def _NH_DNSLookupDidSucceed(self, notification: Notification) -> None:
+        notification_center = NotificationCenter()
+        notification_center.remove_observer(self, sender=notification.sender)
+
+        publication = Publication(FromHeader(SIPURI(self.uri)),
                                   "xcap-diff",
                                   "application/xcap-diff+xml",
                                   duration=0,
                                   extra_headers=[Header('Thor-Scope', 'publish-xcap')])
-        NotificationCenter().add_observer(self, sender=publication)
-        route_header = RouteHeader(SIPURI(host=self.outbound_proxy.host, port=self.outbound_proxy.port, parameters=dict(transport=self.outbound_proxy.transport)))
-        publication.publish(body, route_header, timeout=5)
+        notification_center.add_observer(self, sender=publication)
+        route = notification.data.result[0]
+        route_header = RouteHeader(route.uri)
+        publication.publish(self.body, route_header, timeout=5)
 
-    @run_in_twisted_thread
-    def handle_notification(self, notification):
-        handler = getattr(self, '_NH_%s' % notification.name, Null)
-        handler(notification)
+    def _NH_DNSLookupDidFail(self, notification: Notification) -> None:
+        notification.center.remove_observer(self, sender=notification.sender)
 
-    def _NH_SIPPublicationDidSucceed(self, notification):
+    def _NH_SIPPublicationDidSucceed(self, notification: Notification) -> None:
         log.info('PUBLISH for xcap-diff event successfully sent to %s for %s' % (notification.data.route_header.uri, notification.sender.from_header.uri))
 
-    def _NH_SIPPublicationDidEnd(self, notification):
+    def _NH_SIPPublicationDidEnd(self, notification: Notification) -> None:
         log.info('PUBLISH for xcap-diff event ended for %s' % notification.sender.from_header.uri)
         notification.center.remove_observer(self, sender=notification.sender)
 
-    def _NH_SIPPublicationDidFail(self, notification):
+    def _NH_SIPPublicationDidFail(self, notification: Notification) -> None:
         log.info('PUBLISH for xcap-diff event failed to %s for %s' % (notification.data.route_header.uri, notification.sender.from_header.uri))
         notification.center.remove_observer(self, sender=notification.sender)
 
 
-class NotifyingStorage(database.Storage):
+class NotifyingStorage(DatabaseStorage):
     def __init__(self):
         super(NotifyingStorage, self).__init__()
         self._sip_notifier = SIPNotifier()
         self.notifier = Notifier(ServerConfig.root, self._sip_notifier.send_publish)
 
-    def put_document(self, uri, document, check_etag):
-        d = super(NotifyingStorage, self).put_document(uri, document, check_etag)
-        d.addCallback(lambda result: self._on_put(result, uri))
-        return d
-
-    def _on_put(self, result, uri):
+    async def put_document(self, uri: XCAPUri, document: bytes, check_etag: CheckETagType) -> StatusResponse:
+        result = await super(NotifyingStorage, self).put_document(uri, document, check_etag)
         if result.succeed:
-            self.notifier.on_change(uri, result.old_etag, result.etag)
+            result.background = BackgroundTask(self.notifier.on_change, uri, result.old_etag, result.etag)
         return result
 
-    def delete_document(self, uri, check_etag):
-        d = super(NotifyingStorage, self).delete_document(uri, check_etag)
-        d.addCallback(lambda result: self._on_delete(result, uri))
-        return d
-
-    def _on_delete(self, result, uri):
+    async def delete_document(self, uri: XCAPUri, check_etag: CheckETagType) -> StatusResponse:
+        result = await super(NotifyingStorage, self).delete_document(uri, check_etag)
         if result.succeed:
-            self.notifier.on_change(uri, result.old_etag, None)
+            result.background = BackgroundTask(self.notifier.on_change, uri, result.old_etag, None)
         return result
 
 
-if Config.publish_xcapdiff:
+PasswordChecker = PasswordChecker
+
+Storage: Union[type[DatabaseStorage], type[NotifyingStorage]] = DatabaseStorage
+
+if OpensipsConfig.publish_xcapdiff:
     Storage = NotifyingStorage
-else:
-    Storage = database.Storage
 
-installSignalHandlers = database.installSignalHandlers
+installSignalHandlers = False

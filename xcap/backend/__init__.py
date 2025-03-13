@@ -1,52 +1,66 @@
+from abc import ABC, abstractmethod
+from typing import Optional
 
-"""Interface to the backend subsystem"""
+from pydantic import BaseModel
+from starlette.background import BackgroundTasks
 
-__all__ = ['database', 'opensips']
-
-from zope.interface import Interface
+from xcap.uri import XCAPUri
 
 
-class StatusResponse(object):
-    def __init__(self, code, etag=None, data=None, old_etag=None):
-        self.code = code
-        self.etag = etag
-        self.data = data
-        self.old_etag = old_etag
+class CustomBaseModel(BaseModel):
+    def __init__(self, *args, **kwargs):
+        # Get the field names from the class
+        field_names = list(self.__annotations__.keys())
+
+        # Check if we have the right number of positional arguments
+        if len(args) > len(field_names):
+            raise ValueError(f"Too many positional arguments. Expected at most {len(field_names)}")
+
+        # Assign positional arguments to keyword arguments dynamically
+        for i, field in enumerate(field_names):
+            if i < len(args):  # Only assign if we have enough positional arguments
+                kwargs[field] = args[i]
+
+        # Now call the parent __init__ method to handle the rest
+        super().__init__(**kwargs)
+
+
+class StatusResponse(CustomBaseModel):
+    code: int
+    etag: Optional[str] = None
+    data: Optional[bytes] = None  # If this is binary data, it should be bytes
+    old_etag: Optional[str] = None
+    background: Optional[BackgroundTasks] = None
 
     @property
     def succeed(self):
         return 200 <= self.code <= 299
 
-class StorageError(Exception): pass
+    class Config:
+        arbitrary_types_allowed = True
 
 
-class IStorage(Interface):
-    """Storage interface. It defines the methods an XCAP storage class must implement."""
+class BackendInterface(ABC):
 
-    def get_document(self, uri, check_etag):
-        """Fetch an XCAP document.
+    def _normalize_document_path(self, uri):
+        if uri.application_id in ("pres-rules", "org.openmobilealliance.pres-rules"):
+            # some clients e.g. counterpath's eyebeam save presence rules under
+            # different filenames between versions and they expect to find the same
+            # information, thus we are forcing all presence rules documents to be
+            # saved under "index.xml" default filename
+            uri.doc_selector.document_path = "index.xml"
 
-        @param uri: an XCAP URI that contains the XCAP user and the document selector
-        
-        @param check_etag: a callable used to check the etag of the stored document
+    @abstractmethod
+    async def get_document(self, uri: XCAPUri, check_etag) -> Optional[StatusResponse]:
+        """Retrieve data for a specific resource."""
+        pass
 
-        @returns: a deferred that'll be fired when the document is fetched"""
+    @abstractmethod
+    async def put_document(self, uri: XCAPUri, document: bytes, check_etag) -> Optional[StatusResponse]:
+        """Retrieve data for a specific resource."""
+        pass
 
-    def put_document(self, uri, document, check_etag):
-        """Insert or replace an XCAP document.
-        
-        @param uri: an XCAP URI that contains the XCAP user and the document selector
-        
-        @param document: the XCAP document
-        
-        @param check_etag: a callable used to check the etag of the stored document
-        
-        @returns: a deferred that'll be fired when the action was completed."""
-
-    def delete_document(self, uri, check_etag):
-        """Delete an XCAP document.
-        
-        @param uri: an XCAP URI that contains the XCAP user and the document selector
-        
-        @param check_etag: a callable used to check the etag of the document to be deleted
-        """
+    @abstractmethod
+    async def delete_document(self, uri: XCAPUri, check_etag) -> Optional[StatusResponse]:
+        """Retrieve data for a specific resource."""
+        pass
