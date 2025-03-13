@@ -1,6 +1,8 @@
 from application.configuration import ConfigSection, ConfigSetting
-from application.configuration.datatypes import NetworkRangeList, IPAddress
-from xcap.configuration.datatypes import XCAPRootURI, DatabaseURI, ResponseCodeList, Path
+from application.configuration.datatypes import IPAddress, NetworkRangeList
+
+from xcap.configuration.datatypes import (DatabaseURI, Path, ResponseCodeList,
+                                          XCAPRootURI)
 from xcap.tls import Certificate, PrivateKey
 
 
@@ -18,7 +20,7 @@ class ServerConfig(ConfigSection):
     __cfgfile__ = 'config.ini'
     __section__ = 'Server'
 
-    address = ConfigSetting(type=IPAddress, value='127.0.0.1')
+    address = ConfigSetting(type=IPAddress, value='0.0.0.0')
     port = ConfigSetting(type=int, value=8000)
     root = ConfigSetting(type=XCAPRootURI, value=None)
     backend = ConfigSetting(type=str, value=None)
@@ -64,4 +66,15 @@ class LoggingConfig(ConfigSection):
 
     log_request = ConfigSetting(type=ResponseCodeList, value=ResponseCodeList('none'))
     log_response = ConfigSetting(type=ResponseCodeList, value=ResponseCodeList('none'))
+
+
+class ThorNodeConfig(ConfigSection):
+    __cfgfile__ = "config.ini"
+    __section__ = 'ThorNetwork'
+
+    domain = ""
+    multiply = 1000
+    certificate = ConfigSetting(type=Certificate, value=None)
+    private_key = ConfigSetting(type=PrivateKey, value=None)
+    ca = ConfigSetting(type=Certificate, value=None)
 

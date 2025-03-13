@@ -5,10 +5,7 @@ import re
 import signal
 
 from application import log
-from application.configuration import ConfigSection, ConfigSetting
-from application.configuration.datatypes import IPAddress
-from application.notification import (IObserver, NotificationCenter,
-                                      NotificationData)
+from application.notification import IObserver, NotificationCenter
 from application.process import process
 from application.python import Null
 from application.python.types import Singleton
@@ -28,35 +25,13 @@ from zope.interface import implementer
 
 import xcap
 from xcap.backend import BackendInterface, StatusResponse
-from xcap.configuration import ServerConfig
+from xcap.configuration import ServerConfig, ThorNodeConfig
 from xcap.configuration.datatypes import DatabaseURI
-from xcap.datatypes import XCAPRootURI
 from xcap.db.manager import get_auth_db_session, get_db_session
 from xcap.db.models import DataObject, SipAccount
 from xcap.dbutil import make_random_etag
 from xcap.errors import NotFound
-from xcap.tls import Certificate, PrivateKey
 from xcap.xcapdiff import Notifier
-
-
-class ThorNodeConfig(ConfigSection):
-    __cfgfile__ = "config.ini"
-    __section__ = 'ThorNetwork'
-
-    domain = "sipthor.net"
-    multiply = 1000
-    certificate = ConfigSetting(type=Certificate, value=None)
-    private_key = ConfigSetting(type=PrivateKey, value=None)
-    ca = ConfigSetting(type=Certificate, value=None)
-
-
-class ServerConfig(ConfigSection):
-    __cfgfile__ = "config.ini"  # Link to project documentation
-    __section__ = 'Server'
-
-    address = ConfigSetting(type=IPAddress, value='0.0.0.0')
-    root = ConfigSetting(type=XCAPRootURI, value=None)
-    tcp_port = 35060
 
 
 class ThorEntityAddress(bytes):
