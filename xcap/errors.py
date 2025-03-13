@@ -1,9 +1,12 @@
 
 """XCAP errors module"""
 
+from typing import Optional
 from xml.sax.saxutils import quoteattr
-from xcap.web import http_headers
-from xcap.web.http import Response, HTTPError
+
+from fastapi import HTTPException
+from fastapi.responses import Response
+from starlette.status import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
 
 __all__ = [
     'XCAPError',
@@ -12,22 +15,52 @@ __all__ = [
     'NotXMLFragmentError', 'CannotInsertError', 'CannotDeleteError', 'NoParentError',
     'UniquenessFailureError', 'ConstraintFailureError']
 
-class ResourceNotFound(HTTPError):
-    def __init__(self, msg="", content_type=None):
-        self.msg = msg
-        response = Response(404, stream=msg)
+
+class HTTPError(Exception):
+    def __init__(self, response):
+        self.response = response
+
+    def __repr__(self) -> str:
+        return "<%s %s>" % (self.__class__.__name__, self.response)
+
+
+class ResourceNotFound(HTTPException):
+    def __init__(self, msg: str = "", content_type: Optional[str] = None):
         if content_type is None:
-            content_type = http_headers.MimeType("text", "plain")
-        response.headers.setHeader("content-type", content_type)
-        HTTPError.__init__(self, response)
+            content_type = "text/plain"
 
-    def __str__(self):
-        return self.msg
+        # Set the status code to 404
+        self.status_code = HTTP_404_NOT_FOUND
+        self.detail = msg
+        self.headers = {"Content-Type": content_type}
+
+    def __str__(self) -> str:
+        return self.detail
 
 
-class XCAPError(HTTPError):
+class NotFound(ResourceNotFound):
+    pass
 
-    code = 409
+
+class NoDatabase(ResourceNotFound):
+    pass
+
+
+class DBError(ResourceNotFound):
+    def __init__(self, msg: str = "", content_type: Optional[str] = None):
+        super().__init__(msg=msg, content_type=content_type)
+        self.status_code = HTTP_500_INTERNAL_SERVER_ERROR
+
+
+class XMLResponse(Response):
+    media_type = "application/xcap-error+xml"
+
+    def __init__(self, content: str, status_code: int = 200):
+        super().__init__(content=content, status_code=status_code)
+
+
+class XCAPError(Exception):
+    status_code = 409
     namespace = "urn:ietf:params:xml:ns:xcap-error"
     tag = "undefined"
     phrase = ''
@@ -39,23 +72,22 @@ class XCAPError(HTTPError):
             self.comment = '<!--\n' + str(comment).replace('-->', '--&gt;') + '\n-->'
         else:
             self.comment = ''
-        self.response = XMLErrorResponse(self.code, self.build_xml_output())
-        HTTPError.__init__(self, self.response)
+        self.response = XMLResponse(status_code=self.status_code, content=self.build_xml_output())
 
-    def build_xml_output(self):
+    def build_xml_output(self) -> str:
         return """<?xml version="1.0" encoding="UTF-8"?>
 <xcap-error xmlns="%s">%s</xcap-error>""" % (self.namespace, self.format_my_tag())
 
-    def format_my_body(self):
+    def format_my_body(self) -> str:
         return ''
 
-    def format_my_phrase(self):
+    def format_my_phrase(self) -> str:
         if self.phrase:
             return ' phrase=%s' % quoteattr(self.phrase)
         else:
             return ''
 
-    def format_my_tag(self):
+    def format_my_tag(self) -> str:
         phrase_attr = self.format_my_phrase()
         body = self.format_my_body()
         if body or self.comment:
@@ -63,56 +95,41 @@ class XCAPError(HTTPError):
         else:
             return '<%s%s/>' % (self.tag, phrase_attr)
 
-    def __str__(self):
-        try:
-            return self.format_my_tag()
-        except:
-            return ''
+    def __str__(self) -> str:
+        return self.format_my_tag()
 
-
-class XMLErrorResponse(Response):
-    """
-    A L{Response} object which simply contains a status code and a description of
-    what happened.
-    """
-
-    def __init__(self, code, output):
-        """
-        @param code: a response code in L{responsecode.RESPONSES}.
-        @param output: the body to be attached to the response
-        """
-
-        output = output.encode("utf-8")
-        mime_params = {"charset": "utf-8"}
-
-        Response.__init__(self, code=code, stream=output)
-
-        ## Its MIME type, registered by this specification, is "application/xcap-error+xml".
-        self.headers.setHeader("content-type", http_headers.MimeType("application", "xcap-error+xml", mime_params))
 
 class SchemaValidationError(XCAPError):
     tag = "schema-validation-error"
 
+
 class NotXMLFragmentError(XCAPError):
     tag = "not-xml-frag"
+
 
 class CannotInsertError(XCAPError):
     tag = "cannot-insert"
 
+
 class CannotDeleteError(XCAPError):
     tag = "cannot-delete"
+
 
 class NotXMLAtrributeValueError(XCAPError):
     tag = "not-xml-att-value"
 
+
 class NotWellFormedError(XCAPError):
     tag = "not-well-formed"
+
 
 class ConstraintFailureError(XCAPError):
     tag = "constraint-failure"
 
+
 class NotUTF8Error(XCAPError):
     tag = "not-utf-8"
+
 
 class NoParentError(XCAPError):
     tag = "no-parent"
@@ -126,6 +143,7 @@ class NoParentError(XCAPError):
             return "<ancestor>%s</ancestor>" % self.ancestor
         else:
             return ""
+
 
 class UniquenessFailureError(XCAPError):
     tag = "uniqueness-failure"
