@@ -3,7 +3,6 @@ from typing import Any, Callable, Optional
 from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import select
 
-from xcap.authentication import Credentials
 from xcap.backend import BackendInterface, StatusResponse
 from xcap.db.manager import get_auth_db_session, get_db_session
 from xcap.db.models import XCAP, Subscriber, Watcher
