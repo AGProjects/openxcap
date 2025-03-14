@@ -14,6 +14,7 @@ class DataObject(BaseModel):
 
 class SipAccountData(SQLModel, table=True):
     __tablename__ = 'sip_accounts_data'
+    __database__ = 'sipthor_db'
     id: int = Field(default=None, primary_key=True)
     account_id: int = Field(default=None, foreign_key="sip_accounts_meta.id")
     profile: Optional[dict] = Field(default=None, sa_column=Column(JSON))
@@ -25,6 +26,7 @@ class SipAccountData(SQLModel, table=True):
 
 class SipAccount(SQLModel, table=True):
     __tablename__ = 'sip_accounts_meta'
+    __database__ = 'sipthor_db'
     id: int = Field(default=None, primary_key=True)
     username: str = Field(max_length=64)
     domain: str = Field(max_length=64)

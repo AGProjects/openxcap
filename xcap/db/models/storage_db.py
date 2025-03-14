@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlmodel import (Field, ForeignKey, Index, Relationship, SQLModel,
-                      UniqueConstraint)
+from sqlmodel import (Column, Field, ForeignKey, Index, Integer, Relationship,
+                      SQLModel, UniqueConstraint)
 
 from xcap.configuration import DatabaseConfig
 
@@ -11,7 +11,7 @@ class XCAP(SQLModel, table=True):
     __tablename__ = DatabaseConfig.xcap_table
     __database__ = 'storage_db'
     id: Optional[int] = Field(default=None, primary_key=True)
-    subscriber_id: Optional[int] = Field(default=None, sa_column=ForeignKey("subscriber.id", ondelete="CASCADE"))
+    subscriber_id: Optional[int] = Field(default=None, sa_column=Column(Integer, ForeignKey("subscriber.id", ondelete="CASCADE")))
     username: str = Field(max_length=64)
     domain: str = Field(max_length=64)
     doc: bytes  # Representing longblob as bytes

@@ -5,9 +5,9 @@ Revises:
 Create Date: 2025-03-11 16:45:10.460029
 
 """
-from alembic import op
 import sqlalchemy as sa
 import sqlmodel
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '9662e80c6ac2'
@@ -41,6 +41,7 @@ def upgrade() -> None:
     sa.Column('source', sa.Integer(), nullable=False),
     sa.Column('doc_uri', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False),
     sa.Column('port', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['subscriber_id'], ['subscriber.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('username', 'domain', 'doc_type', 'doc_uri', name='account_doc_type_idx')
     )

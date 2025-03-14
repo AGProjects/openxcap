@@ -53,7 +53,7 @@ def set_all_version_locations(cfg):
 
 def init_db():
     same_db = False
-    if ServerConfig.backend not in ['Database', 'OpenSIPS'] and not DatabaseConfig.storage_db_uri or not DatabaseConfig.authentication_db_uri:
+    if ServerConfig.backend not in ['Database', 'OpenSIPS'] or not DatabaseConfig.storage_db_uri or not DatabaseConfig.authentication_db_uri:
         return
 
     if DatabaseConfig.authentication_db_uri == DatabaseConfig.storage_db_uri:
