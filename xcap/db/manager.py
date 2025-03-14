@@ -12,6 +12,7 @@ from sqlmodel import SQLModel
 from zope.interface import implementer
 
 from xcap.configuration import DatabaseConfig, ServerConfig
+from xcap.configuration.datatypes import DatabaseURI
 from xcap.errors import DBError, NoDatabase
 
 
@@ -28,7 +29,7 @@ class DatabaseConnectionManager:
         if notification.name == 'db_uri':
             self.configure_db_connection(notification.data)
 
-    def create_engine(self, uri) -> AsyncEngine:
+    def create_engine(self, uri: DatabaseURI) -> AsyncEngine:
         if uri.startswith('sqlite'):
             return create_async_engine(uri, connect_args={"check_same_thread": False}, echo=False)
         elif uri.startswith('mysql'):
@@ -36,7 +37,7 @@ class DatabaseConnectionManager:
         else:
             raise ValueError("Unsupported database URI scheme")
 
-    def configure_db_connection(self, uri=None) -> None:
+    def configure_db_connection(self, uri: Optional[DatabaseURI] = None) -> None:
         """ Configure the database connection with the provided URI for Uvicorn """
         if uri and self.dburi == uri:
             return
