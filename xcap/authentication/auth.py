@@ -99,6 +99,7 @@ class AuthenticationManager:
 
         ha1 = user[0].ha1
         if AuthenticationConfig.cleartext_passwords:
+            credentials.password = user[0].password
             ha1 = credentials.hash
 
         # Compute the ha2 hash (method:uri)
