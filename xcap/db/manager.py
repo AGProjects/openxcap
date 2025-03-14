@@ -1,12 +1,13 @@
 import sys
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
+from typing import AsyncIterator, Callable, Optional
 
 from application import log
-from application.notification import IObserver, NotificationCenter
+from application.notification import (IObserver, Notification,
+                                      NotificationCenter)
 from sqlalchemy import event
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import (AsyncEngine, AsyncSession,
+                                    async_sessionmaker, create_async_engine)
 from sqlmodel import SQLModel
 from zope.interface import implementer
 
@@ -16,18 +17,18 @@ from xcap.errors import DBError, NoDatabase
 
 @implementer(IObserver)
 class DatabaseConnectionManager:
-    AsyncSessionLocal = None
-    AsyncAuthSessionLocal = None
+    AsyncSessionLocal: Optional[Callable] = None
+    AsyncAuthSessionLocal: Optional[Callable] = None
     dburi = None
 
     def __init__(self):
         NotificationCenter().add_observer(self)
 
-    def handle_notification(self, notification):
+    def handle_notification(self, notification: Notification) -> None:
         if notification.name == 'db_uri':
             self.configure_db_connection(notification.data)
 
-    def create_engine(self, uri):
+    def create_engine(self, uri) -> AsyncEngine:
         if uri.startswith('sqlite'):
             return create_async_engine(uri, connect_args={"check_same_thread": False}, echo=False)
         elif uri.startswith('mysql'):
@@ -35,7 +36,7 @@ class DatabaseConnectionManager:
         else:
             raise ValueError("Unsupported database URI scheme")
 
-    def configure_db_connection(self, uri=None):
+    def configure_db_connection(self, uri=None) -> None:
         """ Configure the database connection with the provided URI for Uvicorn """
         if uri and self.dburi == uri:
             return
@@ -50,8 +51,8 @@ class DatabaseConnectionManager:
         auth_engine = self.create_engine(authentication_db_uri)
 
         self.dburi = uri
-        self.AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
-        self.AsyncAuthSessionLocal = sessionmaker(bind=auth_engine, class_=AsyncSession, expire_on_commit=False)
+        self.AsyncSessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+        self.AsyncAuthSessionLocal = async_sessionmaker(bind=auth_engine, class_=AsyncSession, expire_on_commit=False)
 
 
 @asynccontextmanager
@@ -61,7 +62,7 @@ async def get_db_session() -> AsyncIterator[AsyncSession]:
     async with connection_manager.AsyncSessionLocal() as session:
 
         @event.listens_for(session.get_bind(), 'handle_error')
-        async def handle_error(exc):
+        def handle_error(exc):
             original_exception = exc.original_exception
 
             exception_type = type(original_exception).__name__
@@ -81,7 +82,7 @@ async def get_auth_db_session() -> AsyncIterator[AsyncSession]:
 
     async with connection_manager.AsyncAuthSessionLocal() as session:
         @event.listens_for(session.get_bind(), 'handle_error')
-        async def handle_error(exc):
+        def handle_error(exc):
             original_exception = exc.original_exception
 
             exception_type = type(original_exception).__name__
