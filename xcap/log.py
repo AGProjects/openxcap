@@ -33,7 +33,7 @@ class AccessLog(object):
 
         if self.body:
             content = self.body.decode('utf-8', errors='replace') if isinstance(self.body, bytes) else self.body
-            self.logger.info(f"\n{content[:500] + '\n...' if len(content) > 500 else content}\n")
+            self.logger.info("\n" + (content[:500] + "\n..." if len(content) > 500 else content) + "\n")
         elif isinstance(self, AccessLogResponse):
             self.logger.info("")
 
