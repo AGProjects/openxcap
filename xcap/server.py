@@ -10,7 +10,6 @@ from starlette.background import BackgroundTask, BackgroundTasks
 from starlette.middleware.base import BaseHTTPMiddleware
 from twisted.internet import asyncioreactor, reactor
 
-# from xcap.routes import xcap_routes
 from xcap import __description__, __name__, __version__
 from xcap.configuration import ServerConfig, TLSConfig
 from xcap.db.initialize import init_db
