@@ -48,9 +48,7 @@ class XCAPApp(FastAPI):
         from xcap.routes import xcap_routes
         self.include_router(xcap_routes.router)
         # self.app.include_router(user_routes.router)  # Uncomment if user_routes is needed
-        # self.add_event_handler("startup", self.startup)
         self.on_event("startup")(self.startup)
-        # self.on_event("shutdown")(self.shutdown)
         self.add_exception_handler(ResourceNotFound, self.resource_not_found_handler)
         self.add_exception_handler(HTTPError, self.http_error_handler)
         self.add_exception_handler(XCAPError, self.http_error_handler)
@@ -87,6 +85,8 @@ class XCAPApp(FastAPI):
         uvi_logger = log.get_logger('uvicorn.error')
         log.get_logger().setLevel(uvi_logger.level)
         log.Formatter.prefix_format = '{record.levelname:<8s} '
+        log.get_logger('aiosqlite').setLevel(log.level.INFO)
+
         init_db()
 
         if ServerConfig.backend in ['Sipthor', 'OpenSIPS']:
