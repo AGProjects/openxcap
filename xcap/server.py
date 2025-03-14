@@ -1,177 +1,137 @@
-
-"""HTTP handling for the XCAP server"""
-
-
-
-from . import resource as _resource
 import sys
+import threading
+from datetime import datetime
 
-from application.configuration.datatypes import IPAddress, NetworkRangeList
-from application.configuration import ConfigSection, ConfigSetting
+import uvicorn
 from application import log
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from starlette.background import BackgroundTask, BackgroundTasks
+from starlette.middleware.base import BaseHTTPMiddleware
+from twisted.internet import asyncioreactor, reactor
 
-from twisted.internet import reactor
-from twisted.cred.portal import Portal
-
-import xcap
-from xcap import authentication
-from xcap.datatypes import XCAPRootURI
-from xcap.appusage import getApplicationForURI, Backend
-from xcap.resource import XCAPDocument, XCAPElement, XCAPAttribute, XCAPNamespaceBinding
-from xcap.logutil import web_logger
-from xcap.tls import Certificate, PrivateKey
-from xcap.web import channel, resource, http, responsecode, server
-from xcap.xpath import AttributeSelector, NamespaceSelector
-
-
-server.VERSION = "OpenXCAP/%s" % xcap.__version__
+# from xcap.routes import xcap_routes
+from xcap import __description__, __name__, __version__
+from xcap.configuration import ServerConfig, TLSConfig
+from xcap.db.initialize import init_db
+from xcap.errors import HTTPError, ResourceNotFound, XCAPError
+from xcap.log import AccessLogRequest, AccessLogResponse, log_access
 
 
-class AuthenticationConfig(ConfigSection):
-    __cfgfile__ = xcap.__cfgfile__
-    __section__ = 'Authentication'
+class LogRequestMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        body = await request.body()
+        response = await call_next(request)
 
-    type = 'digest'
-    cleartext_passwords = True
-    default_realm = ConfigSetting(type=str, value=None)
-    trusted_peers = ConfigSetting(type=NetworkRangeList, value=NetworkRangeList('none'))
+        response.headers['Date'] = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
+        chunks = []
+        async for chunk in response.body_iterator:
+            chunks.append(chunk)
+        res_body = b''.join(chunks)
 
+        request_log = AccessLogRequest(dict(request.headers), body, response.status_code)
+        response_log = AccessLogResponse(dict(response.headers), res_body, response.status_code)
 
-class ServerConfig(ConfigSection):
-    __cfgfile__ = xcap.__cfgfile__
-    __section__ = 'Server'
+        task = BackgroundTasks()
+        task.add_task(BackgroundTask(log_access, request, response, res_body))
+        task.add_task(BackgroundTask(request_log.log))
+        task.add_task(BackgroundTask(response_log.log))
 
-    address = ConfigSetting(type=IPAddress, value='0.0.0.0')
-    root = ConfigSetting(type=XCAPRootURI, value=None)
-    backend = ConfigSetting(type=Backend, value=None)
-
-
-class TLSConfig(ConfigSection):
-    __cfgfile__ = xcap.__cfgfile__
-    __section__ = 'TLS'
-
-    certificate = ConfigSetting(type=Certificate, value=None)
-    private_key = ConfigSetting(type=PrivateKey, value=None)
+        return Response(content=res_body, status_code=response.status_code,
+                        headers=dict(response.headers), media_type=response.media_type, background=task)
 
 
-if ServerConfig.root is None:
-    log.critical('The XCAP root URI is not defined')
-    sys.exit(1)
-
-if ServerConfig.backend is None:
-    log.critical('OpenXCAP needs a backend to be specified in order to run')
-    sys.exit(1)
-
-
-# Increase the system limit for the maximum number of open file descriptors
-try:
-    _resource.setrlimit(_resource.RLIMIT_NOFILE, (99999, 99999))
-except ValueError:
-    log.warning('Could not raise open file descriptor limit')
-
-
-class XCAPRoot(resource.Resource, resource.LeafResource):
-    addSlash = True
-
-    def allowedMethods(self):
-        # not used , but methods were already checked by XCAPAuthResource
-        return ('GET', 'PUT', 'DELETE')
-
-    def resourceForURI(self, xcap_uri):
-        application = getApplicationForURI(xcap_uri)
-        if not xcap_uri.node_selector:
-            return XCAPDocument(xcap_uri, application)
-        else:
-            terminal_selector = xcap_uri.node_selector.terminal_selector
-            if isinstance(terminal_selector, AttributeSelector):
-                return XCAPAttribute(xcap_uri, application)
-            elif isinstance(terminal_selector, NamespaceSelector):
-                return XCAPNamespaceBinding(xcap_uri, application)
-            else:
-                return XCAPElement(xcap_uri, application)
-
-    def renderHTTP(self, request):
-        application = getApplicationForURI(request.xcap_uri)
-        if not application:
-            return http.Response(responsecode.NOT_FOUND, stream="Application not supported")
-        resource = self.resourceForURI(request.xcap_uri)
-        return resource.renderHTTP(request)
-
-
-class Request(server.Request):
-    def writeResponse(self, response):
-        web_logger.log_access(request=self, response=response)
-        return server.Request.writeResponse(self, response)
-
-
-class HTTPChannel(channel.http.HTTPChannel):
-    inputTimeOut = 30
-
+class XCAPApp(FastAPI):
     def __init__(self):
-        channel.http.HTTPChannel.__init__(self)
-        # if connection wasn't completed for 30 seconds, terminate it,
-        # this avoids having lingering TCP connections which don't complete
-        # the TLS handshake
-        self.setTimeout(30)
+        super().__init__(title=__name__, description=__description__, version=__version__)
+        self.add_middleware(LogRequestMiddleware)
+        from xcap.routes import xcap_routes
+        self.include_router(xcap_routes.router)
+        # self.app.include_router(user_routes.router)  # Uncomment if user_routes is needed
+        # self.add_event_handler("startup", self.startup)
+        self.on_event("startup")(self.startup)
+        # self.on_event("shutdown")(self.shutdown)
+        self.add_exception_handler(ResourceNotFound, self.resource_not_found_handler)
+        self.add_exception_handler(HTTPError, self.http_error_handler)
+        self.add_exception_handler(XCAPError, self.http_error_handler)
+        self.add_api_route("/", self.read_root, methods=["GET"])
 
-    def timeoutConnection(self):
-        if self.transport:
-            log.info('Timing out client: {}'.format(self.transport.getPeer()))
-            channel.http.HTTPChannel.timeoutConnection(self)
+    async def http_error_handler(self, request: Request, exc: HTTPError) -> Response:
+        return exc.response
 
+    async def resource_not_found_handler(self, request: Request, exc: ResourceNotFound) -> Response:
+        if exc.headers:
+            content_type = exc.headers.get("Content-Type", "text/plain")
 
-class HTTPFactory(channel.HTTPFactory):
-    noisy = False
-    protocol = HTTPChannel
-
-
-class XCAPSite(server.Site):
-    def __call__(self, *args, **kwargs):
-        return Request(site=self, *args, **kwargs)
-
-
-class XCAPServer(object):
-    def __init__(self):
-        portal = Portal(authentication.XCAPAuthRealm())
-        if AuthenticationConfig.cleartext_passwords:
-            http_checker = ServerConfig.backend.PlainPasswordChecker()
+        if content_type == "application/json":
+            return JSONResponse(
+                content={"detail": exc.detail},
+                status_code=exc.status_code,
+                headers=exc.headers
+            )
+        elif content_type == "text/html":
+            return HTMLResponse(
+                content=f"<html><body><h1>{exc.detail}</h1></body></html>",
+                status_code=exc.status_code,
+                headers=exc.headers
+            )
         else:
-            http_checker = ServerConfig.backend.HashPasswordChecker()
-        portal.registerChecker(http_checker)
-        trusted_peers = AuthenticationConfig.trusted_peers
-        portal.registerChecker(authentication.TrustedPeerChecker(trusted_peers))
-        portal.registerChecker(authentication.PublicGetApplicationChecker())
+            # Default to plain text if no valid Content-Type is provided
+            return PlainTextResponse(
+                content=exc.detail,
+                status_code=exc.status_code,
+                headers=exc.headers
+            )
 
-        auth_type = AuthenticationConfig.type
-        if auth_type == 'basic':
-            credential_factory = authentication.BasicCredentialFactory(auth_type)
-        elif auth_type == 'digest':
-            credential_factory = authentication.DigestCredentialFactory('MD5', auth_type)
-        else:
-            raise ValueError('Invalid authentication type: %r. Please check the configuration.' % auth_type)
+    async def startup(self):
+        uvi_logger = log.get_logger('uvicorn.error')
+        log.get_logger().setLevel(uvi_logger.level)
+        log.Formatter.prefix_format = '{record.levelname:<8s} '
+        init_db()
 
-        root = authentication.XCAPAuthResource(XCAPRoot(),
-                                               (credential_factory,),
-                                               portal, (authentication.IAuthUser,))
-        self.site = XCAPSite(root)
+        if ServerConfig.backend in ['Sipthor', 'OpenSIPS']:
+            twisted_thread = threading.Thread(target=self._start_reactor, daemon=True)
+            twisted_thread.name = 'TwistedReactor'
+            twisted_thread.start()
 
-    def _start_https(self, reactor):
-        from gnutls.interfaces.twisted import X509Credentials
-        from gnutls.connection import TLSContext, TLSContextServerOptions
-        cert, pKey = TLSConfig.certificate, TLSConfig.private_key
-        if cert is None or pKey is None:
-            log.critical('The TLS certificate/key could not be loaded')
-            sys.exit(1)
-        credentials = X509Credentials(cert, pKey)
-        tls_context = TLSContext(credentials, server_options=TLSContextServerOptions(certificate_request=None))
-        reactor.listenTLS(ServerConfig.root.port, HTTPFactory(self.site), tls_context, interface=ServerConfig.address)
-        log.info('TLS started')
+        log.info("OpenXCAP app is running...")
 
-    def start(self):
-        log.info('Listening on: %s:%d' % (ServerConfig.address, ServerConfig.root.port))
-        log.info('XCAP root: %s' % ServerConfig.root)
-        if ServerConfig.root.startswith('https'):
-            self._start_https(reactor)
-        else:
-            reactor.listenTCP(ServerConfig.root.port, HTTPFactory(self.site), interface=ServerConfig.address)
+    def _start_reactor(self):
+        from xcap.appusage import ServerConfig
         reactor.run(installSignalHandlers=ServerConfig.backend.installSignalHandlers)
+
+    async def read_root(self):
+        return {"message": "Welcome to OpenXCAP!"}
+
+
+class XCAPServer():
+    def __init__(self):
+        self.config = ServerConfig
+
+    def run(self, debug=False):
+        log_config = uvicorn.config.LOGGING_CONFIG
+        log_config["formatters"]["default"]["fmt"] = "%(levelname)-8s %(message)s"
+        log_config["formatters"]["default"]["use_colors"] = False
+        log_config["loggers"]["uvicorn"]["propagate"] = False
+
+        config = {
+            'factory': True,
+            'host': self.config.address,
+            'port': self.config.root.port,
+            'reload': debug,
+            'log_level': 'debug' if debug else 'info',
+            'workers': 1,
+            'access_log': False,
+            'log_config': log_config
+        }
+
+        if self.config.root.startswith('https'):
+            certificate, private_key = TLSConfig.certificate, TLSConfig.private_key
+            if certificate is None or private_key is None:
+                log.critical('The TLS certificate/key could not be loaded')
+                sys.exit(1)
+
+            config['ssl_certfile'] = certificate.filename
+            config['ssl_keyfile'] = private_key.filename
+
+        uvicorn.run("xcap.server:XCAPApp", **config)
