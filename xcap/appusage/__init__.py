@@ -3,41 +3,24 @@
 
 import os
 import sys
+from io import BytesIO
 
-from io import StringIO
+from application import log
+from application.configuration import ConfigSetting
+from application.configuration.datatypes import StringList
 from lxml import etree
 
-from application.configuration import ConfigSection, ConfigSetting
-from application.configuration.datatypes import StringList
-from application import log
-
-import xcap
-from xcap import errors
-from xcap import element
+from xcap import element, errors
 from xcap.backend import StatusResponse
+from xcap.configuration import ServerConfig as XCAPServerConfig
+from xcap.configuration.datatypes import Backend
 
 
-class Backend(object):
-    """Configuration datatype, used to select a backend module from the configuration file."""
-    def __new__(typ, value):
-        value = value.lower()
-        try:
-            return __import__('xcap.backend.%s' % value, globals(), locals(), [''])
-        except (ImportError, AssertionError) as e:
-            log.critical('Cannot load %r backend module: %s' % (value, e))
-            sys.exit(1)
-        except Exception:
-            log.exception()
-            sys.exit(1)
-
-
-class ServerConfig(ConfigSection):
-    __cfgfile__ = xcap.__cfgfile__
-    __section__ = 'Server'
-
+class ServerConfig(XCAPServerConfig):
     backend = ConfigSetting(type=Backend, value=None)
     disabled_applications = ConfigSetting(type=StringList, value=[])
     document_validation = True
+
 
 if ServerConfig.backend is None:
     log.critical('OpenXCAP needs a backend to be specified in order to run')
@@ -60,6 +43,7 @@ class ApplicationUsage(object):
             class EverythingIsValid(object):
                 def __call__(self, *args, **kw):
                     return True
+
                 def validate(self, *args, **kw):
                     return True
             self.xml_schema = EverythingIsValid()
@@ -86,14 +70,12 @@ class ApplicationUsage(object):
     def validate_document(self, xcap_doc):
         """Check if a document is valid for this application."""
         try:
-            xml_doc = etree.parse(StringIO(xcap_doc))
+            xml_doc = etree.parse(BytesIO(xcap_doc))
             # XXX do not use TreeBuilder here
-        except etree.XMLSyntaxError as ex:
-            ex.http_error = errors.NotWellFormedError(comment=str(ex))
-            raise
+        except etree.XMLSyntaxError as e:
+            raise errors.NotWellFormedError(comment=str(e))
         except Exception as ex:
-            ex.http_error = errors.NotWellFormedError()
-            raise
+            raise errors.NotWellFormedError()
         self._check_UTF8_encoding(xml_doc)
         if ServerConfig.document_validation:
             self._check_schema_validation(xml_doc)
@@ -123,19 +105,19 @@ class ApplicationUsage(object):
     def get_document_global(self, uri, check_etag):
         self._not_implemented('global')
 
-    def get_document_local(self, uri, check_etag):
-        return self.storage.get_document(uri, check_etag)
+    async def get_document_local(self, uri, check_etag):
+        return await self.storage.get_document(uri, check_etag)
 
-    def put_document(self, uri, document, check_etag):
+    async def put_document(self, uri, document, check_etag):
         self.validate_document(document)
-        return self.storage.put_document(uri, document, check_etag)
+        return await self.storage.put_document(uri, document, check_etag)
 
-    def delete_document(self, uri, check_etag):
-        return self.storage.delete_document(uri, check_etag)
+    async def delete_document(self, uri, check_etag):
+        return await self.storage.delete_document(uri, check_etag)
 
     ## Element management
 
-    def _cb_put_element(self, response, uri, element_body, check_etag):
+    async def _cb_put_element(self, response, uri, element_body, check_etag):
         """This is called when the document that relates to the element is retrieved."""
         if response.code == 404:          ### XXX let the storate raise
             raise errors.NoParentError    ### catch error in errback and attach http_error
@@ -145,8 +127,7 @@ class ApplicationUsage(object):
         try:
             result = element.put(response.data, fixed_element_selector, element_body)
         except element.SelectorError as ex:
-            ex.http_error = errors.NoParentError(comment=str(ex))
-            raise
+            raise errors.NoParentError(comment=str(ex))
 
         if result is None:
             raise errors.NoParentError
@@ -157,32 +138,30 @@ class ApplicationUsage(object):
         if get_result != element_body.strip():
             raise errors.CannotInsertError('PUT request failed GET(PUT(x))==x invariant')
 
-        d = self.put_document(uri, new_document, check_etag)
+        d = await self.put_document(uri, new_document, check_etag)
 
         def set_201_code(response):
             try:
-                if response.code==200:
+                if response.code == 200:
                     response.code = 201
             except AttributeError:
                 pass
             return response
 
         if created:
-            d.addCallback(set_201_code)
+            set_201_code(d)
 
         return d
 
-    def put_element(self, uri, element_body, check_etag):
+    async def put_element(self, uri, element_body, check_etag):
         try:
             element.check_xml_fragment(element_body)
         except element.sax.SAXParseException as ex:
-            ex.http_error = errors.NotXMLFragmentError(comment=str(ex))
-            raise
+            raise errors.NotXMLFragmentError(comment=str(ex))
         except Exception as ex:
-            ex.http_error = errors.NotXMLFragmentError()
-            raise
-        d = self.get_document(uri, check_etag)
-        return d.addCallbacks(self._cb_put_element, callbackArgs=(uri, element_body, check_etag))
+            raise errors.NotXMLFragmentError()
+        d = await self.get_document(uri, check_etag)
+        return await self._cb_put_element(d, uri, element_body, check_etag)
 
     def _cb_get_element(self, response, uri):
         """This is called when the document related to the element is retrieved."""
@@ -194,11 +173,11 @@ class ApplicationUsage(object):
             raise errors.ResourceNotFound(msg)
         return StatusResponse(200, response.etag, result)
 
-    def get_element(self, uri, check_etag):
-        d = self.get_document(uri, check_etag)
-        return d.addCallbacks(self._cb_get_element, callbackArgs=(uri, ))
+    async def get_element(self, uri, check_etag):
+        d = await self.get_document(uri, check_etag)
+        return self._cb_get_element(d, uri)
 
-    def _cb_delete_element(self, response, uri, check_etag):
+    async def _cb_delete_element(self, response, uri, check_etag):
         if response.code == 404:
             raise errors.ResourceNotFound("The requested document %s was not found on this server" % uri.doc_selector)
         new_document = element.delete(response.data, uri.node_selector.element_selector)
@@ -207,11 +186,11 @@ class ApplicationUsage(object):
         get_result = element.find(new_document, uri.node_selector.element_selector)
         if get_result:
             raise errors.CannotDeleteError('DELETE request failed GET(DELETE(x))==404 invariant')
-        return self.put_document(uri, new_document, check_etag)
+        return await self.put_document(uri, new_document, check_etag)
 
-    def delete_element(self, uri, check_etag):
-        d = self.get_document(uri, check_etag)
-        return d.addCallbacks(self._cb_delete_element, callbackArgs=(uri, check_etag))
+    async def delete_element(self, uri, check_etag):
+        d = await self.get_document(uri, check_etag)
+        return await self._cb_delete_element(d, uri, check_etag)
 
     ## Attribute management
     def _cb_get_attribute(self, response, uri):
@@ -219,15 +198,14 @@ class ApplicationUsage(object):
         if response.code == 404:
             raise errors.ResourceNotFound
         document = response.data
-        xml_doc = etree.parse(StringIO(document))
+        xml_doc = etree.parse(BytesIO(document))
         application = getApplicationForURI(uri)
         ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
             xpath = uri.node_selector.replace_default_prefix()
             attribute = xml_doc.xpath(xpath, namespaces = ns_dict)
         except Exception as ex:
-            ex.http_error = errors.ResourceNotFound()
-            raise
+            raise errors.ResourceNotFound
         if not attribute:
             raise errors.ResourceNotFound
         elif len(attribute) != 1:
@@ -237,22 +215,21 @@ class ApplicationUsage(object):
         # used by the element or its children, but declared in ancestor elements
         return StatusResponse(200, response.etag, attribute[0])
 
-    def get_attribute(self, uri, check_etag):
-        d = self.get_document(uri, check_etag)
-        return d.addCallbacks(self._cb_get_attribute, callbackArgs=(uri, ))
+    async def get_attribute(self, uri, check_etag):
+        d = await self.get_document(uri, check_etag)
+        return self._cb_get_attribute(d, uri)
 
-    def _cb_delete_attribute(self, response, uri, check_etag):
+    async def _cb_delete_attribute(self, response, uri, check_etag):
         if response.code == 404:
             raise errors.ResourceNotFound
         document = response.data
-        xml_doc = etree.parse(StringIO(document))
+        xml_doc = etree.parse(BytesIO(document))
         application = getApplicationForURI(uri)
         ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
             elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
         except Exception as ex:
-            ex.http_error = errors.ResourceNotFound()
-            raise
+            raise errors.ResourceNotFound
         if not elem:
             raise errors.ResourceNotFound
         if len(elem) != 1:
@@ -264,25 +241,24 @@ class ApplicationUsage(object):
         else:
             raise errors.ResourceNotFound
         new_document = etree.tostring(xml_doc, encoding='UTF-8', xml_declaration=True)
-        return self.put_document(uri, new_document, check_etag)
+        return await self.put_document(uri, new_document, check_etag)
 
-    def delete_attribute(self, uri, check_etag):
-        d = self.get_document(uri, check_etag)
-        return d.addCallbacks(self._cb_delete_attribute, callbackArgs=(uri, check_etag))
+    async def delete_attribute(self, uri, check_etag):
+        d = await self.get_document(uri, check_etag)
+        return await self._cb_delete_attribute(d, uri, check_etag)
 
-    def _cb_put_attribute(self, response, uri, attribute, check_etag):
+    async def _cb_put_attribute(self, response, uri, attribute, check_etag):
         """This is called when the document that relates to the element is retrieved."""
         if response.code == 404:
             raise errors.NoParentError
         document = response.data
-        xml_doc = etree.parse(StringIO(document))
+        xml_doc = etree.parse(BytesIO(document))
         application = getApplicationForURI(uri)
         ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
             elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
         except Exception as ex:
-            ex.http_error = errors.NoParentError()
-            raise
+            raise errors.NoParentError
         if not elem:
             raise errors.NoParentError
         if len(elem) != 1:
@@ -291,12 +267,12 @@ class ApplicationUsage(object):
         attr_name = uri.node_selector.terminal_selector.attribute
         elem.set(attr_name, attribute)
         new_document = etree.tostring(xml_doc, encoding='UTF-8', xml_declaration=True)
-        return self.put_document(uri, new_document, check_etag)
+        return await self.put_document(uri, new_document, check_etag)
 
-    def put_attribute(self, uri, attribute, check_etag):
+    async def put_attribute(self, uri, attribute, check_etag):
         ## TODO verify if the attribute is valid
-        d = self.get_document(uri, check_etag)
-        return d.addCallbacks(self._cb_put_attribute, callbackArgs=(uri, attribute, check_etag))
+        d = await self.get_document(uri, check_etag)
+        return await self._cb_put_attribute(d, uri, attribute, check_etag)
 
     ## Namespace Bindings
     def _cb_get_ns_bindings(self, response, uri):
@@ -304,14 +280,13 @@ class ApplicationUsage(object):
         if response.code == 404:
             raise errors.ResourceNotFound
         document = response.data
-        xml_doc = etree.parse(StringIO(document))
+        xml_doc = etree.parse(BytesIO(document))
         application = getApplicationForURI(uri)
         ns_dict = uri.node_selector.get_ns_bindings(application.default_ns)
         try:
             elem = xml_doc.xpath(uri.node_selector.replace_default_prefix(append_terminal=False),namespaces=ns_dict)
         except Exception as ex:
-            ex.http_error =  errors.ResourceNotFound()
-            raise
+            raise errors.ResourceNotFound
         if not elem:
             raise errors.ResourceNotFound
         elif len(elem)!=1:
@@ -323,9 +298,9 @@ class ApplicationUsage(object):
         result = '<%s %s/>' % (elem.tag, namespaces)
         return StatusResponse(200, response.etag, result)
 
-    def get_ns_bindings(self, uri, check_etag):
-        d = self.get_document(uri, check_etag)
-        return d.addCallbacks(self._cb_get_ns_bindings, callbackArgs=(uri, ))
+    async def get_ns_bindings(self, uri, check_etag):
+        d = await self.get_document(uri, check_etag)
+        return self._cb_get_ns_bindings(d, uri)
 
 
 from xcap.appusage.capabilities import XCAPCapabilitiesApplication
@@ -370,5 +345,3 @@ def getApplicationForURI(xcap_uri):
 
 
 __all__ = ['applications', 'namespaces', 'public_get_applications', 'getApplicationForURI', 'ApplicationUsage', 'Backend']
-
-

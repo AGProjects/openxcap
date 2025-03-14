@@ -9,7 +9,7 @@ from xcap.backend import StatusResponse
 class WatchersApplication(ApplicationUsage):
     id = "org.openxcap.watchers"
     default_ns = "http://openxcap.org/ns/watchers"
-    mime_type= "application/xml"
+    mime_type = "application/xml"
     schema_file = 'watchers.xsd' # who needs schema for readonly application?
 
     def _watchers_to_xml(self, watchers, uri, check_etag):
@@ -24,10 +24,10 @@ class WatchersApplication(ApplicationUsage):
         check_etag(etag)
         return StatusResponse(200, data=doc, etag=etag)
 
-    def get_document_local(self, uri, check_etag):
-        watchers_def = self.storage.get_watchers(uri)
-        watchers_def.addCallback(self._watchers_to_xml, uri, check_etag)
-        return watchers_def
+    async def get_document_local(self, uri, check_etag):
+        watchers_def = await self.storage.get_watchers(uri)
+        return self._watchers_to_xml(watchers_def, uri, check_etag)
+        # return watchers_def
 
     def put_document(self, uri, document, check_etag):
         raise errors.ResourceNotFound("This application does not support PUT method")

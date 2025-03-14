@@ -1,30 +1,15 @@
 
-from application.configuration import ConfigSection, ConfigSetting
-from io import StringIO
+from io import BytesIO
 from lxml import etree
 from urllib.parse import unquote
 from urllib.parse import urlparse
 
-import xcap
 from xcap import errors
 from xcap.appusage import ApplicationUsage
-from xcap.datatypes import XCAPRootURI
+from xcap.configuration import ServerConfig, AuthenticationConfig
 from xcap.uri import XCAPUri
 from xcap.xpath import DocumentSelectorError, NodeParsingError
 
-
-class AuthenticationConfig(ConfigSection):
-    __cfgfile__ = xcap.__cfgfile__
-    __section__ = 'Authentication'
-
-    default_realm = ConfigSetting(type=str, value=None)
-
-class ServerConfig(ConfigSection):
-    __cfgfile__ = xcap.__cfgfile__
-    __section__ = 'Server'
-
-    allow_external_references = False
-    root = ConfigSetting(type=XCAPRootURI, value=None)
 
 def parseExternalListURI(node_uri, default_realm):
     from xcap.appusage import namespaces
@@ -75,7 +60,7 @@ class ResourceListsApplication(ApplicationUsage):
 
     @classmethod
     def check_list(cls, element, node_uri):
-        from xcap.authentication import parseNodeURI
+        from xcap.authentication.auth import parseNodeURI
         entry_tag = "{%s}entry" % cls.default_ns
         entry_ref_tag = "{%s}entry-ref" % cls.default_ns
         external_tag ="{%s}external" % cls.default_ns
@@ -143,7 +128,7 @@ class ResourceListsApplication(ApplicationUsage):
     def put_document(self, uri, document, check_etag):
         self.validate_document(document)
         # Check additional constraints (see section 3.4.5 of RFC 4826)
-        xml_doc = etree.parse(StringIO(document))
+        xml_doc = etree.parse(BytesIO(document))
         self.check_list(xml_doc.getroot(), uri)
         return self.storage.put_document(uri, document, check_etag)
 

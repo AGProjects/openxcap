@@ -1,5 +1,5 @@
 
-from io import StringIO
+from io import BytesIO
 from lxml import etree
 from xcap import errors
 from xcap.appusage import ApplicationUsage
@@ -18,7 +18,7 @@ class PresContentApplication(ApplicationUsage):
         mime_type = None
         encoding = None
         data = None
-        xml = StringIO(document)
+        xml = BytesIO(document)
         try:
             tree = etree.parse(xml)
             root = tree.getroot()

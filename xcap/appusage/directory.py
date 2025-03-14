@@ -1,6 +1,6 @@
 
 from lxml import etree
-from twisted.internet import defer
+# from twisted.internet import defer
 from xcap import errors
 from xcap.appusage import ApplicationUsage
 from xcap.backend import StatusResponse
@@ -26,7 +26,7 @@ class XCAPDirectoryApplication(ApplicationUsage):
                     entry.set("etag", item[1])
         doc = etree.tostring(root, encoding="UTF-8", pretty_print=True, xml_declaration=True)
         #self.validate_document(doc)
-        return defer.succeed(StatusResponse(200, etag=None, data=doc))
+        return StatusResponse(200, etag=None, data=doc)
 
     def get_document_local(self, uri, check_etag):
         docs_def = self.storage.get_documents_list(uri)

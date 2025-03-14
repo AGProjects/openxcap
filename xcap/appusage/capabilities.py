@@ -1,6 +1,6 @@
 
 from lxml import etree
-from twisted.internet import defer
+#from twisted.internet import defer
 from xcap import errors
 from xcap.appusage import ApplicationUsage
 from xcap.dbutil import make_etag
@@ -11,12 +11,12 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
     ## RFC 4825
     id = "xcap-caps"
     default_ns = "urn:ietf:params:xml:ns:xcap-caps"
-    mime_type= "application/xcap-caps+xml"
+    mime_type = "application/xcap-caps+xml"
 
     def __init__(self):
         pass
 
-    def _get_document(self):
+    async def _get_document(self):
         if hasattr(self, 'doc'):
             return self.doc, self.etag
         root = etree.Element("xcap-caps", nsmap={None: self.default_ns})
@@ -32,9 +32,9 @@ class XCAPCapabilitiesApplication(ApplicationUsage):
         self.etag = make_etag('xcap-caps', self.doc)
         return self.doc, self.etag
 
-    def get_document_global(self, uri, check_etag):
-        doc, etag = self._get_document()
-        return defer.succeed(StatusResponse(200, etag=etag, data=doc))
+    async def get_document_global(self, uri, check_etag):
+        doc, etag = await self._get_document()
+        return StatusResponse(code=200, etag=etag, data=doc)
 
     def get_document_local(self, uri, check_etag):
         self._not_implemented('users')

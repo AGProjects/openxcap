@@ -1,29 +1,13 @@
 
-from application.configuration import ConfigSection, ConfigSetting
-from io import StringIO
+from io import BytesIO
 from lxml import etree
 from urllib.parse import unquote
 
-import xcap
 from xcap import errors
 from xcap.appusage import ApplicationUsage
-from xcap.datatypes import XCAPRootURI
+from xcap.configuration import ServerConfig, AuthenticationConfig
 from xcap.uri import XCAPUri
 from xcap.xpath import DocumentSelectorError, NodeParsingError
-
-
-class AuthenticationConfig(ConfigSection):
-    __cfgfile__ = xcap.__cfgfile__
-    __section__ = 'Authentication'
-
-    default_realm = ConfigSetting(type=str, value=None)
-
-class ServerConfig(ConfigSection):
-    __cfgfile__ = xcap.__cfgfile__
-    __section__ = 'Server'
-
-    allow_external_references = False
-    root = ConfigSetting(type=XCAPRootURI, value=None)
 
 
 def parseExternalListURI(node_uri, default_realm):
@@ -83,7 +67,7 @@ class PresenceRulesApplication(ApplicationUsage):
         oma_other_identity_tag = '{%s}other-identity' % oma_namespace
 
         try:
-            xml = StringIO(document)
+            xml = BytesIO(document)
             tree = etree.parse(xml)
             root = tree.getroot()
 
