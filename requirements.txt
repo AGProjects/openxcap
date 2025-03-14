@@ -6,6 +6,7 @@ python-dotenv==0.21.0
 pydantic>=1.10.0
 python3-application @ git+https://github.com/AGProjects/python3-application.git
 python3-gnutls @ git+https://github.com/AGProjects/python3-gnutls.git
+python3-xcaplib @ git+https://github.com/AGProjects/python3-xcaplib.git
 lxml==5.3.* 
 aiosqlite==0.21.0
 aiomysql==0.2.0
