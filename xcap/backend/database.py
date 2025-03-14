@@ -1,10 +1,14 @@
+from typing import Any, Callable, Optional
+
 from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import select
 
+from xcap.authentication import Credentials
 from xcap.backend import BackendInterface, StatusResponse
 from xcap.db.manager import get_auth_db_session, get_db_session
 from xcap.db.models import XCAP, Subscriber, Watcher
 from xcap.dbutil import make_random_etag
+from xcap.uri import XCAPUri
 
 
 class Error(Exception):
@@ -28,7 +32,7 @@ class DeleteFailed(Error):
 
 
 class PasswordChecker(object):
-    async def query_user(self, credentials):
+    async def query_user(self, credentials) -> Any:
         async with get_auth_db_session() as db_session:
             result = await db_session.execute(select(Subscriber).where(
                 Subscriber.username == credentials.username, Subscriber.domain == credentials.realm))
@@ -64,7 +68,7 @@ class DatabaseStorage(BackendInterface):
                                             "document_path": document_path})
             return results
 
-    async def get_document(self, uri, check_etag):
+    async def get_document(self, uri: XCAPUri, check_etag: Callable) -> Optional[StatusResponse]:
         results = await self.fetch_document(uri)
         if results:
             doc = results[0][0].doc
@@ -73,11 +77,12 @@ class DatabaseStorage(BackendInterface):
             if isinstance(doc, str):
                 doc = doc.encode('utf-8')
             check_etag(etag)
+
             return StatusResponse(200, etag, doc)
 
         return StatusResponse(404)
 
-    async def put_document(self, uri, document, check_etag):
+    async def put_document(self, uri: XCAPUri, document: bytes, check_etag: Callable) -> Optional[StatusResponse]:
         results = await self.fetch_document(uri)
         if results:
             existing_doc = results[0][0]
@@ -124,7 +129,7 @@ class DatabaseStorage(BackendInterface):
 
         return StatusResponse(201, etag)
 
-    async def delete_document(self, uri, check_etag):
+    async def delete_document(self, uri: XCAPUri, check_etag: Callable) -> Optional[StatusResponse]:
         results = await self.fetch_document(uri)
 
         if results:

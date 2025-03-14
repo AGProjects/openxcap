@@ -1,5 +1,5 @@
 import re
-from typing import Union
+from typing import Callable, Optional, Union
 
 from application import log
 from application.configuration import ConfigSetting
@@ -20,7 +20,6 @@ from xcap.backend import StatusResponse
 from xcap.backend.database import DatabaseStorage, PasswordChecker
 from xcap.configuration import OpensipsConfig as XCAPOpensipsConfig
 from xcap.configuration import ServerConfig
-from xcap.types import CheckETagType
 from xcap.uri import XCAPUri
 from xcap.xcapdiff import Notifier
 
@@ -100,15 +99,15 @@ class NotifyingStorage(DatabaseStorage):
         self._sip_notifier = SIPNotifier()
         self.notifier = Notifier(ServerConfig.root, self._sip_notifier.send_publish)
 
-    async def put_document(self, uri: XCAPUri, document: bytes, check_etag: CheckETagType) -> StatusResponse:
+    async def put_document(self, uri: XCAPUri, document: bytes, check_etag: Callable) -> Optional[StatusResponse]:
         result = await super(NotifyingStorage, self).put_document(uri, document, check_etag)
-        if result.succeed:
+        if result and result.succeed:
             result.background = BackgroundTask(self.notifier.on_change, uri, result.old_etag, result.etag)
         return result
 
-    async def delete_document(self, uri: XCAPUri, check_etag: CheckETagType) -> StatusResponse:
+    async def delete_document(self, uri: XCAPUri, check_etag: Callable) -> Optional[StatusResponse]:
         result = await super(NotifyingStorage, self).delete_document(uri, check_etag)
-        if result.succeed:
+        if result and result.succeed:
             result.background = BackgroundTask(self.notifier.on_change, uri, result.old_etag, None)
         return result
 

@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Callable, Optional, Union
 
 from pydantic import BaseModel
-from starlette.background import BackgroundTasks
+from starlette.background import BackgroundTask, BackgroundTasks
 
 from xcap.uri import XCAPUri
 
@@ -11,7 +11,6 @@ class CustomBaseModel(BaseModel):
     def __init__(self, *args, **kwargs):
         # Get the field names from the class
         field_names = list(self.__annotations__.keys())
-
         # Check if we have the right number of positional arguments
         if len(args) > len(field_names):
             raise ValueError(f"Too many positional arguments. Expected at most {len(field_names)}")
@@ -30,7 +29,10 @@ class StatusResponse(CustomBaseModel):
     etag: Optional[str] = None
     data: Optional[bytes] = None  # If this is binary data, it should be bytes
     old_etag: Optional[str] = None
-    background: Optional[BackgroundTasks] = None
+    background: Union[BackgroundTasks, BackgroundTask, None] = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @property
     def succeed(self):
@@ -51,16 +53,16 @@ class BackendInterface(ABC):
             uri.doc_selector.document_path = "index.xml"
 
     @abstractmethod
-    async def get_document(self, uri: XCAPUri, check_etag) -> Optional[StatusResponse]:
+    async def get_document(self, uri: XCAPUri, check_etag: Callable) -> Optional[StatusResponse]:
         """Retrieve data for a specific resource."""
         pass
 
     @abstractmethod
-    async def put_document(self, uri: XCAPUri, document: bytes, check_etag) -> Optional[StatusResponse]:
+    async def put_document(self, uri: XCAPUri, document: bytes, check_etag: Callable) -> Optional[StatusResponse]:
         """Retrieve data for a specific resource."""
         pass
 
     @abstractmethod
-    async def delete_document(self, uri: XCAPUri, check_etag) -> Optional[StatusResponse]:
+    async def delete_document(self, uri: XCAPUri, check_etag: Callable) -> Optional[StatusResponse]:
         """Retrieve data for a specific resource."""
         pass
