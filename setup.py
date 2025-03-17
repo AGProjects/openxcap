@@ -1,9 +1,7 @@
-#!/usr/bin/python2
 
-import os
+from setuptools import find_packages, setup
+
 import xcap
-
-from distutils.core import setup
 
 long_description = """XCAP protocol allows a client to read, write, and modify application
 configuration data stored in XML format on a server. XCAP maps XML document
@@ -13,36 +11,28 @@ store data like Presence policy in combination with a SIP Presence server
 that supports PUBLISH/SUBSCRIBE/NOTIFY methods to provide a complete
 [http://www.tech-invite.com/Ti-sip-WGs.html#wg-simple SIP SIMPLE] server
 solution."""
-
-
-def find_packages(toplevel):
-    return [directory.replace(os.path.sep, '.') for directory, subdirs, files in os.walk(toplevel) if '__init__.py' in files]
-
-
 setup(
-    name='openxcap',
+    name=xcap.__project__,
     version=xcap.__version__,
 
-    description='XCAP server',
+    description=xcap.__description__,
     long_description=long_description,
-    url='http://openxcap.org/',
+    url=xcap.__url__,
 
-    author='AG Projects',
-    author_email='support@ag-projects.com',
-
-    license='GPL',
-    platforms=['Platform Independent'],
-
+    author=xcap.__author__,
+    author_email=xcap.__author_email__,
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Service Providers',
-        'License :: OSI Approved :: GNU General Public License (GPL)',
-        'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python',
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Intended Audience :: Service Providers",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Operating System :: OS Independent",
     ],
-
-    packages=find_packages('xcap'),
+    python_requires=">=3.8",
+    packages=find_packages(where="xcap"),  # Looking for packages in the "xcap" folder
     package_data={'xcap.appusage': ['xml-schemas/*']},
     data_files=[('/etc/openxcap', ['config.ini.sample']), ('/etc/openxcap/tls', ['tls/README'])],
-    scripts=['openxcap']
+    scrips=['openxcap'],
+    include_package_data=True,
 )
+
