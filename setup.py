@@ -8,9 +8,9 @@ configuration data stored in XML format on a server. XCAP maps XML document
 sub-trees and element attributes to HTTP URIs, so that these components can
 be directly accessed by HTTP. An XCAP server is used by the XCAP clients to
 store data like Presence policy in combination with a SIP Presence server
-that supports PUBLISH/SUBSCRIBE/NOTIFY methods to provide a complete
-[http://www.tech-invite.com/Ti-sip-WGs.html#wg-simple SIP SIMPLE] server
-solution."""
+that supports PUBLISH/SUBSCRIBE/NOTIFY methods to provide a complete SIP
+SIMPLE server solution."""
+
 setup(
     name=xcap.__project__,
     version=xcap.__version__,
