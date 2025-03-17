@@ -85,7 +85,7 @@ def init_db():
 
         log.info("Storage database initialized and migrations applied.")
 
+
 # Main function to initialize and create tables
 if __name__ == "__main__":
     init_db()
-
