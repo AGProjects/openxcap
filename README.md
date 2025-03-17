@@ -13,6 +13,7 @@ Ruud Klaver
 Lucian Stanescu
 Denis Bilenko
 Saul Ibarra
+Tijmen de Mes
 
 
 Description
@@ -103,5 +104,5 @@ available resources.
 
 To request support you must use the mailing list available at
 
-http://lists.ag-projects.com/mailman/listinfo/sipbeyondvoip
+https://lists.ag-projects.com/mailman/listinfo/sipbeyondvoip
 
