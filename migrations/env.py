@@ -13,6 +13,7 @@ from xcap.configuration import DatabaseConfig as XCAPDatabaseConfig
 from xcap.db.manager import Base
 from xcap.db.models import XCAP, Subscriber, Watcher
 
+process.configuration.subdirectory = 'openxcap'
 process.configuration.local_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
 
