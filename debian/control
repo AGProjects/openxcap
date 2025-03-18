@@ -19,7 +19,7 @@ Depends: ${python3:Depends}, ${misc:Depends},
          python3-sipsimple,
          python3-sqlmodel,
          python3-systemd,
-         python3-twisted-core,
+         python3-twisted,
          python3-xcaplib,
          python3-zope.interface
 Description: XCAP server implementation
