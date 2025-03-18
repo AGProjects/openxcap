@@ -8,7 +8,7 @@ Standards-Version: 4.5.0
 Package: openxcap
 Architecture: all
 Depends: ${python3:Depends}, ${misc:Depends},
-         python3-alembic,
+         alembic,
          python3-aiosqlite,
          python3-aiomysql,
          python3-application,
@@ -20,7 +20,6 @@ Depends: ${python3:Depends}, ${misc:Depends},
          python3-sqlmodel,
          python3-systemd,
          python3-twisted,
-         python3-xcaplib,
          python3-zope.interface
 Description: XCAP server implementation
  XCAP protocol allows a client to read, write and modify application
