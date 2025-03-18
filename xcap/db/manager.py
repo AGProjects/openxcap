@@ -7,7 +7,8 @@ from application.notification import (IObserver, Notification,
                                       NotificationCenter)
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (AsyncEngine, AsyncSession,
-                                    async_sessionmaker, create_async_engine)
+                                    create_async_engine)
+from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 from zope.interface import implementer
 
@@ -52,8 +53,8 @@ class DatabaseConnectionManager:
         auth_engine = self.create_engine(authentication_db_uri)
 
         self.dburi = uri
-        self.AsyncSessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
-        self.AsyncAuthSessionLocal = async_sessionmaker(bind=auth_engine, class_=AsyncSession, expire_on_commit=False)
+        self.AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+        self.AsyncAuthSessionLocal = sessionmaker(bind=auth_engine, class_=AsyncSession, expire_on_commit=False)
 
 
 @asynccontextmanager
