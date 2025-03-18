@@ -1,7 +1,13 @@
 
-from setuptools import find_packages, setup
+import os
+
+from setuptools import setup
 
 import xcap
+
+
+def find_packages(root):
+    return [directory.replace(os.path.sep, '.') for directory, sub_dirs, files in os.walk(root) if '__init__.py' in files]
 
 long_description = """XCAP protocol allows a client to read, write, and modify application
 configuration data stored in XML format on a server. XCAP maps XML document
@@ -29,10 +35,10 @@ setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.8",
-    packages=find_packages(where="xcap"),  # Looking for packages in the "xcap" folder
+    packages=find_packages("xcap"),
     package_data={'xcap.appusage': ['xml-schemas/*']},
     data_files=[('/etc/openxcap', ['config.ini.sample']), ('/etc/openxcap/tls', ['tls/README'])],
-    scrips=['openxcap'],
+    scripts=['openxcap'],
     include_package_data=True,
 )
 

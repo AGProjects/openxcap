@@ -1,6 +1,6 @@
 include LICENSE
 include INSTALL
-include README
+include README.md
 include MANIFEST.in
 
 include debian/changelog

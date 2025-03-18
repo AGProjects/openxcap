@@ -14,7 +14,7 @@ Depends: ${python3:Depends}, ${misc:Depends},
          python3-application,
          python3-fastapi,
          python3-gnutls,
-         python3-greenlet
+         python3-greenlet,
          python3-lxml,
          python3-sipsimple,
          python3-sqlmodel,
