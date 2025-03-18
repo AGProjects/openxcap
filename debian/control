@@ -1,21 +1,27 @@
 Source: openxcap
 Section: net
 Priority: optional
-Maintainer: Dan Pascu <dan@ag-projects.com>
-Build-Depends: debhelper (>= 11), dh-python, python
+Maintainer: Tijmen de Mes <tijmen@ag-projects.com>
+Build-Depends: debhelper (>= 11), dh-python, python3
 Standards-Version: 4.5.0
 
 Package: openxcap
 Architecture: all
-Depends: ${python:Depends}, ${misc:Depends},
-         python-application (>= 2.8.0),
-         python-gnutls (>= 3.1.0),
-         python-lxml,
-         python-mysqldb,
-         python-sipsimple,
-         python-sqlobject,
-         python-twisted-core,
-         python-zope.interface
+Depends: ${python3:Depends}, ${misc:Depends},
+         python3-alembic,
+         python3-aiosqlite,
+         python3-aiomysql,
+         python3-application,
+         python3-fastapi,
+         python3-gnutls,
+         python3-greenlet
+         python3-lxml,
+         python3-sipsimple,
+         python3-sqlmodel,
+         python3-systemd,
+         python3-twisted-core,
+         python3-xcaplib,
+         python3-zope.interface
 Description: XCAP server implementation
  XCAP protocol allows a client to read, write and modify application
  configuration data stored in XML format on a server. XCAP maps XML document
