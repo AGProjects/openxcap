@@ -1,5 +1,5 @@
 include LICENSE
-include INSTALL
+include INSTALL.md
 include README.md
 include MANIFEST.in
 
