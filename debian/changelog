@@ -1,3 +1,24 @@
+openxcap (3.0) UNRELEASED; urgency=medium
+
+  * Ported code to Python 3
+  * Modernized code
+  * Moved configuration
+  * Drop Twisted Web2 and use FastAPI
+  * Drop bundled xml.SAX
+  * Drop unused code
+  * Refactored backends to use SQLModel
+  * Use async database connections
+  * Updated documentation
+  * Changed xml applications to work with FastAPI
+  * Use async where needed
+  * Reworked debian packaging
+  * Added typing in python code
+  * Updated copyright years
+  * Updated License
+  * Fixed tests
+
+ -- Tijmen de Mes <tijmen@ag-projects.com>  Tue, 18 Mar 2025 10:28:30 +0100
+
 openxcap (2.7.1) unstable; urgency=medium
 
   * Fixed installing SIP Thor signal handlers
