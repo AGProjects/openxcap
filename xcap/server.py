@@ -88,7 +88,7 @@ class XCAPApp(FastAPI):
 
         init_db()
 
-        if ServerConfig.backend in ['Sipthor', 'OpenSIPS']:
+        if ServerConfig.backend in ['SIPThor', 'OpenSIPS']:
             twisted_thread = threading.Thread(target=self._start_reactor, daemon=True)
             twisted_thread.name = 'TwistedReactor'
             twisted_thread.start()

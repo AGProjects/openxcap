@@ -43,7 +43,7 @@ class DatabaseConnectionManager:
         if uri and self.dburi == uri:
             return
 
-        if uri and ServerConfig.backend == 'Sipthor':
+        if uri and ServerConfig.backend == 'SIPThor':
             storage_db_uri = authentication_db_uri = uri
         elif not uri:
             storage_db_uri = DatabaseConfig.storage_db_uri
