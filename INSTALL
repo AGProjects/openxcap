@@ -15,18 +15,7 @@ Components
 
 * OpenXCAP, the XCAP server itself
 
-* opensips-mi-proxy, an optional component that replaces OpenSIPS xml-rpc
-  module that exhibits stability problems, is required to issue the
-  refreshWatchers command in OpenSIPS when the the policy stored in the
-  pres-rules XCAP document for a given presentity has been changed. The
-  proxy has also more features like being able to listen on a custom IP
-  address and provides an access list for the clients allowed to connect
-
-* soap-simple-proxy, an optional component that can access XCAP documents
-  using SOAP/XML requests, it can be used to build a web page to perform XCAP
-  requests for pres-rules and pidf-manipulation documents
-
-* python-xcaplib, an optional component that can be used for developing an
+* python3-xcaplib, an optional component that can be used for developing an
   XCAP client or for testing the server using the xcapclient command line
   utility
 
@@ -34,14 +23,18 @@ Components
 Dependencies
 ------------
 
- * Python 2.7 - http://www.python.org
- * Twisted Core, Twisted Web and Twisted Web 2 >= 8.1.0 - http://twistedmatrix.com
- * python-lxml >= 2.0.7 - http://codespeak.net/lxml
- * python-application >= 1.4.0 - http://pypi.python.org/pypi/python-application
- * python-gnutls >= 3.1.0 - http://pypi.python.org/pypi/python-gnutls
- * python-mysqldb >=1.2.2 - http://pypi.python.org/simple/mysql-python
- * python-imaging >=1.1.7 - http://pypi.python.org/simple/PIL/
+ * Python 3 - http://www.python.org
+ * Twisted - http://twistedmatrix.com
+ * python-lxml - https://lxml.de
+ * python3-application - https://github.com/AGProjects/python3-application
+ * python3-gnutls - https://github.com/AGProjects/python3-gnutls
+ * Fast API - https://fastapi.tiangolo.com/
+ * Uvicorn - https://www.uvicorn.org 
+ * SQLModel - https://sqlmodel.tiangolo.com
 
+The requirements and versions are listed in requirements.txt
+
+For OpenSIPS support python3-sipsimple is required
 
 Debian and Ubuntu
 -----------------
@@ -76,25 +69,10 @@ Install OpenXCAP server:
 
 sudo apt-get install openxcap
 
-Install opensips-mi-proxy (on the machine running OpenSIPS):
-
-sudo apt-get install opensips-mi-proxy
-
-Install soap-simple-proxy:
-
-sudo apt-get install soap-simple-proxy
-
-Install xcap-client library:
-
-sudo apt-get install python-xcaplib
-
-
 Tar Archives
 ------------
 
-OpenXCAP and related software can be downloaded as tar archives from:
-
-http://download.ag-projects.com/XCAP/
+OpenXCAP and related software can be downloaded as tar archives from github.
 
 Extract the software using tar xzvf openxcap-version.tar.gz.
 
@@ -103,28 +81,12 @@ Install OpenXCAP:
 cd openxcap
 sudo python setup.py install
 
-Download and extract opensips-mi-proxy using tar xzvf
-opensips-mi-proxy-version.tar.gz.
-
-Install opensips-mi-proxy:
-
-cd opensips-mi-proxy
-sudo python setup.py install
-
-Download soap-simple-proxy and extract it using tar xzvf
-soap-simple-proxy-version.tar.gz.
-
-Install soap-simple-proxy:
-
-cd soap-simple-proxy
-sudo python setup.py install
-
-Download python-xcaplib and extract it using tar xzvf
+Download python3-xcaplib and extract it using tar xzvf
 python-xcaplib-version.tar.gz.
 
-Install python-xcaplib:
+Install python3-xcaplib:
 
-cd python-xcaplib
+cd python3-xcaplib
 sudo python setup.py install
 
 
@@ -136,7 +98,7 @@ http://darcs.net. The darcs repository can be fetched with:
 
 darcs get http://devel.ag-projects.com/repositories/openxcap
 
-Other packages like python-xcaplib, soap-simple-proxy and opensips-mi-proxy
+Other packages like python3-xcaplib, python3-sipsimple
 can be obtained in the same way.
 
 To obtain the incremental changes after the initial get:
@@ -144,6 +106,7 @@ To obtain the incremental changes after the initial get:
 cd openxcap
 darcs pull -a
 
+The code is mirrored on Github.
 
 Configuration
 -------------
@@ -162,37 +125,48 @@ configure OpenXCAP to use the same database as OpenSIPS.
 
 If you want to setup OpenXCAP to use its own database, create the database:
 
+If you use sqlite and a venv, the database will be automatically created.
+
 mysqladmin create openxcap
-
-and the tables using the sample script:
-
- * setup/mysql-create-tables.sql
-
-This script creates two tables:
-
- * subscriber, which is used to authenticate XCAP requests
- * xcap, where the XCAP documents are actually stored
-
-The subscriber table is a subset of the subscriber table from OpenSIPS, xcap
-table is the same as the one from OpenSIPS.
 
 Add MySQL user
 
 Use the following script as template, edit it first and run it against on
 your database:
 
- * setup/mysql-create-user.sql
+ * scripts/mysql-create-user.sql
+
+If you run it in a venv and you have the requirements installed, alembic can
+create the database, in debian you can go to /usr/share/doc/openxcap and run
+the command:
+
+alembic upgrade heads 
+
+You can also the tables using the sample script:
+
+ * scripts/mysql-create-tables.sql
+
+This script creates three tables:
+
+ * subscriber, which is used to authenticate XCAP requests
+ * xcap, where the XCAP documents are actually stored
+ * watchers
+ 
+The subscriber table is a subset of the subscriber table from OpenSIPS, xcap
+table is the same as the one from OpenSIPS.
 
 For Debian Package the above sql sample scripts are installed in openxcap
-shared directory, you can locate them using 'dpkg -L openxcap' command.
+shared directory, in /usr/share/docs/openxcap.
 
 
 OpenXCAP
 --------
 
-For debian package copy /etc/openxcap/config.ini.sample to
-/etc/openxcap/config.ini. For other Linux OS copy config.ini.sample from the
-tar archive to the same directory. Edit config.ini with your settings.
+For debian package edit /etc/openxcap/config.ini. For other Linux OS copy
+config.ini.sample from the tar archive to the same directory. Edit config.ini
+with your settings.
+
+In a venv a config.ini can be read from the same location as the openxcap script.
 
 The specific settings for an installation must be set from the configuration
 file, which is split in several configuration sections.
@@ -229,9 +203,9 @@ using the following logic:
 
  * some XCAP clients (e.g. CounterPath's Eyebeam), only put the
    username in the XCAP URI, so there is the need for a convention to determine
-  the realm: it must be included in the XCAP root URI on the client side. For
-  example, if the XCAP root of the server is http://example.com/xcap-root, the
-  client should be provisioned with http://example.com/xcap-root@domain/ 
+   the realm: it must be included in the XCAP root URI on the client side. For
+   example, if the XCAP root of the server is http://example.com/xcap-root, the
+   client should be provisioned with http://example.com/xcap-root@domain/ 
 
  * if the above logic does not provide the realm, the realm will be taken
    from the default_realm setting of [Authentication] There are separate
@@ -243,74 +217,25 @@ where the service subscribers are kept (authentication_db_uri) and the
 database connection URI to the database where XCAP documents are stored.
 Currently, only MySQL database engine has been implemented.
 
-The OpenSIPS section contains all the settings of the Database section, plus
-the URL where OpenSIPS's XMLRPC management interface is listening for
-commands. The refreshWatchers command is sent to OpenSIPS management
-interface to inform the server that the XCAP documents have been changed for
-a user so that OpenSIPS can send notifications out according to the new
-policy in real-time.
+The OpenSIPS section contains all the settings for OpenSIPS. 
 
 When using TLS you must generate an X.509 certificate and a key. Consult
 Internet resources for how to do this. The procedure is the same as for any
 other TLS server like Apache web server.
 
-
-opensips-mi-proxy
------------------
-
-For the debian package copy /etc/opensips-mi-proxy/config.ini.sample to
-/etc/opensips-mi-proxy/config.ini. For other Linux OS copy config.ini.sample
-from the tar archive to the same directory. Edit config.ini with your
-settings.
-
-[OpenSIPS]
-socket = /var/run/opensips/socket
-
-[MIProxy]
-;listen_url = http://<defaultIPAddress>:8080
-;trusted = any
-For more information see the README and INSTALL files that come together
-with the tar archive.
-
-
-soap-simple-proxy
------------------
-
-For the debian package copy /etc/soap-simple-proxy/config.ini.sample to
-/etc/soap-simple-proxy/config.ini. For other Linux OS copy config.ini.sample
-from the tar archive to the same directory. Edit config.ini with your
-settings.
-
-
-[SOAP Server]
-address = 0.0.0.0
-port = 9300
-log_requests = Yes
-
-
-[WSDL]
-public_service_url = https://example.com/soap-simple-proxy/
-internal_service_url = http://private-address:9200/
-
-
-[XCAP]
-root_uri = http://xcap.example.com/xcap-root
-For more information see the README and INSTALL files that come together
-with the tar archive.
-
-A sample OpenSIPS configuration is available at http://openxcap.org
-
-
 Running the server
 ------------------
 
-For non Debian systems copy openxcap, soap-simple-proxy and opensips-mi-proxy
-startup scripts from their debian directory present in each tar file to
-/etc/init.d/ and edit them to match your system.
+For non Debian systems copy the service file from the debian directory to
+/etc/systemd/system/ edit it to match your system.
+
+The reload systemd:
+
+`systemctl daemon-reload`
 
 Start OpenXCAP server:
 
-/etc/init.d/openxcap start
+`systemctl start openxcap`
 
 You can also start OpenXCAP in no fork mode, which is useful to debug the
 configuration. This will not put the server in the background and will log
@@ -322,23 +247,13 @@ Listening on: 0.0.0.0:80
 XCAP root: http://xcap.example.com/xcap-root
 xcap.server.HTTPFactory starting on 80
 
-Start opensips-mi-proxy:
-
-/etc/init.d/opensips-mi-proxy start
-
-Start soap-simple-proxy:
-
-/etc/init.d/soap-simple-proxy start
-
-OpenXCAP logs its messages to /var/log/openxcap/. All other servers log
-/their messages to the system syslog. Check the log files for any startup or
-runtime errors.
+OpenXCAP logs its messages to /var/log/openxcap/ and to the system log. 
 
 Logging
 
-OpenXCAP logs its start, stop and error messages to /var/log/syslog. Client
-access requests are logged in /var/log/openxcap/access.log. You can
-configure the logging of the headers and bodies of client requests and
+OpenXCAP logs its start, stop and error messages to /var/log/syslog or the
+journal. Client access requests are logged in /var/log/openxcap/access.log. You
+can configure the logging of the headers and bodies of client requests and
 responses in the Logging section of the configuration file.
 
 Adding Accounts
@@ -348,13 +263,13 @@ subscriber table. You can add subscribers by using your favorite OpenSIPS
 subscriber management tool. Check the following script that can be used to
 add manually account to opensips subscriber table:
 
+ * scripts/add_openxcap_users.py
 
 Test Suite
 ----------
 
-A test suite for testing the functionality the server is located in
-/xcap/test directory. If you have installed the Debian Package you can
-located the test suite scripts using dpkg -L openxcap command.
+A test suite for testing the functionality the server is located in test in the
+source. If you have installed the Debian Package it is not bundled.
 
 Configure the credentials of a test account and the xcap root in a
 configuration file as follows:
@@ -376,64 +291,83 @@ INSERT INTO `subscriber` (username,domain,password,ha1) VALUES
 Run the test suite:
 
 ~$./test.py
-test_delete (test_attribute.AttributeTest) ... ok
-test_get (test_attribute.AttributeTest) ... WARNING: test with URI in att_value is disabled
+test_operations1 (test_resourcelists.DocumentTest.test_operations1) ... ok
+test_operations2 (test_resourcelists.DocumentTest.test_operations2) ... ok
+test_operations3 (test_resourcelists.DocumentTest.test_operations3) ... ok
+test_operations4 (test_resourcelists.DocumentTest.test_operations4) ... ok
+test_conditional_PUT (test_etags2.ETagTest.test_conditional_PUT) ... ok
+test_conditional_PUT_2 (test_etags2.ETagTest.test_conditional_PUT_2) ... ok
+test_get (test_watchers.Test.test_get) ... ok
+test_pidf_manipulation (test_presrules.PresenceRulesTest.test_pidf_manipulation) ... ok
+test_conditional_GET (test_etags.ETagTest.test_conditional_GET) ... ok
+test_conditional_PUT (test_etags.ETagTest.test_conditional_PUT) ... ok
+test_conditional_PUT_2 (test_etags.ETagTest.test_conditional_PUT_2) ... ok
+test_conditional_GET (test_etags.ETagTest2.test_conditional_GET) ... ok
+test_conditional_PUT (test_etags.ETagTest2.test_conditional_PUT) ... ok
+test_etag_parsing (test_etags.ETagTest2.test_etag_parsing) ... ok
+test_pidf_manipulation (test_pidf.PIDFTest.test_pidf_manipulation) ... ok
+test_xpath10_valid (test_xpath.XPathTest.test_xpath10_valid) ... ok
+test_xpath11_valid (test_xpath.XPathTest.test_xpath11_valid) ... ok
+test_xpath12_valid (test_xpath.XPathTest.test_xpath12_valid) ... ok
+test_xpath1_valid (test_xpath.XPathTest.test_xpath1_valid) ... ok
+test_xpath2_invalid (test_xpath.XPathTest.test_xpath2_invalid) ... ok
+test_xpath3_invalid (test_xpath.XPathTest.test_xpath3_invalid) ... ok
+test_xpath4_invalid (test_xpath.XPathTest.test_xpath4_invalid) ... ok
+test_xpath5_invalid (test_xpath.XPathTest.test_xpath5_invalid) ... ok
+test_xpath6_invalid (test_xpath.XPathTest.test_xpath6_invalid) ... ok
+test_xpath7_invalid (test_xpath.XPathTest.test_xpath7_invalid) ... ok
+test_xpath8_invalid (test_xpath.XPathTest.test_xpath8_invalid) ... ok
+test_xpath9_valid (test_xpath.XPathTest.test_xpath9_valid) ... ok
+test_global_auth (test_auth.AuthTest_org_openmobilealliance_pres_rules.test_global_auth) ... ok
+test_users_auth (test_auth.AuthTest_org_openmobilealliance_pres_rules.test_users_auth) ... ok
+test_global_auth (test_auth.AuthTest_pidf_manipulation.test_global_auth) ... ok
+test_users_auth (test_auth.AuthTest_pidf_manipulation.test_users_auth) ... ok
+test_global_auth (test_auth.AuthTest_pres_rules.test_global_auth) ... ok
+test_users_auth (test_auth.AuthTest_pres_rules.test_users_auth) ... ok
+test_global_auth (test_auth.AuthTest_resource_lists.test_global_auth) ... ok
+test_users_auth (test_auth.AuthTest_resource_lists.test_users_auth) ... ok
+test_global_auth (test_auth.AuthTest_rls_services.test_global_auth) ... ok
+test_users_auth (test_auth.AuthTest_rls_services.test_users_auth) ... ok
+test_global_auth (test_auth.AuthTest_test_app.test_global_auth) ... ok
+test_users_auth (test_auth.AuthTest_test_app.test_users_auth) ... ok
+test_global_auth (test_auth.AuthTest_watchers.test_global_auth) ... ok
+test_users_auth (test_auth.AuthTest_watchers.test_users_auth) ... ok
+test_global_auth (test_auth.AuthTest_xcap_caps.test_global_auth) ... ok
+test_users_auth (test_auth.AuthTest_xcap_caps.test_users_auth) ... ok
+test400_1 (test_errors.ErrorsTest.test400_1) ... ok
+test400_2 (test_errors.ErrorsTest.test400_2) ... ok
+test404 (test_errors.ErrorsTest.test404) ... ok
+test405 (test_errors.ErrorsTest.test405) ... ok
+test409 (test_errors.ErrorsTest.test409) ... ok
+test_gibberish (test_errors.ErrorsTest.test_gibberish) ... ok
+test_delete (test_element.ElementTest.test_delete) ... ok
+test_get (test_element.ElementTest.test_get) ... WARNING: test with URI in att_value is disabled
 ok
-test_put (test_attribute.AttributeTest) ... ok
-test_global_auth (test_auth.AuthTest_org_openmobilealliance_pres_rules) ... ok
-test_users_auth (test_auth.AuthTest_org_openmobilealliance_pres_rules) ... ok
-test_global_auth (test_auth.AuthTest_pidf_manipulation) ... ok
-test_users_auth (test_auth.AuthTest_pidf_manipulation) ... ok
-test_global_auth (test_auth.AuthTest_pres_rules) ... ok
-test_users_auth (test_auth.AuthTest_pres_rules) ... ok
-test_global_auth (test_auth.AuthTest_resource_lists) ... ok
-test_users_auth (test_auth.AuthTest_resource_lists) ... ok
-test_global_auth (test_auth.AuthTest_rls_services) ... ok
-test_users_auth (test_auth.AuthTest_rls_services) ... ok
-test_global_auth (test_auth.AuthTest_test_app) ... ok
-test_users_auth (test_auth.AuthTest_test_app) ... ok
-test_global_auth (test_auth.AuthTest_watchers) ... ok
-test_users_auth (test_auth.AuthTest_watchers) ... ok
-test_global_auth (test_auth.AuthTest_xcap_caps) ... ok
-test_users_auth (test_auth.AuthTest_xcap_caps) ... ok
-test_delete (test_element.ElementTest) ... ok
-test_get (test_element.ElementTest) ... WARNING: test with URI in att_value is disabled
-ok
-test_put_error (test_element.ElementTest) ... ok
+test_put_error (test_element.ElementTest.test_put_error) ... ok
+test_creation (test_element_put.PutElementTest.test_creation)
 Testing different ways of inserting an element as described in examples from Section 8.2.3 ... ok
+test_creation_starattr (test_element_put.PutElementTest.test_creation_starattr)
 Testing PUT requests of form '*[@att="some"]' which require looking into body of PUT ... ok
-test_replacement (test_element_put.PutElementTest) ... ok
-test400_1 (test_errors.ErrorsTest) ... ok
-test400_2 (test_errors.ErrorsTest) ... ok
-test404 (test_errors.ErrorsTest) ... ok
-test405 (test_errors.ErrorsTest) ... ok
-test409 (test_errors.ErrorsTest) ... ok
-test_gibberish (test_errors.ErrorsTest) ... ok
-test_conditional_GET (test_etags.ETagTest) ... ok
-test_conditional_PUT (test_etags.ETagTest) ... ok
-test_conditional_GET (test_etags.ETagTest2) ... ok
-test_conditional_PUT (test_etags.ETagTest2) ... ok
-test_etag_parsing (test_etags.ETagTest2) ... ok
-test_errors (test_fragment.FragmentTest) ... ok
-test_success (test_fragment.FragmentTest) ... ok
-test_has_global (test_global.TestGlobal) ... ok
-test_no_global (test_global.TestGlobal) ... ok
-test_ns_bindings (test_nsbindings.NSBindingsTest) ... ok
-test_pidf_manipulation (test_pidf.PIDFTest) ... ok
-test_pidf_manipulation (test_presrules.PresenceRulesTest) ... ok
-test_operations1 (test_resourcelists.DocumentTest) ... ok
-test_operations2 (test_resourcelists.DocumentTest) ... ok
-test_operations3 (test_resourcelists.DocumentTest) ... ok
-test_operations4 (test_resourcelists.DocumentTest) ... ok
-test_operations1 (test_rlsservices.DocumentTest) ... ok
-test_operations2 (test_rlsservices.DocumentTest) ... ok
-test_operations3 (test_rlsservices.DocumentTest) ... ok
-test_operations4 (test_rlsservices.DocumentTest) ... ok
-test_get (test_watchers.Test) ... ok
-test_schema (test_xcap_caps.XCAPCaps) ... ok
+test_replacement (test_element_put.PutElementTest.test_replacement) ... ok
+test_schema (test_xcap_caps.XCAPCaps.test_schema) ... ok
+test_delete (test_attribute.AttributeTest.test_delete) ... ok
+test_get (test_attribute.AttributeTest.test_get) ... WARNING: test with URI in att_value is disabled
+ok
+test_put (test_attribute.AttributeTest.test_put) ... ok
+test_ns_bindings (test_nsbindings.NSBindingsTest.test_ns_bindings) ... ok
+test_has_global (test_global.TestGlobal.test_has_global) ... ok
+test_no_global (test_global.TestGlobal.test_no_global) ... ok
+test_errors (test_fragment.FragmentTest.test_errors) ... ok
+test_success (test_fragment.FragmentTest.test_success) ... ok
+test_operations1 (test_rlsservices.DocumentTest.test_operations1) ... ok
+test_operations2 (test_rlsservices.DocumentTest.test_operations2) ... ok
+test_operations3 (test_rlsservices.DocumentTest.test_operations3) ... ok
+test_operations4 (test_rlsservices.DocumentTest.test_operations4) ... ok
 
 ----------------------------------------------------------------------
-Ran 53 tests in 48.941s
+Ran 68 tests in 1.491s
+
+OK
 
 Notes:
 
@@ -454,6 +388,6 @@ OpenXCAP) and has a bash shell command line completion facility that makes
 it very easy to browse through the structure of XML documents based on
 XPATH.
 
-See README of python-xcaplib package for examples on how to create/retrieve
+See README of python3-xcaplib package for examples on how to create/retrieve
 a document.
 
