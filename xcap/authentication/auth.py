@@ -178,7 +178,7 @@ class AuthenticationManager:
             raise HTTPException(
                 status_code=401,
                 detail="Basic authentication required",
-                headers={"WWW-Authenticate": f"Basic realm=\"{AuthenticationConfig.default_realm}\""}
+                headers={"WWW-Authenticate": f"Basic realm=\"{realm}\""}
             )
 
         auth_value = auth_header[6:].strip()
