@@ -109,9 +109,9 @@ class XCAPServer():
 
     def run(self, debug=False):
         log_config = uvicorn.config.LOGGING_CONFIG
-        log_config["formatters"]["default"]["fmt"] = "%(levelname)-8s %(message)s"
-        log_config["formatters"]["default"]["use_colors"] = False
-        log_config["loggers"]["uvicorn"]["propagate"] = False
+        log_config["loggers"]["uvicorn"] = {"handlers": []}
+        log_config["loggers"]["uvicorn.error"] = {"handlers": []}
+        log_config["loggers"]["uvicorn.access"] = {"handlers": []}
 
         config = {
             'factory': True,
