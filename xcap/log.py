@@ -83,7 +83,7 @@ def get_request_version(scope: MutableMapping[str, Any]) -> str:
 
 def log_access(request: Request, response: Response, body: Union[bytes, str]) -> None:
     client_ip = get_client_ip(request)
-    user_agent = request.headers.get("user-agent", "unkown")
+    user_agent = request.headers.get("user-agent", "unknown")
     etag = response.headers.get("etag", None)
     method = request.method
     http_version = get_request_version(request.scope)
