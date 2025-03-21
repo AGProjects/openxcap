@@ -255,7 +255,7 @@ class XCAPDocument(XCAPResource):
         return document_data
 
     async def update_data(self, request: Request) -> str:
-        document = await request.body()
+        document = request.state.body
         document_data = await self.application.put_document(self.xcap_uri, document, lambda e, exists=True: self.check_etag(request, e, exists))
         if not document_data:
             raise HTTPException(status_code=404, detail="Document not found")
@@ -282,7 +282,7 @@ class XCAPElement(XCAPResource):
         content_type = request.headers.get('content-type')
         if not content_type or content_type != self.content_type:
             raise HTTPException(status_code=415, detail="")
-        element = await request.body()
+        element = request.state.body
         element_data = await self.application.put_element(self.xcap_uri, element, lambda e: self.check_etag(request, e))
         return element_data
 
@@ -305,7 +305,7 @@ class XCAPAttribute(XCAPResource):
         content_type = request.headers.get('content-type')
         if not content_type or content_type != self.content_type:
             raise HTTPException(status_code=415, detail="")
-        attribute = await request.body()
+        attribute = request.state.body
         attribute_data = await self.application.put_attribute(self.xcap_uri, attribute, lambda e: self.check_etag(request, e))
         return attribute_data
 

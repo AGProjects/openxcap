@@ -20,6 +20,7 @@ from xcap.log import AccessLogRequest, AccessLogResponse, log_access
 class LogRequestMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         body = await request.body()
+        request.state.body = body
         response = await call_next(request)
 
         response.headers['Date'] = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
