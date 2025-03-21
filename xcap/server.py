@@ -41,6 +41,8 @@ class LogRequestMiddleware(BaseHTTPMiddleware):
 
 
 class XCAPApp(FastAPI):
+    backend: str = ''
+
     def __init__(self):
         super().__init__(title=__name__, description=__description__, version=__version__)
         self.add_middleware(LogRequestMiddleware)
@@ -48,6 +50,7 @@ class XCAPApp(FastAPI):
         self.include_router(xcap_routes.router)
         # self.app.include_router(user_routes.router)  # Uncomment if user_routes is needed
         self.on_event("startup")(self.startup)
+        self.on_event("shutdown")(self.shutdown_reactor)
         self.add_exception_handler(ResourceNotFound, self.resource_not_found_handler)
         self.add_exception_handler(HTTPError, self.http_error_handler)
         self.add_exception_handler(XCAPError, self.http_error_handler)
@@ -93,7 +96,17 @@ class XCAPApp(FastAPI):
             twisted_thread.name = 'TwistedReactor'
             twisted_thread.start()
 
+        self.backend = ServerConfig.backend
+
         log.info("OpenXCAP app is running...")
+
+    async def shutdown_reactor(self):
+        if reactor.running:
+            if self.backend == 'SIPThor':
+                from xcap.appusage import ServerConfig
+                ServerConfig.backend.XCAPProvisioning().stop()
+            else:
+                reactor.callFromThread(reactor.stop)
 
     def _start_reactor(self):
         from xcap.appusage import ServerConfig
