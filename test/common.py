@@ -10,13 +10,12 @@ import time
 import traceback
 import types
 import unittest
-
-from copy import copy
 from configparser import ConfigParser
-from lxml import etree
-from optparse import OptionParser, SUPPRESS_HELP
-from xcaplib import xcapclient
+from copy import copy
+from optparse import SUPPRESS_HELP, OptionParser
 
+from lxml import etree
+from xcaplib import xcapclient
 
 apps = ['pres-rules',
         'org.openmobilealliance.pres-rules',
@@ -381,8 +380,11 @@ class InProcessServer(object):
         get_hub().switch()
 
 def enable_eventlet():
-    from eventlet.green import urllib2, socket as greensocket, time as greentime
+    from eventlet.green import socket as greensocket
+    from eventlet.green import time as greentime
+    from eventlet.green import urllib2
     from xcaplib import httpclient
+
     # replacing all the references to the old urllib2 in xcaplib:
     httpclient.urllib2 = urllib2
     httpclient.HTTPRequest.__bases__ = (urllib.request.Request,)
