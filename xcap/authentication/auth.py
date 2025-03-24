@@ -215,7 +215,11 @@ class AuthenticationManager:
     async def authenticate_request(self, request: Request) -> XCAPUri:
         """Authenticate a request by checking IP and applying Digest or Basic authentication as needed."""
         client_ip = get_client_ip(request)
-        xcap_uri = parseNodeURI(str(request.url), AuthenticationConfig.default_realm)
+        proto = request.headers.get("X-Forwarded-Proto", request.url.scheme)
+        host = request.headers.get("X-Forwarded-Host", request.headers.get("Host", request.url.hostname))
+
+        full_url = f"{proto}://{host}{request.url.path}"
+        xcap_uri = parseNodeURI(str(full_url), AuthenticationConfig.default_realm)
 
         if xcap_uri.doc_selector.context == 'global':
             return xcap_uri

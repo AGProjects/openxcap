@@ -1,4 +1,3 @@
-import sys
 import threading
 from datetime import datetime
 
@@ -130,7 +129,7 @@ class XCAPServer():
         config = {
             'factory': True,
             'host': self.config.address,
-            'port': self.config.root.port,
+            'port': self.config.port,
             'reload': debug,
             'log_level': 'debug' if debug else 'info',
             'workers': 1,
@@ -138,13 +137,13 @@ class XCAPServer():
             'log_config': log_config
         }
 
+        certificate, private_key = TLSConfig.certificate, TLSConfig.private_key
         if self.config.root.startswith('https'):
-            certificate, private_key = TLSConfig.certificate, TLSConfig.private_key
             if certificate is None or private_key is None:
                 log.critical('The TLS certificate/key could not be loaded')
-                sys.exit(1)
-
-            config['ssl_certfile'] = certificate.filename
-            config['ssl_keyfile'] = private_key.filename
+            else:
+                log.info('Enabling HTTPS')
+                config['ssl_certfile'] = certificate.filename
+                config['ssl_keyfile'] = private_key.filename
 
         uvicorn.run("xcap.server:XCAPApp", **config)

@@ -12,10 +12,16 @@
 
 ; address = 0.0.0.0
 
+; port to use. If you use https for the root it should probably be 443
+; port = 80
+
+
 ; This is a comma separated list of XCAP root URIs. The first is the
 ; primary XCAP root URI, while the others (if specified) are aliases.
 ; The primary root URI is used when generating xcap-diff
-; If the scheme is https, then the server will listen for requests in TLS mode.
+; If the scheme is https, then the server will listen for requests in TLS mode
+; if a valid key and certificate are provided. The server supports operating
+; behind a reverse proxy if the correct forward headers are set.
 
 root = http://xcap.example.com/xcap-root
 

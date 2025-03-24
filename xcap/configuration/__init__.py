@@ -21,7 +21,7 @@ class ServerConfig(ConfigSection):
     __section__ = 'Server'
 
     address = ConfigSetting(type=IPAddress, value='0.0.0.0')
-    port = ConfigSetting(type=int, value=8000)
+    port = ConfigSetting(type=int, value=80)
     root = ConfigSetting(type=XCAPRootURI, value=None)
     backend = ConfigSetting(type=str, value=None)
     allow_external_references = False
