@@ -11,7 +11,6 @@ class XCAP(SQLModel, table=True):
     __tablename__ = DatabaseConfig.xcap_table
     __database__ = 'storage_db'
     id: Optional[int] = Field(default=None, primary_key=True)
-    subscriber_id: Optional[int] = Field(default=None, sa_column=Column(Integer, ForeignKey("subscriber.id", ondelete="CASCADE")))
     username: str = Field(max_length=64)
     domain: str = Field(max_length=64)
     doc: bytes  # Representing longblob as bytes
@@ -23,7 +22,6 @@ class XCAP(SQLModel, table=True):
 
     __table_args__ = (
         UniqueConstraint("username", "domain", "doc_type", "doc_uri", name="account_doc_type_idx"),
-        Index("xcap_subscriber_id_exists", "subscriber_id"),
         Index("source_idx", "source"),
     )
 

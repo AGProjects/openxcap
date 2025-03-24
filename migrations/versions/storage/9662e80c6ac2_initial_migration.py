@@ -32,7 +32,6 @@ def upgrade() -> None:
     )
     op.create_table('xcap',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('subscriber_id', sa.Integer(), nullable=True),
     sa.Column('username', sqlmodel.sql.sqltypes.AutoString(length=64), nullable=False),
     sa.Column('domain', sqlmodel.sql.sqltypes.AutoString(length=64), nullable=False),
     sa.Column('doc', sa.LargeBinary(), nullable=False),
@@ -41,12 +40,10 @@ def upgrade() -> None:
     sa.Column('source', sa.Integer(), nullable=False),
     sa.Column('doc_uri', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False),
     sa.Column('port', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['subscriber_id'], ['subscriber.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('username', 'domain', 'doc_type', 'doc_uri', name='account_doc_type_idx')
     )
     op.create_index('source_idx', 'xcap', ['source'], unique=False)
-    op.create_index('xcap_subscriber_id_exists', 'xcap', ['subscriber_id'], unique=False)
     # ### end Alembic commands ###
 
 
