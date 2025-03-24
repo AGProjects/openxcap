@@ -1,3 +1,4 @@
+import os
 import re
 
 from alembic import command
@@ -16,9 +17,12 @@ class DatabaseConfig(XCAPDatabaseConfig):
 
 
 same_db = False
+path = "/usr/share/docs/openxcap/migrations"
+if not os.path.exists(path):
+    path = 'migrations'
+
 alembic_cfg = Config("alembic.ini", 'storage_db')  # Alembic configuration
 alembic_auth_cfg = Config("alembic.ini", 'auth_db')
-
 
 def retry_on_error(engine, cfg, e):
     error_message = str(e)
@@ -46,8 +50,20 @@ def retry_on_error(engine, cfg, e):
 
 
 def set_all_version_locations(cfg):
-    storage_locations = alembic_cfg.get_main_option("version_locations")
-    auth_locations = alembic_auth_cfg.get_main_option("version_locations")
+    try:
+        storage_locations = alembic_cfg.get_main_option("version_locations")
+    except CommandError:
+        alembic_cfg.set_main_option("script_location", f"{path}")
+        alembic_cfg.set_main_option("version_locations", f"{path}/versions/storage")
+        storage_locations = alembic_cfg.get_main_option("version_locations")
+
+    try:
+        auth_locations = alembic_auth_cfg.get_main_option("version_locations")
+    except CommandError:
+        alembic_auth_cfg.set_main_option("script_location", f"{path}")
+        alembic_auth_cfg.set_main_option("version_locations", f"{path}/versions/auth")
+        auth_locations = alembic_auth_cfg.get_main_option("version_locations")
+
     cfg.set_main_option("version_locations", f"{storage_locations}, {auth_locations}")
 
 
@@ -73,6 +89,9 @@ def init_db():
                 except CommandError as e:
                     retry_on_error(auth_engine, alembic_auth_cfg, e)
                 log.info("Authentication database initialized and migrations applied.")
+
+    if not alembic_cfg:
+        return
 
     if not same_db and DatabaseConfig.storage_db_uri.startswith('sqlite'):
         engine = create_engine(DatabaseConfig.storage_db_uri, connect_args={"check_same_thread": False})
