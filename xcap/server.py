@@ -140,7 +140,7 @@ class XCAPServer():
         certificate, private_key = TLSConfig.certificate, TLSConfig.private_key
         if self.config.root.startswith('https'):
             if certificate is None or private_key is None:
-                log.critical('The TLS certificate/key could not be loaded')
+                log.warning('The TLS certificate/key could not be loaded, not listening on https')
             else:
                 log.info('Enabling HTTPS')
                 config['ssl_certfile'] = certificate.filename
