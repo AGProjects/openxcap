@@ -11,7 +11,7 @@ class AuthenticationConfig(ConfigSection):
     __section__ = 'Authentication'
 
     type = 'digest'
-    cleartext_passwords = True
+    cleartext_passwords = False
     default_realm = ConfigSetting(type=str, value=None)
     trusted_peers = ConfigSetting(type=NetworkRangeList, value=NetworkRangeList('none'))
 

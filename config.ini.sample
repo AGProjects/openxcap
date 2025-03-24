@@ -79,7 +79,7 @@ allow_external_references = No
 
 ; Specify if the passwords are stored as plain text - Yes
 ; or in a hashed format MD5('username:domain:password') - No
-; cleartext_passwords = Yes
+; cleartext_passwords = No
 
 ; The default authentication realm, if none indicated in the HTTP request
 ; URI
