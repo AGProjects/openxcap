@@ -123,7 +123,7 @@ Create Tables
 If you use OpenSIPS backend, you do not need to create any tables and
 configure OpenXCAP to use the same database as OpenSIPS.
 
-If you want to setup OpenXCAP to use its own database, create the database:
+If you want to setup OpenXCAP to use its own database, create the database.
 
 If you use sqlite and a venv, the database will be automatically created.
 
@@ -175,13 +175,13 @@ The [Server] section contains global settings: the IP address and port where
 OpenXCAP listens for client requests.
 
 The XCAP root is the context that contains all the documents across all
-applications and users that are managed by the server. Only the client
-requests that address the root defined here are accepted. If the root URI
-has the "https" scheme, the server will listen for requests in TLS mode. The
-X509 certificate and private key that will identify the server are loaded
-using the values in the [TLS] section.
+applications and users that are managed by the server. Only the client requests
+that address the root defined here are accepted. If the root URI has the
+"https" scheme and a certificate and key file are configured, the server will
+listen for requests in TLS mode. The X509 certificate and private key that will
+identify the server are loaded using the values in the [TLS] section.
 
-OpenXCAP support multiple, interchangeable backend modules. Each backend
+OpenXCAP supports multiple, interchangeable backend modules. Each backend
 knows where and how to authorize and authenticate XCAP users and where to
 store the XCAP documents. Currently, supported values are "Database" and
 "OpenSIPS", the specific settings will be taken the corresponding sections,
@@ -241,11 +241,17 @@ You can also start OpenXCAP in no fork mode, which is useful to debug the
 configuration. This will not put the server in the background and will log
 its messages in the console where it was started:
 
-adigeo@ag-imac3:~/work/openxcap$sudo ./openxcap --no-fork
-Starting OpenXCAP 1.2.0
-Listening on: 0.0.0.0:80
-XCAP root: http://xcap.example.com/xcap-root
-xcap.server.HTTPFactory starting on 80
+```
+~ ./openxcap --no-fork                                                                                                                                                                                                                                                                                5.2s  Mon Mar 24 15:55:18 2025
+INFO     Started server process [99259]
+INFO     Waiting for application startup.
+INFO     Context impl SQLiteImpl.
+INFO     Will assume non-transactional DDL.
+INFO     Database initialized and migrations applied.
+INFO     OpenXCAP app is running...
+INFO     Application startup complete.
+INFO     Uvicorn running on http://0.0.0.0:80 (Press CTRL+C to quit)
+```
 
 OpenXCAP logs its messages to /var/log/openxcap/ and to the system log. 
 
@@ -289,7 +295,7 @@ INSERT INTO `subscriber` (username,domain,password,ha1) VALUES
 ('alice','example.com','1234', 'fd7cab2287702c763e7b318b7fb2451a');
 
 Run the test suite:
-
+```
 ~$./test.py
 test_operations1 (test_resourcelists.DocumentTest.test_operations1) ... ok
 test_operations2 (test_resourcelists.DocumentTest.test_operations2) ... ok
@@ -368,7 +374,7 @@ test_operations4 (test_rlsservices.DocumentTest.test_operations4) ... ok
 Ran 68 tests in 1.491s
 
 OK
-
+```
 Notes:
 
 - Running the test suite for a given user will result in the destruction of

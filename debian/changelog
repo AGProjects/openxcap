@@ -1,4 +1,4 @@
-openxcap (3.0) UNRELEASED; urgency=medium
+openxcap (3.0) unstable; urgency=medium
 
   * Ported code to Python 3
   * Modernized code
@@ -13,6 +13,7 @@ openxcap (3.0) UNRELEASED; urgency=medium
   * Use async where needed
   * Reworked debian packaging
   * Added typing in python code
+  * Support running behind a reverse web proxy
   * Updated copyright years
   * Updated License
   * Fixed tests
