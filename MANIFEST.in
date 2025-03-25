@@ -2,6 +2,7 @@ include LICENSE
 include INSTALL.md
 include README.md
 include MANIFEST.in
+include alembic.ini
 
 include debian/changelog
 include debian/compat
@@ -18,3 +19,4 @@ include tls/README
 
 recursive-include scripts *.py *.sql
 recursive-include test    *.py *.xsd
+recursive-include migrations *.py *.mako
