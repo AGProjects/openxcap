@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.poetry]
+name = "openxcap"
+version = "3.0.0"
+description="A fully featured XCAP server"
+authors = ["AG Projects <support@ag-projects.com>"]
+license = "GPL-3.0-or-later"
+repository = "https://github.com/AGProjects/openxcap"
+packages = [{ include = "xcap" }]
+
+# Dependencies for your project
+[tool.poetry.dependencies]
+python = ">=3.8"
+fastapi = "^0.115.0"
+sqlmodel = ">=0.0.0"  # Replace with the version you're using
+uvicorn = "^0.32.0"  # Uvicorn for ASGI server
+alembic = "^1.10.0"   # For database migrations
+python-dotenv = "^0.21.0"  # Optional for .env support
+pydantic = ">1.10.0"
+python3-application = {git = "https://github.com/AGProjects/python3-application.git"}
+python3-gnutls =  { git = "https://github.com/AGProjects/python3-gnutls.git"}
+python3-xcaplib = { git = "https://github.com/AGProjects/python3-xcaplib.git" }
+lxml = ">=5.3.0"
+aiosqlite = "0.20.0"
+aiomysql = "0.2.0"
+twisted = ">=0.0.0"
+greenlet = ">=0.0.0"
+
+# Optional dependencies
+[tool.poetry.extras]
+dev = [
+    "python3-xcaplib",
+]
+docker = [
+    "docker",  # For Docker-related utilities (optional)
+]
+
+# Optional entry points (CLI)
+[tool.poetry.scripts]
+openxcap = "openxcap:main"  # Replace "openxcap" with the module to start the FastAPI app
+
+[tool.poetry.urls]
+homepage = "http://openxcap.org"
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.flake8]
+ignore = ["E501"]
+
+[tool.pycodestyle]
+ignore = ["E501"]
