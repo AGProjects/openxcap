@@ -265,7 +265,7 @@ class DatabaseConnection(object, metaclass=Singleton):
             profile = db_result[0].profile
             result = operation(profile)
             if update:
-                db_result[0].profile = profile
+                db_result[0].set_profile(profile)
                 await db_session.commit()
                 await db_session.refresh(db_result[0])
             return result
