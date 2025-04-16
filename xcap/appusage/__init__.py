@@ -343,5 +343,7 @@ namespaces = dict((k, v.default_ns) for (k, v) in list(applications.items()))
 def getApplicationForURI(xcap_uri):
     return applications.get(xcap_uri.application_id, None)
 
+def getApplicationForId(id):
+    return applications.get(id, None)
 
 __all__ = ['applications', 'namespaces', 'public_get_applications', 'getApplicationForURI', 'ApplicationUsage', 'Backend']
