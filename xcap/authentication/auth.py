@@ -53,6 +53,23 @@ def parseNodeURI(node_uri: str, default_realm: str) -> XCAPUri:
         r.user.domain = default_realm
     return r
 
+def parseApiURI(node_uri: str, default_realm: str, resource_selector: str) -> XCAPUri:
+    """Parses the given Node URI, containing the XCAP root, document selector,
+       and node selector, and returns an XCAPUri instance if succesful."""
+    xcap_root = None
+    for uri in ServerConfig.root.uris:
+        xcap_root = uri
+        break
+
+    try:
+        r = XCAPUri(xcap_root, resource_selector, namespaces)
+    except NodeParsingError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.args)
+    except DocumentSelectorError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.args)
+    if r.user.domain is None:
+        r.user.domain = default_realm
+    return r
 
 class Credentials(object):
     def __init__(self, username, password=None, realm=None):
@@ -220,6 +237,39 @@ class AuthenticationManager:
 
         full_url = f"{proto}://{host}{request.url.path}"
         xcap_uri = parseNodeURI(str(full_url), AuthenticationConfig.default_realm)
+
+        if xcap_uri.doc_selector.context == 'global':
+            return xcap_uri
+
+        realm = xcap_uri.user.domain
+
+        if realm is None:
+            raise ResourceNotFound('Unknown domain (the domain part of "username@domain" is required because this server has no default domain)')
+
+        if request.method == "GET" and xcap_uri.application_id in public_get_applications:
+            return xcap_uri
+
+        if self.is_ip_trusted(client_ip):
+            return xcap_uri
+
+        if AuthenticationConfig.type == 'digest':
+            await self.digest_auth(request, realm)
+        elif AuthenticationConfig.type == 'basic':
+            await self.basic_auth(request, realm)
+        else:
+            raise ValueError('Invalid authentication type: %r. Please check the configuration.' % AuthenticationConfig.type)
+
+        return xcap_uri
+
+    async def authenticate_api_request(self, request: Request, document, user) -> XCAPUri:
+        """Authenticate a request by checking IP and applying Digest or Basic authentication as needed."""
+        client_ip = get_client_ip(request)
+        proto = request.headers.get("X-Forwarded-Proto", request.url.scheme)
+        host = request.headers.get("X-Forwarded-Host", request.headers.get("Host", request.url.hostname))
+
+        full_url = f"{proto}://{host}{request.url.path}"
+        resource_selector = f'/{document.application}/users/{user}/{document.filename}'
+        xcap_uri = parseApiURI(str(full_url), AuthenticationConfig.default_realm, resource_selector)
 
         if xcap_uri.doc_selector.context == 'global':
             return xcap_uri
