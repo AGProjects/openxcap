@@ -1,6 +1,6 @@
 __project__ = "openxcap"
 __fullname__ = "OpenXCAP"
-__version__ = "3.0.0"
+__version__ = "3.1.0"
 __author__ = "AG Projects"
 __author_email__ = "support@ag-projects.com"
 __description__ = "An open source XCAP server"
