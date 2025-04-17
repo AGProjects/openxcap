@@ -56,6 +56,8 @@ RFC4825, RFC4826, RFC4827, RFC5025, 5874
  * TLS encryption and digital certificates using GnuTLS library
  * Digest or basic HTTP authentication with support for multiple realms
  * Database passwords can be stored in an encrypted format
+ * Supports a JSON REST API for interacting with a resource-list document
+   containing a sipsimple addressbook
 
 Supported XCAP applications
 

@@ -255,14 +255,14 @@ INFO     Uvicorn running on http://0.0.0.0:80 (Press CTRL+C to quit)
 
 OpenXCAP logs its messages to /var/log/openxcap/ and to the system log. 
 
-Logging
+### Logging
 
 OpenXCAP logs its start, stop and error messages to /var/log/syslog or the
 journal. Client access requests are logged in /var/log/openxcap/access.log. You
 can configure the logging of the headers and bodies of client requests and
 responses in the Logging section of the configuration file.
 
-Adding Accounts
+### Adding Accounts
 
 The accounts used for authentication of XCAP requests are stored in OpenSIPS
 subscriber table. You can add subscribers by using your favorite OpenSIPS
@@ -270,6 +270,16 @@ subscriber management tool. Check the following script that can be used to
 add manually account to opensips subscriber table:
 
  * scripts/add_openxcap_users.py
+
+JSON API
+--------
+
+A JSON based REST API is availible to interact with a user resource-list
+document containing a sipsimple addressbook. The API can show/update/delete
+contacts/groups/policies.
+
+A full description for the API can be read using a webbrowserver on a running
+server at the '/docs' or '/redoc' urls.
 
 Test Suite
 ----------
