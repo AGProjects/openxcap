@@ -46,8 +46,9 @@ class XCAPApp(FastAPI):
     def __init__(self):
         super().__init__(title=__fullname__, description=__description__, version=__version__)
         self.add_middleware(LogRequestMiddleware)
-        from xcap.routes import xcap_routes
+        from xcap.routes import api_routes, xcap_routes
         self.include_router(xcap_routes.router)
+        self.include_router(api_routes.router)
         # self.app.include_router(user_routes.router)  # Uncomment if user_routes is needed
         self.on_event("startup")(self.startup)
         self.on_event("shutdown")(self.shutdown_reactor)
