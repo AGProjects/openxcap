@@ -46,11 +46,14 @@ architectures.
 
 Install AG Projects debian repository signing key:
 
+```
 wget http://download.ag-projects.com/agp-debian-gpg.key
 sudo apt-key add agp-debian-gpg.key
+```
 
 Add the following lines to /etc/apt/sources.list:
 
+```
 # Debian Stable
 deb http://ag-projects.com/debian stable main
 deb-src http://ag-projects.com/debian stable main
@@ -62,14 +65,19 @@ deb-src http://ag-projects.com/debian unstable main
 # Ubuntu (run this as root)
 echo "deb     http://ag-projects.com/ubuntu `lsb_release -c -s` main" >> /etc/apt/sources.list
 echo "deb-src http://ag-projects.com/ubuntu `lsb_release -c -s` main" >> /etc/apt/sources.list
+```
 
 Update the list of available packages:
 
+```
 sudo apt-get update
+```
 
 Install OpenXCAP server:
 
+```
 sudo apt-get install openxcap
+```
 
 
 Tar Archives
@@ -81,17 +89,20 @@ Extract the software using tar xzvf openxcap-version.tar.gz.
 
 Install OpenXCAP:
 
+```
 cd openxcap
 sudo python setup.py install
+```
 
 Download python3-xcaplib and extract it using tar xzvf
 python-xcaplib-version.tar.gz.
 
 Install python3-xcaplib:
 
+```
 cd python3-xcaplib
 sudo python setup.py install
-
+```
 
 Version Control Repository
 --------------------------
@@ -281,12 +292,20 @@ add manually account to opensips subscriber table:
 JSON API
 --------
 
-A JSON based REST API is available to interact with a user resource-list
-document containing a sipsimple addressbook. The API can show/update/delete
-contacts/groups/policies.
+A RESTful API is available to manage in an easy way an addressbook, which handles the
+modifications of XCAP documents. The API can show/update/delete contacts, groups
+and policies.
 
-A full description for the API can be read using a webbrowserver on a running
-server at the '/docs' or '/redoc' urls.
+A full description of the API can be accessed using a web browser at the
+'/docs' or '/redoc' urls.  At this URL one can also test all API functions.
+
+A working example is deployed with sip2sip.info SIP service at:
+
+https://xcap.sipthor.net/docs
+
+and
+
+https://xcap.sipthor.net/redoc
 
 
 Test Suite
