@@ -47,8 +47,7 @@ class XCAPApp(FastAPI):
     def __init__(self):
         super().__init__(
             title=__fullname__,
-            description=__description__,
-            contact={"name": __author__, "url": __url__},
+            description=f"{__description__} [{__url__}]({__url__})",
             version=__version__
         )
         self.add_middleware(LogRequestMiddleware)
