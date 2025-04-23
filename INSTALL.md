@@ -128,11 +128,11 @@ Creating database tables
 
 If you use OpenSIPS backend, you must configure OpenXCAP to use the same
 database as OpenSIPS.  If you want OpenXCAP to use its own database, you
-need to create together with its tables.
+need to create the database with its tables.
 
 If you use sqlite and a venv, the database will be automatically created.
 
-mysqladmin create openxcap
+`mysqladmin create openxcap`
 
 Add a MySQL user
 
@@ -145,7 +145,7 @@ If you run it in a venv and you have the requirements installed, alembic can
 create the database, in debian you can go to /usr/share/doc/openxcap and run
 the command:
 
-alembic upgrade heads 
+`alembic upgrade heads`
 
 You can also the tables using the sample script:
 
@@ -244,7 +244,7 @@ Start OpenXCAP server:
 `sudo systemctl start openxcap`
 
 You can also start OpenXCAP in the foreground, which is useful to debug the
-configuration and requests in rral time.  The server will log its messages
+configuration and requests in real time.  The server will log its messages
 in the console where it was started:
 
 ```
