@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from xcap.appusage import getApplicationForURI
-from xcap.authentication import AuthenticationManager
+from xcap.authentication import AuthData, AuthenticationManager
 from xcap.services.xcap_service import get_xcap_resource
 from xcap.uri import XCAPUri
 
@@ -12,16 +11,8 @@ auth_manager = AuthenticationManager()
 DEFAULT_DOMAIN = "default.com"
 
 
-def getApplication(xcap_uri: XCAPUri):
-    application = getApplicationForURI(xcap_uri)
-    if not application:
-        raise HTTPException(status_code=404, detail="Application not found")
-
-    return application
-
-
 @router.get("/xcap-root/", status_code=404)
-async def handle_root(xcap_uri: XCAPUri = Depends(auth_manager.authenticate_request)):
+async def handle_root(xcap_uri: XCAPUri = Depends(auth_manager.authenticate_xcap_request)):
     pass
 
 
@@ -31,11 +22,10 @@ async def read_xcap_data(
     namespace: str,
     resource_path: str,
     request: Request,
-    xcap_uri: XCAPUri = Depends(auth_manager.authenticate_request),
+    auth_data: AuthData = Depends(auth_manager.authenticate_xcap_request),
     domain: str = DEFAULT_DOMAIN
 ):
-    application = getApplication(xcap_uri)
-    xcap_data = get_xcap_resource(xcap_uri, application)
+    xcap_data = get_xcap_resource(auth_data.xcap_uri, auth_data.application)
     return await xcap_data.handle_get(request)
 
 
@@ -51,11 +41,10 @@ async def update_xcap_data_route(
     namespace: str,
     resource_path: str,
     request: Request,
-    xcap_uri: XCAPUri = Depends(auth_manager.authenticate_request),
+    auth_data: AuthData = Depends(auth_manager.authenticate_xcap_request),
     domain: str = DEFAULT_DOMAIN,
 ):
-    application = getApplication(xcap_uri)
-    xcap_data = get_xcap_resource(xcap_uri, application)
+    xcap_data = get_xcap_resource(auth_data.xcap_uri, auth_data.application)
     return await xcap_data.handle_update(request)
 
 
@@ -65,10 +54,9 @@ async def delete_xcap_data_route(
     namespace: str,
     resource_path: str,
     request: Request,
-    xcap_uri: XCAPUri = Depends(auth_manager.authenticate_request),
+    auth_data: AuthData = Depends(auth_manager.authenticate_xcap_request),
     domain: str = DEFAULT_DOMAIN
 ):
-    application = getApplication(xcap_uri)
-    xcap_data = get_xcap_resource(xcap_uri, application)
+    xcap_data = get_xcap_resource(auth_data.xcap_uri, auth_data.application)
     return await xcap_data.handle_delete(request)
 

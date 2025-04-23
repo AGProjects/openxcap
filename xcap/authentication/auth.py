@@ -3,18 +3,21 @@ import hashlib
 import socket
 import struct
 import time
+from dataclasses import dataclass
 from typing import Dict, Optional
 from uuid import uuid4
 
 from fastapi import HTTPException, Request
 
 from xcap import __version__
+from xcap.appusage import ApplicationUsage
 from xcap.appusage import ServerConfig as Backend
-from xcap.appusage import namespaces, public_get_applications
+from xcap.appusage import (getApplicationForId, getApplicationForURI,
+                           namespaces, public_get_applications)
 from xcap.configuration import AuthenticationConfig, ServerConfig
 from xcap.errors import ResourceNotFound
 from xcap.http_utils import get_client_ip
-from xcap.uri import XCAPUri
+from xcap.uri import XCAPUri, XCAPUser
 from xcap.xpath import DocumentSelectorError, NodeParsingError
 
 # In-memory nonce cache with expiration time (for demonstration purposes)
@@ -27,6 +30,19 @@ WELCOME = ('<html><head><title>Not Found</title></head>'
            '<br><br>'
            '<address><a href="http://www.openxcap.org">OpenXCAP/%s</address>'
            '</body></html>') % __version__
+
+
+def getApplication(xcap_uri: XCAPUri) -> ApplicationUsage:
+    application = getApplicationForURI(xcap_uri)
+    if application is None:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    return application
+
+
+def checkApplication(application, user: str, xcap_uri: XCAPUri) -> None:
+    if not application.is_authorized(XCAPUser.parse(user), xcap_uri):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
 
 def parseNodeURI(node_uri: str, default_realm: str) -> XCAPUri:
@@ -53,6 +69,7 @@ def parseNodeURI(node_uri: str, default_realm: str) -> XCAPUri:
         r.user.domain = default_realm
     return r
 
+
 def parseApiURI(node_uri: str, default_realm: str, resource_selector: str) -> XCAPUri:
     """Parses the given Node URI, containing the XCAP root, document selector,
        and node selector, and returns an XCAPUri instance if succesful."""
@@ -60,6 +77,9 @@ def parseApiURI(node_uri: str, default_realm: str, resource_selector: str) -> XC
     for uri in ServerConfig.root.uris:
         xcap_root = uri
         break
+
+    if xcap_root is None:
+        raise ResourceNotFound("XCAP root not defined")
 
     try:
         r = XCAPUri(xcap_root, resource_selector, namespaces)
@@ -70,6 +90,13 @@ def parseApiURI(node_uri: str, default_realm: str, resource_selector: str) -> XC
     if r.user.domain is None:
         r.user.domain = default_realm
     return r
+
+
+@dataclass
+class AuthData:
+    xcap_uri: XCAPUri
+    application: ApplicationUsage
+
 
 class Credentials(object):
     def __init__(self, username, password=None, realm=None):
@@ -141,7 +168,7 @@ class AuthenticationManager:
         return True
 
     # Digest Authentication Dependency
-    async def digest_auth(self, request: Request, realm: str) -> None:
+    async def digest_auth(self, request: Request, realm: str) -> str:
         auth_header = request.headers.get("Authorization")
 
         if not auth_header or not auth_header.startswith("Digest "):
@@ -188,8 +215,9 @@ class AuthenticationManager:
 
         if response != expected_response:
             raise HTTPException(status_code=401, detail="Invalid credentials or response")
+        return f'{username}@{realm}'
 
-    async def basic_auth(self, request: Request, realm: str) -> None:
+    async def basic_auth(self, request: Request, realm: str) -> str:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Basic "):
             raise HTTPException(
@@ -211,6 +239,8 @@ class AuthenticationManager:
                 detail="Invalid credentials"
             )
 
+        return f'{user[0].username}@{user[0].domain}'
+
     # Function to check if the client IP is in the trusted peers list
     def is_ip_trusted(self, client_ip: Optional[str]) -> bool:
         """Check if the client IP is in the trusted peers list."""
@@ -229,7 +259,7 @@ class AuthenticationManager:
         # If the IP address does not match any range, return False
         return False
 
-    async def authenticate_request(self, request: Request) -> XCAPUri:
+    async def authenticate_xcap_request(self, request: Request) -> AuthData:
         """Authenticate a request by checking IP and applying Digest or Basic authentication as needed."""
         client_ip = get_client_ip(request)
         proto = request.headers.get("X-Forwarded-Proto", request.url.scheme)
@@ -239,7 +269,8 @@ class AuthenticationManager:
         xcap_uri = parseNodeURI(str(full_url), AuthenticationConfig.default_realm)
 
         if xcap_uri.doc_selector.context == 'global':
-            return xcap_uri
+            application = getApplication(xcap_uri)
+            return AuthData(xcap_uri, application)
 
         realm = xcap_uri.user.domain
 
@@ -247,19 +278,24 @@ class AuthenticationManager:
             raise ResourceNotFound('Unknown domain (the domain part of "username@domain" is required because this server has no default domain)')
 
         if request.method == "GET" and xcap_uri.application_id in public_get_applications:
-            return xcap_uri
+            application = getApplication(xcap_uri)
+            return AuthData(xcap_uri, application)
 
         if self.is_ip_trusted(client_ip):
-            return xcap_uri
+            application = getApplication(xcap_uri)
+            return AuthData(xcap_uri, application)
 
         if AuthenticationConfig.type == 'digest':
-            await self.digest_auth(request, realm)
+            user = await self.digest_auth(request, realm)
         elif AuthenticationConfig.type == 'basic':
-            await self.basic_auth(request, realm)
+            user = await self.basic_auth(request, realm)
         else:
             raise ValueError('Invalid authentication type: %r. Please check the configuration.' % AuthenticationConfig.type)
 
-        return xcap_uri
+        application = getApplication(xcap_uri)
+        checkApplication(application, user, xcap_uri)
+
+        return AuthData(xcap_uri, application)
 
     async def authenticate_api_request(self, request: Request, document, user) -> XCAPUri:
         """Authenticate a request by checking IP and applying Digest or Basic authentication as needed."""
@@ -286,10 +322,13 @@ class AuthenticationManager:
             return xcap_uri
 
         if AuthenticationConfig.type == 'digest':
-            await self.digest_auth(request, realm)
+            user = await self.digest_auth(request, realm)
         elif AuthenticationConfig.type == 'basic':
-            await self.basic_auth(request, realm)
+            user = await self.basic_auth(request, realm)
         else:
             raise ValueError('Invalid authentication type: %r. Please check the configuration.' % AuthenticationConfig.type)
+
+        application = getApplicationForId(document.application)
+        checkApplication(application, user, xcap_uri)
 
         return xcap_uri

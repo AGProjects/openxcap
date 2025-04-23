@@ -1,1 +1,1 @@
-from .auth import AuthenticationManager
+from .auth import AuthData, AuthenticationManager
