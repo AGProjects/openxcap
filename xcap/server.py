@@ -9,7 +9,8 @@ from starlette.background import BackgroundTask, BackgroundTasks
 from starlette.middleware.base import BaseHTTPMiddleware
 from twisted.internet import asyncioreactor, reactor
 
-from xcap import __description__, __fullname__, __version__
+from xcap import (__author__, __description__, __fullname__, __url__,
+                  __version__)
 from xcap.configuration import ServerConfig, TLSConfig
 from xcap.db.initialize import init_db
 from xcap.errors import HTTPError, ResourceNotFound, XCAPError
@@ -44,7 +45,12 @@ class XCAPApp(FastAPI):
     backend: str = ''
 
     def __init__(self):
-        super().__init__(title=__fullname__, description=__description__, version=__version__)
+        super().__init__(
+            title=__fullname__,
+            description=__description__,
+            contact={"name": __author__, "url": __url__},
+            version=__version__
+        )
         self.add_middleware(LogRequestMiddleware)
         from xcap.routes import api_routes, xcap_routes
         self.include_router(xcap_routes.router)
