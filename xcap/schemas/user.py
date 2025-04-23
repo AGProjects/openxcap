@@ -18,21 +18,22 @@ class UserModel:
     def __get_validators__(cls) -> Generator:
         yield cls.validate
 
-    @classmethod
-    def __modify_schema__(cls, field_schema: dict) -> None:
-        field_schema.update(
-            {
-                "type": "string",
-                "pattern": cls.REGEX.pattern,
-                "example": "user@example.com",
-            }
-        )
 
     if core_schema:
         @classmethod
         def __get_pydantic_core_schema__(cls, source_type: Any, handler: GetCoreSchemaHandler):
             """Fix JSON Schema generation for FastAPI"""
             return core_schema.str_schema(pattern=cls.REGEX.pattern)
+    else:
+        @classmethod
+        def __modify_schema__(cls, field_schema: dict) -> None:
+            field_schema.update(
+                {
+                    "type": "string",
+                    "pattern": cls.REGEX.pattern,
+                    "example": "user@example.com",
+                }
+            )
 
     @classmethod
     def validate(cls, value: str) -> str:
