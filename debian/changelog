@@ -1,4 +1,23 @@
-openxcap (3.0) unstable; urgency=medium
+openxcap (3.1.0) unstable; urgency=medium
+
+  * Updated API docs
+  * Updated documentation
+  * Added JSON REST API
+  * Added route definitions for JSON REST API
+  * Added models to describe API responses
+  * Added schemas for addressbook urls in JSON API
+  * Added schemas for user urls in JSON API
+  * Added utils for JSON API schema operations
+  * Added method to return application by document id
+  * Added authentication support for different URL schema
+  * Fixed checking the xcap app authorization
+  * Fixed pydantic 2 compatibility
+  * Fixed name and set server name
+  * Fixed setting profile for SIPThor backend, a setter does not work in older pydantic versions
+
+ -- Tijmen de Mes <tijmen@ag-projects.com>  Thu, 24 Apr 2025 14:03:04 +0200
+
+openxcap (3.0.0) unstable; urgency=medium
 
   * Ported code to Python 3
   * Modernized code
