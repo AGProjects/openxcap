@@ -35,7 +35,7 @@ def xml_xcapdiff(xcap_root: XCAPRootURI, content: str) -> str:
 """ % (xcap_root, content)
 
 
-def xml_document(sel: XCAPUri, old_etag: str, new_etag: Union[str, None]) -> str:
+def xml_document(sel: str, old_etag: str, new_etag: Union[str, None]) -> str:
     if old_etag:
         old_etag = (' previous-etag="%s"' % old_etag)
     else:
@@ -51,12 +51,12 @@ class UserChanges(object):
     MIN_WAIT = 30
 
     def __init__(self, publish_xcapdiff: PublishFunction):
-        self.changes: Dict[XCAPUri, List[Any]] = {}
+        self.changes: Dict[str, List[Any]] = {}
         self.rate_limit = RateLimit(self.MIN_WAIT)
         self.publish_xcapdiff = publish_xcapdiff
 
     async def add_change(self, uri: XCAPUri, old_etag: str, etag: Union[str, None], xcap_root: XCAPRootURI) -> None:
-        self.changes.setdefault(uri, [old_etag, etag])[1] = etag
+        self.changes.setdefault(str(uri), [old_etag, etag])[1] = etag
         await self.rate_limit.callAtLimitedRate(self.publish, uri.user.uri, xcap_root)
 
     async def publish(self, user_uri: str, xcap_root: XCAPRootURI) -> None:
