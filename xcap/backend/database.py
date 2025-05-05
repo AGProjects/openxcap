@@ -86,6 +86,14 @@ class DatabaseStorage(BackendInterface):
         if results:
             existing_doc = results[0][0]
             old_etag = existing_doc.etag
+            doc = existing_doc.doc
+
+            if isinstance(doc, str):
+                doc = doc.encode('utf-8')
+
+            if doc == document:
+                return StatusResponse(200, old_etag, doc)
+
             check_etag(old_etag)  # Check if etag matches
             etag = make_random_etag(uri)  # Generate a new etag
             old_data = existing_doc

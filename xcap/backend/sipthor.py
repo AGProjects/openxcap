@@ -343,6 +343,16 @@ class Storage(BackendInterface):
 
     async def put_document(self, uri: XCAPUri, document: bytes, check_etag: Callable) -> Optional[StatusResponse]:
         decoded_document = document.decode('utf-8')
+
+        try:
+            server_document_response = await self.get_document(uri, check_etag)
+        except NotFound:
+            pass
+        else:
+            server_document = server_document_response.data  # type: ignore[union-attr]
+            if document == server_document:
+                return server_document_response
+
         self._normalize_document_path(uri)
         etag = make_random_etag(uri)
         result = await self._database.put(uri, decoded_document, check_etag, etag)
