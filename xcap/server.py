@@ -51,9 +51,14 @@ class XCAPApp(FastAPI):
             version=__version__
         )
         self.add_middleware(LogRequestMiddleware)
-        from xcap.routes import api_routes, xcap_routes
+        from xcap.routes import xcap_routes
         self.include_router(xcap_routes.router)
-        self.include_router(api_routes.router)
+        try:
+            from xcap.routes import api_routes
+        except ImportError as e:
+            log.warning(f"REST API routes not loaded due to import error: {e}")
+        else:
+            self.include_router(api_routes.router)
         # self.app.include_router(user_routes.router)  # Uncomment if user_routes is needed
         self.on_event("startup")(self.startup)
         self.on_event("shutdown")(self.shutdown_reactor)
