@@ -32,10 +32,11 @@ Dependencies
  * Fast API - https://fastapi.tiangolo.com/
  * Uvicorn - https://www.uvicorn.org 
  * SQLModel - https://sqlmodel.tiangolo.com
+ * python3-sipsimple - https://sipsimpleclient.org
 
 The requirements and versions are listed in requirements.txt.
 
-For OpenSIPS support python3-sipsimple is required.
+For OpenSIPS support/REST API, python3-sipsimple is required.
 
 
 Debian packages
