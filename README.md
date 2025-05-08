@@ -16,6 +16,15 @@ Saul Ibarra
 Tijmen de Mes
 
 
+Credits
+-------
+
+This project received funding through [NGI0 Entrust](https://nlnet.nl/entrust), a fund established by
+[NLnet](https://nlnet.nl) with financial support from the European Commission's [Next Generation Internet](https://ngi.eu) program.
+
+Learn more at the [NLnet project page](https://nlnet.nl/project/Blink-Windows).
+
+
 Description
 -----------
 
