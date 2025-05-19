@@ -1,3 +1,13 @@
+openxcap (3.1.1) unstable; urgency=medium
+
+  * Added credits to NLnet Foundation
+  * Expose REST api routes only when dependencies are available
+  * Updated docs
+  * Don't put identical documents and return same etag
+  * Fixed multiple etags for the same document in xcapdiff event
+
+ -- Tijmen de Mes <tijmen@ag-projects.com>  Mon, 19 May 2025 10:34:18 +0200
+
 openxcap (3.1.0) unstable; urgency=medium
 
   * Updated API docs
