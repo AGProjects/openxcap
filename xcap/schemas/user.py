@@ -12,12 +12,11 @@ except ImportError:
 
 
 class UserModel:
-    REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(:\d+)?(;\S*)?$")
+    REGEX = re.compile(r"^[\w.!%+\-]+@([\w\-]+\.)+[\w\-]{2,}$")
 
     @classmethod
     def __get_validators__(cls) -> Generator:
         yield cls.validate
-
 
     if core_schema:
         @classmethod
