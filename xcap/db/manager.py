@@ -32,11 +32,23 @@ class DatabaseConnectionManager:
 
     def create_engine(self, uri: DatabaseURI) -> AsyncEngine:
         if uri.startswith('sqlite'):
-            return create_async_engine(uri, connect_args={"check_same_thread": False}, echo=False)
+            engine = create_async_engine(uri, connect_args={"check_same_thread": False}, echo=False)
         elif uri.startswith('mysql'):
-            return create_async_engine(uri, echo=False)
+            engine = create_async_engine(uri, echo=False)
         else:
             raise ValueError("Unsupported database URI scheme")
+
+        @event.listens_for(engine.sync_engine, "handle_error")
+        def handle_error(exc):
+            original_exception = exc.original_exception
+            exception_type = type(original_exception).__name__
+            error_code = getattr(original_exception, 'args', [None, None])[0]
+            error_message = getattr(original_exception, 'args', [None, None])[1]
+
+            log.error(f"{exception_type}: {error_code}, \"{error_message}\"")
+            raise DBError
+
+        return engine
 
     def configure_db_connection(self, uri: Optional[DatabaseURI] = None) -> None:
         """ Configure the database connection with the provided URI for Uvicorn """
