@@ -1,3 +1,10 @@
+openxcap (3.1.2) unstable; urgency=medium
+
+  * Simplified user matching regexp for URLs
+  * Potentially fixed memory leak
+
+ -- Tijmen de Mes <tijmen@ag-projects.com>  Tue, 29 Jul 2025 14:51:35 +0200
+
 openxcap (3.1.1) unstable; urgency=medium
 
   * Added credits to NLnet Foundation

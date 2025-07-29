@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.poetry]
 name = "openxcap"
-version = "3.1.1"
+version = "3.1.2"
 description="A fully featured XCAP server"
 authors = ["AG Projects <support@ag-projects.com>"]
 license = "GPL-3.0-or-later"
