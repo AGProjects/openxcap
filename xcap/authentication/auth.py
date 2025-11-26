@@ -2,11 +2,13 @@ import base64
 import hashlib
 import socket
 import struct
+import threading
 import time
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Optional
 from uuid import uuid4
 
+from cachetools import TTLCache
 from fastapi import HTTPException, Request
 
 from xcap import __version__
@@ -20,9 +22,11 @@ from xcap.http_utils import get_client_ip
 from xcap.uri import XCAPUri, XCAPUser
 from xcap.xpath import DocumentSelectorError, NodeParsingError
 
-# In-memory nonce cache with expiration time (for demonstration purposes)
-nonce_cache: Dict[int, str] = {}
 NONCE_EXPIRATION_TIME = 900  # 15 minutes for nonce expiration
+NONCE_CACHE_MAX = 10000
+
+nonce_cache: TTLCache = TTLCache(maxsize=NONCE_CACHE_MAX, ttl=NONCE_EXPIRATION_TIME)
+nonce_cache_lock = threading.Lock()
 
 WELCOME = ('<html><head><title>Not Found</title></head>'
            '<body><h1>Not Found</h1>XCAP server does not serve anything '
@@ -124,6 +128,7 @@ class Credentials(object):
 class AuthenticationManager:
     def __init__(self):
         self.nonce_cache = nonce_cache
+        self.nonce_cache_lock = nonce_cache_lock
         self.trusted_peers = AuthenticationConfig.trusted_peers
 
     # Helper function to generate a nonce
@@ -157,15 +162,8 @@ class AuthenticationManager:
     # Function to validate and clean up expired nonces
     def validate_nonce(self, nonce: str) -> bool:
         """Check if the nonce is valid and not expired."""
-        if nonce not in self.nonce_cache:
-            return False
-        timestamp, _ = self.nonce_cache[nonce]
-        current_time = int(time.time())
-        if current_time - timestamp > NONCE_EXPIRATION_TIME:
-            # Nonce expired, remove it from the cache
-            del self.nonce_cache[nonce]
-            return False
-        return True
+        with self.nonce_cache_lock:
+            return nonce in self.nonce_cache
 
     # Digest Authentication Dependency
     async def digest_auth(self, request: Request, realm: str) -> str:
@@ -175,7 +173,9 @@ class AuthenticationManager:
             nonce = self.generate_nonce()
             opaque = "eee38d7sacbefv2a3450ciny7QMkPqMAFRtzCUYo5tdS"
 
-            self.nonce_cache[nonce] = (int(time.time()), opaque)  # Store nonce with timestamp
+            with self.nonce_cache_lock:
+                self.nonce_cache[nonce] = opaque
+
             www_authenticate_header = (
                 f'Digest realm="{realm}", nonce="{nonce}", opaque={opaque}, algorithm=MD5, qop=auth'
             )
@@ -215,6 +215,13 @@ class AuthenticationManager:
 
         if response != expected_response:
             raise HTTPException(status_code=401, detail="Invalid credentials or response")
+
+        with self.nonce_cache_lock:
+            try:
+                del self.nonce_cache[nonce]
+            except KeyError:
+                pass
+
         return f'{username}@{realm}'
 
     async def basic_auth(self, request: Request, realm: str) -> str:

@@ -10,5 +10,6 @@ python3-xcaplib @ git+https://github.com/AGProjects/python3-xcaplib.git
 lxml==5.3.* 
 aiosqlite==0.21.0
 aiomysql==0.2.0
+cachetools>=5.0.0
 twisted
 greenlet
