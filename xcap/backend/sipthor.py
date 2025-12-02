@@ -149,10 +149,10 @@ class XCAPProvisioning(EventServiceClient, metaclass=Singleton):
         if thor_databases:
             # thor_databases.sort(lambda x, y: cmp(x.priority, y.priority) or cmp(x.ip, y.ip))
             thor_databases.sort(key=lambda x: (x.priority, x.ip))
-            dburi = thor_databases[0].dburi
+            dburi = DatabaseURI(thor_databases[0].dburi)
         else:
             dburi = None
-        NotificationCenter().post_notification('db_uri', self, DatabaseURI(dburi))
+        NotificationCenter().post_notification('db_uri', self, dburi)
         all_roles = list(role_map.keys()) + list(networks.keys())
         for role in all_roles:
             try:
