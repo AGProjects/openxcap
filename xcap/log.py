@@ -58,7 +58,7 @@ file_formatter.prefix_format = ''
 file_handler = None
 
 access_file_logger = log.get_logger('access.file')
-access_file_logger.logger.setLevel(log.level.INFO)
+access_file_logger.setLevel(log.level.INFO)
 
 if LoggingConfig.directory:
     if not os.path.exists(LoggingConfig.directory):
