@@ -4,7 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import select
 
 from xcap.backend import BackendInterface, StatusResponse
-from xcap.db.manager import get_auth_db_session, get_db_session
+from xcap.db.manager import get_auth_db_session, get_db_session, shutdown_db
 from xcap.db.models import XCAP, Subscriber, Watcher
 from xcap.dbutil import make_random_etag
 from xcap.uri import XCAPUri
@@ -175,6 +175,9 @@ class DatabaseStorage(BackendInterface):
                 if watcher["id"] in active_watchers:
                     watcher["online"] = "true"
             return watchers
+
+    def stop(self):
+        shutdown_db()
 
 
 Storage = DatabaseStorage

@@ -32,7 +32,7 @@ import xcap
 from xcap.backend import BackendInterface, StatusResponse
 from xcap.configuration import ServerConfig, ThorNodeConfig
 from xcap.configuration.datatypes import DatabaseURI
-from xcap.db.manager import get_auth_db_session, get_db_session
+from xcap.db.manager import get_auth_db_session, get_db_session, shutdown_db
 from xcap.db.models import DataObject, SipAccount
 from xcap.dbutil import make_random_etag
 from xcap.errors import NotFound
@@ -417,6 +417,9 @@ class Storage(BackendInterface):
                     else:
                         docs[k] = [(k2, v2[1])]
         return docs
+
+    def stop(self):
+        shutdown_db()
 
 
 installSignalHandlers = False

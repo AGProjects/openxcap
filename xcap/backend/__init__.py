@@ -66,3 +66,7 @@ class BackendInterface(ABC):
     async def delete_document(self, uri: XCAPUri, check_etag: Callable) -> Optional[StatusResponse]:
         """Retrieve data for a specific resource."""
         pass
+
+    @abstractmethod
+    def stop(self):
+        pass

@@ -62,6 +62,8 @@ class XCAPApp(FastAPI):
         # self.app.include_router(user_routes.router)  # Uncomment if user_routes is needed
         self.on_event("startup")(self.startup)
         self.on_event("shutdown")(self.shutdown_reactor)
+        self.on_event("shutdown")(self.shutdown_backend)
+
         self.add_exception_handler(ResourceNotFound, self.resource_not_found_handler)
         self.add_exception_handler(HTTPError, self.http_error_handler)
         self.add_exception_handler(XCAPError, self.http_error_handler)
@@ -122,6 +124,9 @@ class XCAPApp(FastAPI):
     def _start_reactor(self):
         from xcap.appusage import ServerConfig
         reactor.run(installSignalHandlers=ServerConfig.backend.installSignalHandlers)
+
+    async def shutdown_backend(self):
+        self.backend.stop()
 
     async def read_root(self):
         return {"message": "Welcome to OpenXCAP!"}
