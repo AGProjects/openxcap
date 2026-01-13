@@ -15,16 +15,11 @@ class AccessLog(object):
     access_type: Optional[str] = None
 
     def __init__(self, headers: Dict[str, str], body: Union[bytes, str, None] = None, code: int = 0):
-        self.logger = log.get_logger('access.file')
-        self.logger.setLevel(log.level.INFO)
+        self.logger = access_file_logger
 
         self.headers = headers
         self.body = body
         self.code = code
-        if file_handler:
-            self.logger.handlers.clear()
-            self.logger.addHandler(file_handler)
-            self.logger.propagate = False
 
     def _log(self) -> None:
         self.logger.info(f'\n{"-" * 2} {self.access_type} {"-" * 38}')
@@ -62,6 +57,9 @@ file_formatter = log.Formatter()
 file_formatter.prefix_format = ''
 file_handler = None
 
+access_file_logger = log.get_logger('access.file')
+access_file_logger.logger.setLevel(log.level.INFO)
+
 if LoggingConfig.directory:
     if not os.path.exists(LoggingConfig.directory):
         try:
@@ -72,6 +70,8 @@ if LoggingConfig.directory:
     file_handler = FileHandler(filename)
     file_handler.setFormatter(file_formatter)
     access_logger.addHandler(file_handler)
+    access_file_logger.addHandler(file_handler)
+    access_file_logger.propagate = False
 
 
 def get_request_version(scope: MutableMapping[str, Any]) -> str:
