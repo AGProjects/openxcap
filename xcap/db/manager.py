@@ -74,18 +74,6 @@ async def get_db_session() -> AsyncIterator[AsyncSession]:
     if not connection_manager.AsyncSessionLocal:
         raise NoDatabase
     async with connection_manager.AsyncSessionLocal() as session:
-
-        @event.listens_for(session.get_bind(), 'handle_error')
-        def handle_error(exc):
-            original_exception = exc.original_exception
-
-            exception_type = type(original_exception).__name__
-            error_code = getattr(original_exception, 'args', [None, None])[0]  # Error code if available
-            error_message = getattr(original_exception, 'args', [None, None])[1]  # Error message if available
-
-            log.error(f"{exception_type}: {error_code}, \"{error_message}\"")
-            raise DBError
-
         yield session
 
 
@@ -95,17 +83,6 @@ async def get_auth_db_session() -> AsyncIterator[AsyncSession]:
         raise NoDatabase
 
     async with connection_manager.AsyncAuthSessionLocal() as session:
-        @event.listens_for(session.get_bind(), 'handle_error')
-        def handle_error(exc):
-            original_exception = exc.original_exception
-
-            exception_type = type(original_exception).__name__
-            error_code = getattr(original_exception, 'args', [None, None])[0]  # Error code if available
-            error_message = getattr(original_exception, 'args', [None, None])[1]  # Error message if available
-
-            log.error(f"{exception_type}: {error_code}, \"{error_message}\"")
-            raise DBError
-
         yield session
 
 connection_manager = DatabaseConnectionManager()
