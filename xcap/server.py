@@ -126,7 +126,16 @@ class XCAPApp(FastAPI):
         reactor.run(installSignalHandlers=ServerConfig.backend.installSignalHandlers)
 
     async def shutdown_backend(self):
-        self.backend.stop()
+        import asyncio
+        import sys
+        storage = getattr(sys.modules.get('xcap.appusage', None), 'storage', None)
+        if storage:
+            try:
+                res = storage.stop()
+                if asyncio.iscoroutine(res):
+                    await res
+            except Exception:
+                pass
 
     async def read_root(self):
         return {"message": "Welcome to OpenXCAP!"}
