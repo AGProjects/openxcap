@@ -84,8 +84,22 @@ class Notifier(object):
         self.users_changes: Dict[str, UserChanges] = {}
 
     async def on_change(self, uri: XCAPUri, old_etag: str, new_etag: Optional[str]) -> None:
-        changes = self.users_changes.setdefault(str(uri.user), UserChanges(self.publish_xcapdiff))
+        key = str(uri.user)
+        changes = self.users_changes.setdefault(key, UserChanges(self.publish_xcapdiff))
         await changes.add_change(uri, old_etag, new_etag, self.xcap_root)
+
+        def try_cleanup(_task=None):
+            if not changes:  # no pending changes
+                self.users_changes.pop(key, None)
+
+        delayed = getattr(changes.rate_limit, "delayed_call", None)
+        if delayed is None or delayed.done():
+            try_cleanup()  # clean immediately if possible
+        else:
+            try:
+                delayed.add_done_callback(lambda t: try_cleanup())
+            except Exception:
+                try_cleanup()  # fallback if task already done
 
 
 class RateLimit:
@@ -108,10 +122,12 @@ class RateLimit:
             self.delayed_call = asyncio.create_task(self._delayed_call(f, args, kwargs, delta))
 
     async def _delayed_call(self, f: PublishWrapper, args, kwargs, delta: float) -> None:
-        await asyncio.sleep(self.min_wait - delta)  # Wait for the remaining time
-        self.last_call = time()  # Update the last call time
-        await f(*args, **kwargs)  # Call the function
-        self.delayed_call = None  # Clear the delayed call once it's executed
+        try:
+            await asyncio.sleep(self.min_wait - delta)  # Wait for the remaining time
+            self.last_call = time()  # Update the last call time
+            await f(*args, **kwargs)  # Call the function
+        finally:
+            self.delayed_call = None  # Clear the delayed call once it's executed
 
 
 class RateLimitedFun(RateLimit):
