@@ -41,11 +41,11 @@ class ContactModel(BaseModel):
     @root_validator(pre=True)
     def add_default_uri(cls, values):
         uris = values.get('uris', [])
-        default_uri = None
-        for uri in uris:
-            if uri.get('default'):
-                default_uri = uri
-                break
+        default_uris = [uri for uri in uris if uri.get('default')]
+        if len(default_uris) > 1:
+            raise ValueError("Only one URI can be marked as default")
+
+        default_uri = default_uris[0] if default_uris else None
         values['default_uri'] = default_uri
         return values
 
@@ -74,11 +74,11 @@ class BaseContactModel(BaseModel):
     @root_validator(pre=True)
     def add_default_uri(cls, values):
         uris = values.get('uris', [])
-        default_uri = None
-        for uri in uris:
-            if uri.get('default'):
-                default_uri = uri
-                break
+        default_uris = [uri for uri in uris if uri.get('default')]
+        if len(default_uris) > 1:
+            raise ValueError("Only one URI can be marked as default")
+
+        default_uri = default_uris[0] if default_uris else None
         values['default_uri'] = default_uri
         return values
 

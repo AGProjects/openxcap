@@ -250,7 +250,9 @@ async def add_contact(
         contact_uri = addressbook.ContactURI(uri.id, uri.uri, uri.type)
         contact_uri.attributes = addressbook.ContactURI.attributes.type(uri.attributes)
         xml_contact.uris.add(contact_uri)
-    xml_contact.uris.default = [uri.id for uri in contact.uris if uri.default][0]
+        if uri.default:
+            xml_contact.uris.default = contact_uri
+
     xml_contact.attributes = addressbook.Contact.attributes.type(contact.attributes)
     sipsimple_addressbook.add(xml_contact)
 
@@ -287,9 +289,12 @@ async def update_contact(
         contact_uri = addressbook.ContactURI(uri.id, uri.uri, uri.type)
         contact_uri.attributes = addressbook.ContactURI.attributes.type(uri.attributes)
         ab_contact.uris.add(contact_uri)
-    ab_contact.uris.default = [uri.id for uri in contact.uris if uri.default][0]
-    attributes = addressbook.Contact.attributes.type(contact.attributes)
-    ab_contact.attributes.update(attributes)
+        if uri.default:
+            ab_contact.uris.default = contact_uri
+    if ab_contact.attributes is None:
+        ab_contact.attributes = addressbook.Contact.attributes.type()
+
+    ab_contact.attributes.update(contact.attributes)
 
     request.state.body = document.content.toxml()
     await xcap_data.handle_update(request)
@@ -409,8 +414,10 @@ async def update_policy(
     xml_policy.uri = policy.uri
     xml_policy.presence_handling = presence_handling
     xml_policy.dialog_handling = dialog_handling
-    attributes = addressbook.Policy.attributes.type(policy.attributes)
-    xml_policy.attributes.update(attributes)
+    if xml_policy.attributes is None:
+        xml_policy.attributes = addressbook.Policy.attributes.type()
+
+    xml_policy.attributes.update(policy.attributes)
 
     request.state.body = document.content.toxml()
     await xcap_data.handle_update(request)
@@ -539,8 +546,10 @@ async def update_group(
 
     xml_group.name = group.name
     # xml_group.contacts = [contact.id for contact in group.contacts]
-    attributes = addressbook.Group.attributes.type(group.attributes)
-    xml_group.attributes.update(attributes)
+    if xml_group.attributes is None:
+        xml_group.attributes = addressbook.Group.attributes.type()
+
+    xml_group.attributes.update(group.attributes)
     ab = Addressbook.from_payload(document.content['sipsimple_addressbook'])
 
     request.state.body = document.content.toxml()
