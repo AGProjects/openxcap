@@ -8,7 +8,6 @@ from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from starlette.background import BackgroundTask, BackgroundTasks
 from starlette.middleware.base import BaseHTTPMiddleware
 from twisted.internet import asyncioreactor, reactor
-
 from xcap import (__author__, __description__, __fullname__, __url__,
                   __version__)
 from xcap.configuration import ServerConfig, TLSConfig
@@ -20,25 +19,41 @@ from xcap.log import AccessLogRequest, AccessLogResponse, log_access
 class LogRequestMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         body = await request.body()
+
+        async def receive():
+            return {"type": "http.request", "body": body, "more_body": False}
+        request._receive = receive
         request.state.body = body
+
         response = await call_next(request)
 
-        response.headers['Date'] = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
         chunks = []
+
         async for chunk in response.body_iterator:
             chunks.append(chunk)
-        res_body = b''.join(chunks)
+
+        full_body = b"".join(chunks)
+
+        async def replay_body():
+            yield full_body
+
+        response.body_iterator = replay_body()
+        response.headers['Date'] = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
 
         request_log = AccessLogRequest(dict(request.headers), body, response.status_code)
-        response_log = AccessLogResponse(dict(response.headers), res_body, response.status_code)
+        response_log = AccessLogResponse(dict(response.headers), full_body, response.status_code)  # body will be set in background
 
-        task = BackgroundTasks()
-        task.add_task(BackgroundTask(log_access, request, response, res_body))
-        task.add_task(BackgroundTask(request_log.log))
-        task.add_task(BackgroundTask(response_log.log))
+        if response.background is None:
+            response.background = BackgroundTasks()
 
-        return Response(content=res_body, status_code=response.status_code,
-                        headers=dict(response.headers), media_type=response.media_type, background=task)
+        def background_log():
+            log_access(request, response, full_body)
+            request_log.log()
+            response_log.log()
+
+        response.background.add_task(background_log)
+
+        return response
 
 
 class XCAPApp(FastAPI):
