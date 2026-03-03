@@ -258,15 +258,16 @@ class DatabaseConnection(object, metaclass=Singleton):
         async with get_db_session() as db_session:
             query = await db_session.execute(select(SipAccount).where(
                 SipAccount.username == username, SipAccount.domain == domain))
-            db_result = query.first()
+            db_result = query.scalars().unique().one_or_none()
             if not db_result:
                 raise NotFound()
-            profile = db_result[0].profile
+            profile = db_result.profile
             result = operation(profile)
             if update:
-                db_result[0].set_profile(profile)
+                db_result.set_profile(profile)
                 await db_session.commit()
-                await db_session.refresh(db_result[0])
+                await db_session.refresh(db_result)
+
             return result
 
 
