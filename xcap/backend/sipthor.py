@@ -5,6 +5,7 @@ import re
 import signal
 from typing import Any, Callable, Optional
 
+import xcap
 from application import log
 from application.notification import (IObserver, Notification,
                                       NotificationCenter)
@@ -26,9 +27,6 @@ from thor.link import Request
 from thor.link import Response as ThorResponse
 from twisted.internet import defer
 from twisted.internet.defer import Deferred
-from zope.interface import implementer
-
-import xcap
 from xcap.backend import BackendInterface, StatusResponse
 from xcap.configuration import ServerConfig, ThorNodeConfig
 from xcap.configuration.datatypes import DatabaseURI
@@ -38,6 +36,7 @@ from xcap.dbutil import make_random_etag
 from xcap.errors import NotFound
 from xcap.uri import XCAPUri
 from xcap.xcapdiff import Notifier
+from zope.interface import implementer
 
 
 class ThorEntityAddress(bytes):
