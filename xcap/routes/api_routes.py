@@ -1,4 +1,4 @@
-from typing import List
+from typing import AsyncGenerator, List
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sipsimple.account.xcap import (Addressbook, Document, IterateItems,
@@ -7,6 +7,7 @@ from sipsimple.payloads import addressbook, prescontent, resourcelists
 
 from xcap.appusage import getApplicationForId
 from xcap.authentication import AuthenticationManager
+from xcap.db.locks import lock_document
 from xcap.schemas.addressbook import (AddressbookModel, BaseContactModel,
                                       BaseGroupModel, BasePolicyModel,
                                       ContactModel, GroupAddModel,
@@ -112,6 +113,11 @@ def normalize(document: Document) -> Document:
     return document
 
 
+async def get_lock(user: UserModel) -> AsyncGenerator[None, None]:
+    async with lock_document(user):
+        yield
+
+
 async def load_data(document: Document, url: XCAPUri, request: Request, propagate: bool = True) -> Document:
     xcap_data = get_xcap_resource(url, getApplicationForId(document.application))
     try:
@@ -130,7 +136,8 @@ async def get_icon(
     user: UserModel,
     request: Request,
     document: Document = Depends(get_status_icon_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_status_icon_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_status_icon_document),
+    _lock: None = Depends(get_lock)
 ) -> UserIconModel:
     await load_data(document, xcap_uri, request)
 
@@ -149,7 +156,8 @@ async def add_icon(
     icon: UserIconModel,
     request: Request,
     document: Document = Depends(get_status_icon_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_status_icon_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_status_icon_document),
+    _lock: None = Depends(get_lock)
 ) -> UserIconModel:
     xcap_data = await load_data(document, xcap_uri, request, False)
 
@@ -168,7 +176,8 @@ async def delete_icon(
     user: UserModel,
     request: Request,
     document: Document = Depends(get_status_icon_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_status_icon_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_status_icon_document),
+    _lock: None = Depends(get_lock)
 ) -> Response:
     xcap_data = await load_data(document, xcap_uri, request)
     request.state.body = document.content.toxml()
@@ -183,7 +192,8 @@ async def read_addressbook(
     user: UserModel,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> AddressbookModel:
     await load_data(document, xcap_uri, request)
     ab = Addressbook.from_payload(document.content['sipsimple_addressbook'])
@@ -195,7 +205,8 @@ async def get_contacts(
     user: UserModel,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> List[ContactModel]:
     await load_data(document, xcap_uri, request)
     ab = Addressbook.from_payload(document.content['sipsimple_addressbook'])
@@ -208,7 +219,8 @@ async def get_contact(
     contact_id: str,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> ContactModel:
     await load_data(document, xcap_uri, request)
 
@@ -228,7 +240,8 @@ async def add_contact(
     contact: ContactModel,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> ContactModel:
     xcap_data = await load_data(document, xcap_uri, request, False)
 
@@ -269,7 +282,8 @@ async def update_contact(
     contact: BaseContactModel,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> ContactModel:
     xcap_data = await load_data(document, xcap_uri, request)
 
@@ -312,7 +326,8 @@ async def delete_contact(
     contact_id: str,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> Response:
     xcap_data = await load_data(document, xcap_uri, request)
 
@@ -337,7 +352,8 @@ async def get_policies(
     user: UserModel,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> List[PolicyModel]:
     await load_data(document, xcap_uri, request)
 
@@ -351,7 +367,8 @@ async def get_policy(
     policy_id: str,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> PolicyModel:
     await load_data(document, xcap_uri, request)
 
@@ -371,7 +388,8 @@ async def add_policy(
     policy: PolicyModel,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> PolicyModel:
     xcap_data = await load_data(document, xcap_uri, request, False)
 
@@ -398,7 +416,8 @@ async def update_policy(
     policy: BasePolicyModel,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> PolicyModel:
     xcap_data = await load_data(document, xcap_uri, request)
 
@@ -434,7 +453,8 @@ async def delete_policy(
     policy_id: str,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> Response:
     xcap_data = await load_data(document, xcap_uri, request)
 
@@ -457,7 +477,8 @@ async def get_groups(
     user: UserModel,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> List[GroupModel]:
     await load_data(document, xcap_uri, request)
     ab = Addressbook.from_payload(document.content['sipsimple_addressbook'])
@@ -470,7 +491,8 @@ async def get_group(
     group_id: str,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> GroupModel:
     await load_data(document, xcap_uri, request)
 
@@ -495,7 +517,8 @@ async def add_group(
     group: GroupAddModel,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> GroupModel:
     xcap_data = await load_data(document, xcap_uri, request, False)
 
@@ -534,7 +557,8 @@ async def update_group(
     group: BaseGroupModel,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> GroupModel:
     xcap_data = await load_data(document, xcap_uri, request)
 
@@ -573,7 +597,8 @@ async def delete_group(
     group_id: str,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> Response:
     xcap_data = await load_data(document, xcap_uri, request)
 
@@ -601,7 +626,8 @@ async def add_group_member(
     contact: GroupContactModel,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> GroupModel:
     xcap_data = await load_data(document, xcap_uri, request)
 
@@ -645,7 +671,8 @@ async def delete_group_member(
     member_id: str,
     request: Request,
     document: Document = Depends(get_rls_document),
-    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document)
+    xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
+    _lock: None = Depends(get_lock)
 ) -> Response:
     xcap_data = await load_data(document, xcap_uri, request)
 
