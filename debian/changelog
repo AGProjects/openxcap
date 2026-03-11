@@ -1,3 +1,15 @@
+openxcap (3.2.0) unstable; urgency=medium
+
+  * Added locking to DB for JSON API operations
+  * Fixed default uri and attributes in JSON api
+  * Added shutdown/stop code for the database connections
+  * Refactor/optimize logging
+  * Fixed multiple memory leaks
+  * Fixed traceback when dburi is None
+  * Added better nonce cache
+
+-- Tijmen de Mes <tijmen@ag-projects.com>  Wed, 11 Mar 2026 08:10:08 +0100
+
 openxcap (3.1.2) unstable; urgency=medium
 
   * Simplified user matching regexp for URLs
