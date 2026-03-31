@@ -42,6 +42,8 @@ class AccessLogRequest(AccessLog):
     def log(self) -> None:
         if self.code in LoggingConfig.log_request:
             self._log()
+            self.request = None
+            self.headers = None
 
 
 class AccessLogResponse(AccessLog):
@@ -50,7 +52,8 @@ class AccessLogResponse(AccessLog):
     def log(self) -> None:
         if self.code in LoggingConfig.log_response:
             self._log()
-
+            self.request = None
+            self.headers = None
 
 access_logger = log.get_logger('access')
 file_formatter = log.Formatter()
