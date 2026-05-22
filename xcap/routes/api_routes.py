@@ -264,7 +264,7 @@ async def add_contact(
         contact_uri.attributes = addressbook.ContactURI.attributes.type(uri.attributes)
         xml_contact.uris.add(contact_uri)
         if uri.default:
-            xml_contact.uris.default = contact_uri
+            xml_contact.uris.default = contact_uri.id
 
     xml_contact.attributes = addressbook.Contact.attributes.type(contact.attributes)
     sipsimple_addressbook.add(xml_contact)
@@ -304,7 +304,7 @@ async def update_contact(
         contact_uri.attributes = addressbook.ContactURI.attributes.type(uri.attributes)
         ab_contact.uris.add(contact_uri)
         if uri.default:
-            ab_contact.uris.default = contact_uri
+            ab_contact.uris.default = contact_uri.id
     if ab_contact.attributes is None:
         ab_contact.attributes = addressbook.Contact.attributes.type()
 
