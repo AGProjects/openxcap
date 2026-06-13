@@ -112,7 +112,7 @@ class GroupAddModel(BaseModel):
     id: Optional[str] = Field(default_factory=unique_id)
     name: str
     attributes: Optional[Dict[str, Any]] = None
-    contacts: List[GroupContactModel]
+    contacts: List[GroupContactModel] = Field(default_factory=list)
 
 
 class BasePolicyModel(BaseModel):

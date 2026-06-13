@@ -554,7 +554,7 @@ async def add_group(
 async def update_group(
     user: UserModel,
     group_id: str,
-    group: BaseGroupModel,
+    group: GroupAddModel,
     request: Request,
     document: Document = Depends(get_rls_document),
     xcap_uri: XCAPUri = make_auth_wrapper(get_rls_document),
@@ -569,11 +569,26 @@ async def update_group(
         raise HTTPException(404, detail="Group not found")
 
     xml_group.name = group.name
-    # xml_group.contacts = [contact.id for contact in group.contacts]
+
+    # Replace group membership with the provided contact ids that actually
+    # exist in the addressbook. (Previously membership was never updated.)
+    desired = set()
+    for contact in group.contacts:
+        try:
+            sipsimple_addressbook[addressbook.Contact, contact.id]
+        except KeyError:
+            continue
+        desired.add(contact.id)
+    current = set(list(xml_group.contacts))
+    for contact_id in desired - current:
+        xml_group.contacts.add(contact_id)
+    for contact_id in current - desired:
+        xml_group.contacts.remove(contact_id)
+
     if xml_group.attributes is None:
         xml_group.attributes = addressbook.Group.attributes.type()
 
-    xml_group.attributes.update(group.attributes)
+    xml_group.attributes.update(group.attributes or {})
     ab = Addressbook.from_payload(document.content['sipsimple_addressbook'])
 
     request.state.body = document.content.toxml()
