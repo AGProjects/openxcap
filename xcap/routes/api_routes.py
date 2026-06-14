@@ -283,7 +283,11 @@ async def add_contact(
     presence_handling = addressbook.PresenceHandling(contact.presence.policy, contact.presence.subscribe)
     dialog_handling = addressbook.DialogHandling(contact.dialog.policy, contact.dialog.subscribe)
     xml_contact = addressbook.Contact(contact.id, contact.name, presence_handling=presence_handling, dialog_handling=dialog_handling)
+    _seen_uris = set()
     for uri in contact.uris:
+        if uri.uri in _seen_uris:   # never store the same URI twice on a contact
+            continue
+        _seen_uris.add(uri.uri)
         contact_uri = addressbook.ContactURI(uri.id, uri.uri, uri.type)
         contact_uri.attributes = addressbook.ContactURI.attributes.type(coerce_attribute_values(uri.attributes))
         xml_contact.uris.add(contact_uri)
@@ -323,7 +327,19 @@ async def update_contact(
     ab_contact.presence_handling = presence_handling
     ab_contact.dialog_handling = dialog_handling
 
+    # REPLACE the URI list, do not append to it. The client always sends the
+    # full desired set of URIs; the previous code added the incoming URIs to
+    # the contact's EXISTING list without clearing it, and since each incoming
+    # ContactURI carries a fresh id, add() never deduplicated — so every PUT
+    # appended another copy (mi@sylk.link accumulated 17 identical entries).
+    # Clear first, then add the deduplicated incoming set.
+    for _existing in list(ab_contact.uris):
+        ab_contact.uris.remove(_existing)
+    _seen_uris = set()
     for uri in contact.uris:
+        if uri.uri in _seen_uris:
+            continue
+        _seen_uris.add(uri.uri)
         contact_uri = addressbook.ContactURI(uri.id, uri.uri, uri.type)
         contact_uri.attributes = addressbook.ContactURI.attributes.type(coerce_attribute_values(uri.attributes))
         ab_contact.uris.add(contact_uri)
