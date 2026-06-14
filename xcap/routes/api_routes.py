@@ -131,6 +131,30 @@ async def load_data(document: Document, url: XCAPUri, request: Request, propagat
     return xcap_data
 
 
+def coerce_attribute_values(attributes):
+    """XCAP stores contact/uri/group/policy attribute values as XML text
+    nodes, which lxml requires to be strings. A JSON client can legitimately
+    send non-string scalars (e.g. bypassdnd=true, a bool) — without coercion
+    document.toxml() raises 'Argument must be bytes or unicode, got bool' and
+    the whole PUT/POST fails (the contact is never stored). Normalize every
+    value to its XML-native string form: booleans become 'true'/'false',
+    numbers become their str(), strings pass through, None is dropped.
+    """
+    if not attributes:
+        return attributes
+    result = {}
+    for key, value in attributes.items():
+        if isinstance(value, bool):
+            result[key] = 'true' if value else 'false'
+        elif value is None:
+            continue
+        elif isinstance(value, str):
+            result[key] = value
+        else:
+            result[key] = str(value)
+    return result
+
+
 @router.get("/users/{user}/icon", tags=["User"])
 async def get_icon(
     user: UserModel,
@@ -261,12 +285,12 @@ async def add_contact(
     xml_contact = addressbook.Contact(contact.id, contact.name, presence_handling=presence_handling, dialog_handling=dialog_handling)
     for uri in contact.uris:
         contact_uri = addressbook.ContactURI(uri.id, uri.uri, uri.type)
-        contact_uri.attributes = addressbook.ContactURI.attributes.type(uri.attributes)
+        contact_uri.attributes = addressbook.ContactURI.attributes.type(coerce_attribute_values(uri.attributes))
         xml_contact.uris.add(contact_uri)
         if uri.default:
             xml_contact.uris.default = contact_uri.id
 
-    xml_contact.attributes = addressbook.Contact.attributes.type(contact.attributes)
+    xml_contact.attributes = addressbook.Contact.attributes.type(coerce_attribute_values(contact.attributes))
     sipsimple_addressbook.add(xml_contact)
 
     request.state.body = document.content.toxml()
@@ -301,14 +325,14 @@ async def update_contact(
 
     for uri in contact.uris:
         contact_uri = addressbook.ContactURI(uri.id, uri.uri, uri.type)
-        contact_uri.attributes = addressbook.ContactURI.attributes.type(uri.attributes)
+        contact_uri.attributes = addressbook.ContactURI.attributes.type(coerce_attribute_values(uri.attributes))
         ab_contact.uris.add(contact_uri)
         if uri.default:
             ab_contact.uris.default = contact_uri.id
     if ab_contact.attributes is None:
         ab_contact.attributes = addressbook.Contact.attributes.type()
 
-    ab_contact.attributes.update(contact.attributes)
+    ab_contact.attributes.update(coerce_attribute_values(contact.attributes))
 
     request.state.body = document.content.toxml()
     await xcap_data.handle_update(request)
