@@ -141,7 +141,7 @@ def coerce_attribute_values(attributes):
     numbers become their str(), strings pass through, None is dropped.
     """
     if not attributes:
-        return attributes
+        return {}
     result = {}
     for key, value in attributes.items():
         if isinstance(value, bool):
